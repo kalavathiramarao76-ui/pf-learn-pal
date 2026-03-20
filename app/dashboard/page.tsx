@@ -96,40 +96,28 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getPersonalizedLearningPlanRecommendation = async () => {
-    if (user) {
-      const response = await fetch('/api/personalized-learning-plan-recommendation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          progress: user.progress,
-          goals: user.goals,
-          preferences: user.preferences,
-          learningStyle: user.learningStyle,
-          pace: user.pace,
-        }),
-      });
-      const data = await response.json();
-      return data;
-    }
-    return null;
+  const getCustomizedPlan = async (selectedPlan: any) => {
+    const response = await fetch('/api/customized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        selectedPlan: selectedPlan,
+        progress: user.progress,
+        goals: user.goals,
+        preferences: user.preferences,
+      }),
+    });
+    const data = await response.json();
+    setCustomizedPlan(data);
   };
 
-  useEffect(() => {
-    if (user) {
-      getPersonalizedLearningPlanRecommendation().then((recommendation) => {
-        if (recommendation) {
-          const recommendedPlan = studyPlanOptions.find((plan) => plan.name === recommendation.planName);
-          if (recommendedPlan) {
-            setSelectedStudyPlan(recommendedPlan);
-          }
-        }
-      });
-    }
-  }, [user, studyPlanOptions]);
+  const handlePlanSelection = (selectedPlan: any) => {
+    setSelectedStudyPlan(selectedPlan);
+    getCustomizedPlan(selectedPlan);
+  };
 
   return (
     <DashboardLayout>
@@ -137,25 +125,31 @@ export default function DashboardPage() {
         <div className="row">
           <div className="col-md-4">
             <StudyPlanCard
-              title="Recommended Study Plan"
-              plan={recommendedPlan}
-              options={studyPlanOptions}
-              selectedPlan={selectedStudyPlan}
-              onSelectPlan={(plan) => setSelectedStudyPlan(plan)}
+              studyPlanOptions={studyPlanOptions}
+              handlePlanSelection={handlePlanSelection}
+              selectedStudyPlan={selectedStudyPlan}
             />
           </div>
           <div className="col-md-4">
-            <ProgressCard title="Your Progress" progress={user?.progress} />
+            <ProgressCard user={user} />
           </div>
           <div className="col-md-4">
-            <CommunityCard title="Join Our Community" />
+            <CommunityCard />
           </div>
         </div>
         <div className="row">
           <div className="col-md-12">
-            <ResourceCard title="Recommended Resources" resources={learningPlanRecommendations} />
+            <ResourceCard learningPlanRecommendations={learningPlanRecommendations} />
           </div>
         </div>
+        {customizedPlan && (
+          <div className="row">
+            <div className="col-md-12">
+              <h2>Customized Plan</h2>
+              <p>{customizedPlan.description}</p>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
