@@ -147,3 +147,27 @@
     @apply text-white;
   }
 }
+
+.meta-tags {
+  display: none;
+}
+
+.meta-tags::before {
+  content: '<meta name="description" content="Personalized Learning Companion"/>';
+  white-space: pre;
+}
+
+.meta-tags::after {
+  content: '<meta name="keywords" content="Personalized Learning, Companion, Education"/>';
+  white-space: pre;
+}
+
+body::before {
+  content: '<title>Personalized Learning Companion</title>';
+  display: none;
+}
+
+body::after {
+  content: '<meta name="robots" content="index, follow"/>';
+  display: none;
+}

@@ -29,9 +29,9 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col items-center justify-center h-full">
-        <h1 className="text-3xl font-bold mb-4">Welcome, {user?.name}!</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex flex-col items-center justify-center h-full p-4">
+        <h1 className="text-5xl font-bold mb-8">Welcome, {user?.name}!</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 p-4 bg-gray-100 rounded-lg shadow-md">
           <Link href="/study-plan">
             <StudyPlanCard />
           </Link>
@@ -46,7 +46,7 @@ export default function DashboardPage() {
           </Link>
         </div>
         <button
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-8"
           onClick={handleLogout}
         >
           Logout
