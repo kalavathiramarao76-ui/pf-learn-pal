@@ -23,6 +23,8 @@ export default function CommunityPage() {
   const [characterCount, setCharacterCount] = useState(0);
   const [editingPost, setEditingPost] = useState(null);
   const [reportingPost, setReportingPost] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -91,127 +93,90 @@ export default function CommunityPage() {
     }
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setValue('user', null);
-    setIsLoggedIn(false);
-  };
-
-  const handleEditorChange = (value: string) => {
-    setEditorValue(value);
-    setPostPreview(value.substring(0, characterLimit));
-    setCharacterCount(value.length);
-  };
-
   const handleEditPost = (post: any) => {
     setEditingPost(post);
     setEditorValue(post.text);
     setCharacterCount(post.text.length);
   };
 
-  const handleDeletePost = (post: any) => {
-    const updatedPosts = posts.filter((p) => p.text !== post.text);
-    setPosts(updatedPosts);
-    setValue('communityPosts', JSON.stringify(updatedPosts));
-  };
-
   const handleReportPost = (post: any) => {
     setReportingPost(post);
-    // Add reporting logic here
+  };
+
+  const handleReportSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('/api/report', { postId: reportingPost?.id, reason: reportReason, description: reportDescription });
+      if (response.status === 200) {
+        alert('Post reported successfully!');
+        setReportingPost(null);
+        setReportReason('');
+        setReportDescription('');
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center py-12">
-      <h1 className="text-3xl font-bold mb-4">Community Page</h1>
+    <div>
+      <h1>Community Page</h1>
       {isLoggedIn ? (
         <div>
-          <form onSubmit={handlePostSubmit}>
-            <ReactQuill
-              value={editorValue}
-              onChange={handleEditorChange}
-              placeholder="Write a post..."
-            />
-            <p className="text-sm text-gray-500 mt-2">
-              Character count: {characterCount} / {characterLimit}
-            </p>
-            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2">
-              {editingPost ? 'Update Post' : 'Create Post'}
-            </button>
-          </form>
+          <h2>Create a new post:</h2>
+          <ReactQuill
+            value={editorValue}
+            onChange={(value) => {
+              setEditorValue(value);
+              setCharacterCount(value.length);
+            }}
+          />
+          <p>Character count: {characterCount}</p>
+          <button onClick={handlePostSubmit}>Submit</button>
+          {editingPost && (
+            <button onClick={() => setEditingPost(null)}>Cancel editing</button>
+          )}
         </div>
       ) : (
         <div>
+          <h2>Login to create a post:</h2>
           <form onSubmit={handleLogin}>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-              className="py-2 px-4 border border-gray-400 rounded mb-2"
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="py-2 px-4 border border-gray-400 rounded mb-2"
-            />
-            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Login
-            </button>
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+            <button type="submit">Login</button>
           </form>
-          <form onSubmit={handleRegister}>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-              className="py-2 px-4 border border-gray-400 rounded mb-2"
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="py-2 px-4 border border-gray-400 rounded mb-2"
-            />
-            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Register
-            </button>
+          <p>Don't have an account? <Link href="/register">Register</Link></p>
+        </div>
+      )}
+      <h2>Posts:</h2>
+      {posts.map((post) => (
+        <div key={post.text}>
+          <p>{post.text}</p>
+          <p>Author: {post.author}</p>
+          <p>Timestamp: {post.timestamp}</p>
+          {isLoggedIn && (
+            <div>
+              <button onClick={() => handleEditPost(post)}>Edit</button>
+              <button onClick={() => handleReportPost(post)}>Report</button>
+            </div>
+          )}
+        </div>
+      ))}
+      {reportingPost && (
+        <div>
+          <h2>Report post:</h2>
+          <form onSubmit={handleReportSubmit}>
+            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+              <option value="">Select a reason</option>
+              <option value="spam">Spam</option>
+              <option value="harassment">Harassment</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} placeholder="Description" />
+            <button type="submit">Submit report</button>
           </form>
         </div>
       )}
-      <div className="mt-4">
-        {posts.map((post, index) => (
-          <div key={index} className="bg-white p-4 border border-gray-400 rounded mb-2">
-            <p className="text-lg font-bold">{post.author}</p>
-            <p className="text-sm text-gray-500">{post.timestamp}</p>
-            <p className="text-lg">{post.text}</p>
-            {isLoggedIn && (
-              <div>
-                <button
-                  onClick={() => handleEditPost(post)}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeletePost(post)}
-                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => handleReportPost(post)}
-                  className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  Report
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

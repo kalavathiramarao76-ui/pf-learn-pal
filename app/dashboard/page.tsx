@@ -22,6 +22,7 @@ export default function DashboardPage() {
     { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
   ]);
   const [selectedStudyPlan, setSelectedStudyPlan] = useState(null);
+  const [learningPlanRecommendations, setLearningPlanRecommendations] = useState([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -73,6 +74,28 @@ export default function DashboardPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user) {
+      const getLearningPlanRecommendations = async () => {
+        const response = await fetch('/api/learning-plan-recommendations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            progress: user.progress,
+            goals: user.goals,
+            preferences: user.preferences,
+          }),
+        });
+        const data = await response.json();
+        setLearningPlanRecommendations(data);
+      };
+      getLearningPlanRecommendations();
+    }
+  }, [user]);
+
   const handleLogout = () => {
     localStorage.removeItem('user');
     router.push('/');
@@ -88,98 +111,30 @@ export default function DashboardPage() {
     return (completedProgress / totalProgress) * 100;
   };
 
-  const getRecommendedPlanBasedOnProgressAndGoals = (user: any) => {
-    const progressPercentage = calculateProgressPercentage(user.progress);
-    const goals = user.goals;
-    let recommendedPlan;
-
-    if (progressPercentage < 20) {
-      recommendedPlan = {
-        name: 'Foundational Plan',
-        description: 'Build a strong foundation in the basics',
-        link: '/foundational-plan',
-      };
-    } else if (progressPercentage < 50) {
-      recommendedPlan = {
-        name: 'Intermediate Plan',
-        description: 'Improve your skills with intermediate-level content',
-        link: '/intermediate-plan',
-      };
+  const renderLearningPlanRecommendations = () => {
+    if (learningPlanRecommendations.length > 0) {
+      return (
+        <div>
+          <h2>Personalized Learning Plan Recommendations</h2>
+          {learningPlanRecommendations.map((recommendation, index) => (
+            <StudyPlanCard key={index} plan={recommendation} />
+          ))}
+        </div>
+      );
     } else {
-      recommendedPlan = {
-        name: 'Advanced Plan',
-        description: 'Master advanced topics and techniques',
-        link: '/advanced-plan',
-      };
+      return <p>No recommendations available.</p>;
     }
-    return recommendedPlan;
-  };
-
-  const handleCustomizeStudyPlan = (studyPlan: any) => {
-    setSelectedStudyPlan(studyPlan);
-    const customizedPlan = {
-      name: studyPlan.name,
-      description: studyPlan.description,
-      link: studyPlan.link,
-    };
-    setCustomizedPlan(customizedPlan);
   };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Study Plan"
-              studyPlan={recommendedPlan || getRecommendedPlanBasedOnProgressAndGoals(user)}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Personalized Study Plan"
-              studyPlan={personalizedPlan}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Customized Study Plan"
-              studyPlan={customizedPlan}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-12">
-            <h2>Customize Your Study Plan</h2>
-            <div className="study-plan-options">
-              {studyPlanOptions.map((studyPlan, index) => (
-                <div key={index} className="study-plan-option">
-                  <h3>{studyPlan.name}</h3>
-                  <p>{studyPlan.description}</p>
-                  <button onClick={() => handleCustomizeStudyPlan(studyPlan)}>Select</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ProgressCard
-              title="Progress"
-              progress={user.progress}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard
-              title="Community"
-            />
-          </div>
-          <div className="col-md-4">
-            <ResourceCard
-              title="Resources"
-            />
-          </div>
-        </div>
+      <div>
+        <h1>Dashboard</h1>
+        {renderLearningPlanRecommendations()}
+        <ProgressCard progress={user?.progress} />
+        <CommunityCard />
+        <ResourceCard />
+        <button onClick={handleLogout}>Logout</button>
       </div>
     </DashboardLayout>
   );
