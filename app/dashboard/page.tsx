@@ -96,81 +96,76 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getPersonalizedLearningPlanRecommendation = () => {
-    if (user && user.progress && user.goals && user.preferences) {
-      const progressWeight = 0.3;
-      const goalsWeight = 0.3;
-      const preferencesWeight = 0.4;
-
-      const progressScore = calculateProgressScore(user.progress);
-      const goalsScore = calculateGoalsScore(user.goals);
-      const preferencesScore = calculatePreferencesScore(user.preferences);
-
-      const totalScore = (progressScore * progressWeight) + (goalsScore * goalsWeight) + (preferencesScore * preferencesWeight);
-
-      const recommendedPlan = studyPlanOptions.find((plan) => plan.name === recommendedPlan?.name);
-
-      if (recommendedPlan) {
-        return {
-          name: recommendedPlan.name,
-          description: recommendedPlan.description,
-          link: recommendedPlan.link,
-          score: totalScore,
-        };
-      }
+  const getPersonalizedLearningPlanRecommendation = async () => {
+    if (user) {
+      const response = await fetch('/api/personalized-learning-plan-recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          progress: user.progress,
+          goals: user.goals,
+          preferences: user.preferences,
+          learningStyle: user.learningStyle,
+          pace: user.pace,
+        }),
+      });
+      const data = await response.json();
+      return data;
     }
     return null;
   };
 
-  const calculateProgressScore = (progress) => {
-    // Calculate progress score based on user's progress
-    // For example, if user has completed 50% of the course, return 0.5
-    return progress.completed / progress.total;
-  };
-
-  const calculateGoalsScore = (goals) => {
-    // Calculate goals score based on user's goals
-    // For example, if user has set a goal to complete the course in 3 months, return 0.8
-    return goals.importance / goals.difficulty;
-  };
-
-  const calculatePreferencesScore = (preferences) => {
-    // Calculate preferences score based on user's preferences
-    // For example, if user prefers video content, return 0.9
-    return preferences.importance / preferences.difficulty;
-  };
+  useEffect(() => {
+    if (user) {
+      getPersonalizedLearningPlanRecommendation().then((recommendation) => {
+        if (recommendation) {
+          const recommendedPlan = {
+            name: recommendation.planName,
+            description: recommendation.planDescription,
+            link: recommendation.planLink,
+          };
+          setRecommendedPlan(recommendedPlan);
+        }
+      });
+    }
+  }, [user]);
 
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Learning Plan</h2>
-            {getPersonalizedLearningPlanRecommendation() && (
-              <StudyPlanCard
-                name={getPersonalizedLearningPlanRecommendation().name}
-                description={getPersonalizedLearningPlanRecommendation().description}
-                link={getPersonalizedLearningPlanRecommendation().link}
-              />
-            )}
-            <h2>Study Plan Options</h2>
-            {studyPlanOptions.map((plan) => (
-              <StudyPlanCard
-                key={plan.name}
-                name={plan.name}
-                description={plan.description}
-                link={plan.link}
-              />
-            ))}
-            <h2>Progress</h2>
-            <ProgressCard progress={user.progress} />
-            <h2>Community</h2>
-            <CommunityCard />
-            <h2>Resources</h2>
-            <ResourceCard />
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Study Plan"
+              plan={recommendedPlan}
+              onClick={() => router.push(recommendedPlan.link)}
+            />
           </div>
-        )}
+          <div className="col-md-4">
+            <ProgressCard title="Your Progress" progress={user.progress} />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard title="Join Our Community" />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard title="Additional Resources" />
+          </div>
+          <div className="col-md-4">
+            <Link href="/study-plans">
+              <a>View All Study Plans</a>
+            </Link>
+          </div>
+          <div className="col-md-4">
+            <Link href="/progress">
+              <a>View Your Progress</a>
+            </Link>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
