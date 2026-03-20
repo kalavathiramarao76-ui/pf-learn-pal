@@ -75,26 +75,14 @@ export default function CommunityPage() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/login', { username, password });
-      if (response.status === 200) {
-        setUser(response.data);
-        setValue('user', JSON.stringify(response.data));
-        setIsLoggedIn(true);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post('/api/register', { username, password });
-      if (response.status === 200) {
-        setUser(response.data);
-        setValue('user', JSON.stringify(response.data));
-        setIsLoggedIn(true);
-      }
+      const response = await axios.post('/api/login', {
+        username,
+        password,
+      });
+      const userData = response.data;
+      setUser(userData);
+      setIsLoggedIn(true);
+      setValue('user', JSON.stringify(userData));
     } catch (error) {
       console.error(error);
     }
@@ -114,16 +102,18 @@ export default function CommunityPage() {
     e.preventDefault();
     if (reportReason && reportDescription) {
       try {
-        const response = await axios.post('/api/report', { postId: reportingPost._id, reason: reportReason, description: reportDescription });
-        if (response.status === 200) {
-          setReportSuccess('Post reported successfully!');
-          setTimeout(() => setReportSuccess(''), 3000);
-          setReportingPost(null);
-          setReportReason('');
-          setReportDescription('');
-        }
+        axios.post('/api/report', {
+          postId: reportingPost._id,
+          reason: reportReason,
+          description: reportDescription,
+        });
+        setReportSuccess('Post reported successfully!');
+        setTimeout(() => setReportSuccess(''), 3000);
+        setReportingPost(null);
+        setReportReason('');
+        setReportDescription('');
       } catch (error) {
-        setReportError('Failed to report post. Please try again.');
+        setReportError('Error reporting post. Please try again.');
         setTimeout(() => setReportError(''), 3000);
       }
     } else {
@@ -137,32 +127,43 @@ export default function CommunityPage() {
       <h1>Community Page</h1>
       {isLoggedIn ? (
         <div>
-          <h2>Create a new post:</h2>
-          <ReactQuill
-            value={editorValue}
-            onChange={(value) => {
-              setEditorValue(value);
-              setCharacterCount(value.length);
-            }}
-            placeholder="Write your post here..."
-          />
-          <p>Character count: {characterCount}/{characterLimit}</p>
-          {editError && <p style={{ color: 'red' }}>{editError}</p>}
-          {editSuccess && <p style={{ color: 'green' }}>{editSuccess}</p>}
-          <button onClick={handlePostSubmit}>Submit</button>
+          <h2>Create a new post</h2>
+          <form onSubmit={handlePostSubmit}>
+            <ReactQuill
+              value={editorValue}
+              onChange={(value) => {
+                setEditorValue(value);
+                setCharacterCount(value.length);
+              }}
+              placeholder="Write your post here..."
+            />
+            <p>Character count: {characterCount}/{characterLimit}</p>
+            {editError && <p style={{ color: 'red' }}>{editError}</p>}
+            {editSuccess && <p style={{ color: 'green' }}>{editSuccess}</p>}
+            <button type="submit">Submit</button>
+          </form>
         </div>
       ) : (
         <div>
-          <h2>Login to create a post:</h2>
+          <h2>Login to create a post</h2>
           <form onSubmit={handleLogin}>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+            />
             <button type="submit">Login</button>
           </form>
-          <p>Don't have an account? <Link href="/register">Register here</Link></p>
         </div>
       )}
-      <h2>Posts:</h2>
+      <h2>Posts</h2>
       {posts.map((post) => (
         <div key={post.text}>
           <p>{post.text}</p>
@@ -176,12 +177,43 @@ export default function CommunityPage() {
           )}
         </div>
       ))}
+      {editingPost && (
+        <div>
+          <h2>Edit post</h2>
+          <form onSubmit={handlePostSubmit}>
+            <ReactQuill
+              value={editorValue}
+              onChange={(value) => {
+                setEditorValue(value);
+                setCharacterCount(value.length);
+              }}
+              placeholder="Write your post here..."
+            />
+            <p>Character count: {characterCount}/{characterLimit}</p>
+            {editError && <p style={{ color: 'red' }}>{editError}</p>}
+            {editSuccess && <p style={{ color: 'green' }}>{editSuccess}</p>}
+            <button type="submit">Submit</button>
+          </form>
+        </div>
+      )}
       {reportingPost && (
         <div>
-          <h2>Report post:</h2>
+          <h2>Report post</h2>
           <form onSubmit={handleReportSubmit}>
-            <input type="text" value={reportReason} onChange={(e) => setReportReason(e.target.value)} placeholder="Reason" />
-            <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} placeholder="Description" />
+            <select
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+            >
+              <option value="">Select a reason</option>
+              <option value="spam">Spam</option>
+              <option value="harassment">Harassment</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+              placeholder="Describe the issue"
+            />
             {reportError && <p style={{ color: 'red' }}>{reportError}</p>}
             {reportSuccess && <p style={{ color: 'green' }}>{reportSuccess}</p>}
             <button type="submit">Submit</button>

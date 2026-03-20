@@ -96,19 +96,48 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user && learningPlanRecommendations.length > 0) {
-      const getCustomizedPlan = async () => {
-        const mlModel = await import('../../ml-model');
-        const customizedPlan = mlModel.predict(user, learningPlanRecommendations);
-        setCustomizedPlan(customizedPlan);
-      };
-      getCustomizedPlan();
-    }
-  }, [user, learningPlanRecommendations]);
+  const getPersonalizedLearningPlanRecommendation = () => {
+    if (user && user.progress && user.goals && user.preferences) {
+      const progressWeight = 0.3;
+      const goalsWeight = 0.3;
+      const preferencesWeight = 0.4;
 
-  const handleStudyPlanSelection = (plan) => {
-    setSelectedStudyPlan(plan);
+      const progressScore = calculateProgressScore(user.progress);
+      const goalsScore = calculateGoalsScore(user.goals);
+      const preferencesScore = calculatePreferencesScore(user.preferences);
+
+      const totalScore = (progressScore * progressWeight) + (goalsScore * goalsWeight) + (preferencesScore * preferencesWeight);
+
+      const recommendedPlan = studyPlanOptions.find((plan) => plan.name === recommendedPlan?.name);
+
+      if (recommendedPlan) {
+        return {
+          name: recommendedPlan.name,
+          description: recommendedPlan.description,
+          link: recommendedPlan.link,
+          score: totalScore,
+        };
+      }
+    }
+    return null;
+  };
+
+  const calculateProgressScore = (progress) => {
+    // Calculate progress score based on user's progress
+    // For example, if user has completed 50% of the course, return 0.5
+    return progress.completed / progress.total;
+  };
+
+  const calculateGoalsScore = (goals) => {
+    // Calculate goals score based on user's goals
+    // For example, if user has set a goal to complete the course in 3 months, return 0.8
+    return goals.importance / goals.difficulty;
+  };
+
+  const calculatePreferencesScore = (preferences) => {
+    // Calculate preferences score based on user's preferences
+    // For example, if user prefers video content, return 0.9
+    return preferences.importance / preferences.difficulty;
   };
 
   return (
@@ -117,33 +146,25 @@ export default function DashboardPage() {
         <h1>Personalized Learning Companion</h1>
         {user && (
           <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard plan={recommendedPlan} />
-            )}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && (
-              <StudyPlanCard plan={personalizedPlan} />
-            )}
-            <h2>Customized Plan</h2>
-            {customizedPlan && (
-              <StudyPlanCard plan={customizedPlan} />
+            <h2>Recommended Learning Plan</h2>
+            {getPersonalizedLearningPlanRecommendation() && (
+              <StudyPlanCard
+                name={getPersonalizedLearningPlanRecommendation().name}
+                description={getPersonalizedLearningPlanRecommendation().description}
+                link={getPersonalizedLearningPlanRecommendation().link}
+              />
             )}
             <h2>Study Plan Options</h2>
-            <div className="study-plan-options">
-              {studyPlanOptions.map((plan) => (
-                <div key={plan.name}>
-                  <Link href={plan.link}>
-                    <a onClick={() => handleStudyPlanSelection(plan)}>
-                      {plan.name}
-                    </a>
-                  </Link>
-                  <p>{plan.description}</p>
-                </div>
-              ))}
-            </div>
+            {studyPlanOptions.map((plan) => (
+              <StudyPlanCard
+                key={plan.name}
+                name={plan.name}
+                description={plan.description}
+                link={plan.link}
+              />
+            ))}
             <h2>Progress</h2>
-            <ProgressCard user={user} />
+            <ProgressCard progress={user.progress} />
             <h2>Community</h2>
             <CommunityCard />
             <h2>Resources</h2>

@@ -43,17 +43,41 @@
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 18px;
+    line-height: 1.6;
     @apply text-gray-800 dark:text-gray-200;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
     @apply text-gray-900 dark:text-gray-100;
-    font-size: 1.5rem;
+    font-size: 2rem;
     line-height: 1.2;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+  }
+
+  h3 {
+    font-size: 1.9rem;
+  }
+
+  h4 {
+    font-size: 1.7rem;
+  }
+
+  h5 {
+    font-size: 1.5rem;
+  }
+
+  h6 {
+    font-size: 1.3rem;
   }
 
   a {
@@ -70,22 +94,22 @@
   button {
     @apply bg-blue-600 dark:bg-blue-500;
     @apply text-white;
-    @apply py-2 px-4;
+    @apply py-3 px-5;
     @apply rounded;
     @apply transition duration-200;
     @apply hover:bg-blue-800 dark:hover:bg-blue-600;
-    font-size: 1rem;
+    font-size: 1.1rem;
     margin: 1rem;
-    @apply shadow-sm;
+    @apply shadow-md;
   }
 
   input, textarea, select {
     @apply bg-gray-200 dark:bg-gray-700;
     @apply border-gray-300 dark:border-gray-600;
-    @apply py-2 px-4;
+    @apply py-3 px-5;
     @apply rounded;
     @apply transition duration-200;
-    font-size: 1rem;
+    font-size: 1.1rem;
     margin: 0.5rem;
     @apply focus:outline-none;
   }
@@ -140,16 +164,45 @@
   /* Mobile-friendly layouts */
   @media (max-width: 640px) {
     body {
-      font-size: 14px;
+      font-size: 16px;
     }
 
     h1, h2, h3, h4, h5, h6 {
+      font-size: 1.8rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+    }
+
+    h3 {
+      font-size: 1.7rem;
+    }
+
+    h4 {
+      font-size: 1.5rem;
+    }
+
+    h5 {
+      font-size: 1.3rem;
+    }
+
+    h6 {
       font-size: 1.2rem;
     }
 
     button {
-      @apply py-1 px-2;
-      font-size: 0.8rem;
+      @apply py-2 px-4;
+      font-size: 1rem;
+    }
+
+    input, textarea, select {
+      @apply py-2 px-4;
+      font-size: 1rem;
     }
   }
 }
