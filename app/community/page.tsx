@@ -25,6 +25,10 @@ export default function CommunityPage() {
   const [reportingPost, setReportingPost] = useState(null);
   const [reportReason, setReportReason] = useState('');
   const [reportDescription, setReportDescription] = useState('');
+  const [editError, setEditError] = useState('');
+  const [reportError, setReportError] = useState('');
+  const [editSuccess, setEditSuccess] = useState('');
+  const [reportSuccess, setReportSuccess] = useState('');
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -53,6 +57,8 @@ export default function CommunityPage() {
         setEditorValue('');
         setCharacterCount(0);
         setEditingPost(null);
+        setEditSuccess('Post edited successfully!');
+        setTimeout(() => setEditSuccess(''), 3000);
       } else {
         const updatedPosts = [...posts, { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' }];
         setPosts(updatedPosts);
@@ -61,7 +67,8 @@ export default function CommunityPage() {
         setCharacterCount(0);
       }
     } else {
-      alert('Post exceeds character limit. Please shorten your post.');
+      setEditError('Post exceeds character limit. Please shorten your post.');
+      setTimeout(() => setEditError(''), 3000);
     }
   };
 
@@ -103,18 +110,25 @@ export default function CommunityPage() {
     setReportingPost(post);
   };
 
-  const handleReportSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('/api/report', { postId: reportingPost?.id, reason: reportReason, description: reportDescription });
-      if (response.status === 200) {
-        alert('Post reported successfully!');
-        setReportingPost(null);
-        setReportReason('');
-        setReportDescription('');
+    if (reportReason && reportDescription) {
+      try {
+        const response = await axios.post('/api/report', { postId: reportingPost._id, reason: reportReason, description: reportDescription });
+        if (response.status === 200) {
+          setReportSuccess('Post reported successfully!');
+          setTimeout(() => setReportSuccess(''), 3000);
+          setReportingPost(null);
+          setReportReason('');
+          setReportDescription('');
+        }
+      } catch (error) {
+        setReportError('Failed to report post. Please try again.');
+        setTimeout(() => setReportError(''), 3000);
       }
-    } catch (error) {
-      console.error(error);
+    } else {
+      setReportError('Please fill out all fields.');
+      setTimeout(() => setReportError(''), 3000);
     }
   };
 
@@ -130,12 +144,12 @@ export default function CommunityPage() {
               setEditorValue(value);
               setCharacterCount(value.length);
             }}
+            placeholder="Write your post here..."
           />
-          <p>Character count: {characterCount}</p>
+          <p>Character count: {characterCount}/{characterLimit}</p>
+          {editError && <p style={{ color: 'red' }}>{editError}</p>}
+          {editSuccess && <p style={{ color: 'green' }}>{editSuccess}</p>}
           <button onClick={handlePostSubmit}>Submit</button>
-          {editingPost && (
-            <button onClick={() => setEditingPost(null)}>Cancel editing</button>
-          )}
         </div>
       ) : (
         <div>
@@ -145,7 +159,7 @@ export default function CommunityPage() {
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
             <button type="submit">Login</button>
           </form>
-          <p>Don't have an account? <Link href="/register">Register</Link></p>
+          <p>Don't have an account? <Link href="/register">Register here</Link></p>
         </div>
       )}
       <h2>Posts:</h2>
@@ -166,14 +180,11 @@ export default function CommunityPage() {
         <div>
           <h2>Report post:</h2>
           <form onSubmit={handleReportSubmit}>
-            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-              <option value="">Select a reason</option>
-              <option value="spam">Spam</option>
-              <option value="harassment">Harassment</option>
-              <option value="other">Other</option>
-            </select>
+            <input type="text" value={reportReason} onChange={(e) => setReportReason(e.target.value)} placeholder="Reason" />
             <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} placeholder="Description" />
-            <button type="submit">Submit report</button>
+            {reportError && <p style={{ color: 'red' }}>{reportError}</p>}
+            {reportSuccess && <p style={{ color: 'green' }}>{reportSuccess}</p>}
+            <button type="submit">Submit</button>
           </form>
         </div>
       )}

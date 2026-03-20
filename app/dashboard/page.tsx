@@ -96,45 +96,60 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    router.push('/');
-  };
-
-  const calculateProgressPercentage = (progress: any) => {
-    let totalProgress = 0;
-    let completedProgress = 0;
-    Object.keys(progress).forEach((key) => {
-      totalProgress += progress[key].total;
-      completedProgress += progress[key].completed;
-    });
-    return (completedProgress / totalProgress) * 100;
-  };
-
-  const renderLearningPlanRecommendations = () => {
-    if (learningPlanRecommendations.length > 0) {
-      return (
-        <div>
-          <h2>Personalized Learning Plan Recommendations</h2>
-          {learningPlanRecommendations.map((recommendation, index) => (
-            <StudyPlanCard key={index} plan={recommendation} />
-          ))}
-        </div>
-      );
-    } else {
-      return <p>No recommendations available.</p>;
+  useEffect(() => {
+    if (user && learningPlanRecommendations.length > 0) {
+      const getCustomizedPlan = async () => {
+        const mlModel = await import('../../ml-model');
+        const customizedPlan = mlModel.predict(user, learningPlanRecommendations);
+        setCustomizedPlan(customizedPlan);
+      };
+      getCustomizedPlan();
     }
+  }, [user, learningPlanRecommendations]);
+
+  const handleStudyPlanSelection = (plan) => {
+    setSelectedStudyPlan(plan);
   };
 
   return (
     <DashboardLayout>
-      <div>
-        <h1>Dashboard</h1>
-        {renderLearningPlanRecommendations()}
-        <ProgressCard progress={user?.progress} />
-        <CommunityCard />
-        <ResourceCard />
-        <button onClick={handleLogout}>Logout</button>
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard plan={recommendedPlan} />
+            )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard plan={personalizedPlan} />
+            )}
+            <h2>Customized Plan</h2>
+            {customizedPlan && (
+              <StudyPlanCard plan={customizedPlan} />
+            )}
+            <h2>Study Plan Options</h2>
+            <div className="study-plan-options">
+              {studyPlanOptions.map((plan) => (
+                <div key={plan.name}>
+                  <Link href={plan.link}>
+                    <a onClick={() => handleStudyPlanSelection(plan)}>
+                      {plan.name}
+                    </a>
+                  </Link>
+                  <p>{plan.description}</p>
+                </div>
+              ))}
+            </div>
+            <h2>Progress</h2>
+            <ProgressCard user={user} />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
