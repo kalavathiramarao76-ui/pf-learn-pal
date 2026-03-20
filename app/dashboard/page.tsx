@@ -1,5 +1,4 @@
-use client;
-
+import client from '../api/client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
@@ -48,6 +47,71 @@ export default function DashboardPage() {
     localStorage.removeItem('user');
     router.push('/');
   };
+
+  const calculateProgressPercentage = (progress: any) => {
+    let totalProgress = 0;
+    let completedProgress = 0;
+    Object.keys(progress).forEach((key) => {
+      totalProgress += progress[key].total;
+      completedProgress += progress[key].completed;
+    });
+    return (completedProgress / totalProgress) * 100;
+  };
+
+  const getRecommendedPlanBasedOnProgressAndGoals = (user: any) => {
+    const progressPercentage = calculateProgressPercentage(user.progress);
+    const goals = user.goals;
+    let recommendedPlan;
+
+    if (progressPercentage < 20) {
+      recommendedPlan = {
+        name: 'Foundational Plan',
+        description: 'Build a strong foundation in the basics',
+        link: '/foundational-plan',
+      };
+    } else if (progressPercentage < 50) {
+      recommendedPlan = {
+        name: 'Intermediate Plan',
+        description: 'Develop intermediate skills and knowledge',
+        link: '/intermediate-plan',
+      };
+    } else if (progressPercentage < 80) {
+      recommendedPlan = {
+        name: 'Advanced Plan',
+        description: 'Refine advanced skills and knowledge',
+        link: '/advanced-plan',
+      };
+    } else {
+      recommendedPlan = {
+        name: 'Mastery Plan',
+        description: 'Achieve mastery in the subject',
+        link: '/mastery-plan',
+      };
+    }
+
+    if (goals.includes('career-advancement')) {
+      recommendedPlan = {
+        name: 'Career Advancement Plan',
+        description: 'Develop skills for career advancement',
+        link: '/career-advancement-plan',
+      };
+    } else if (goals.includes('personal-growth')) {
+      recommendedPlan = {
+        name: 'Personal Growth Plan',
+        description: 'Focus on personal growth and development',
+        link: '/personal-growth-plan',
+      };
+    }
+
+    return recommendedPlan;
+  };
+
+  useEffect(() => {
+    if (user) {
+      const recommendedPlan = getRecommendedPlanBasedOnProgressAndGoals(user);
+      setRecommendedPlan(recommendedPlan);
+    }
+  }, [user]);
 
   return (
     <DashboardLayout>

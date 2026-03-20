@@ -89,6 +89,35 @@
     @apply border-blue-600 dark:border-blue-500;
     @apply ring-1 ring-blue-600 dark:ring-blue-500;
   }
+
+  /* High contrast mode */
+  .high-contrast {
+    @apply bg-black;
+    @apply text-white;
+  }
+
+  .high-contrast a {
+    @apply text-yellow-400;
+  }
+
+  .high-contrast a:hover {
+    @apply text-yellow-600;
+  }
+
+  .high-contrast button {
+    @apply bg-yellow-600;
+    @apply text-black;
+  }
+
+  .high-contrast input, .high-contrast textarea, .high-contrast select {
+    @apply bg-gray-800;
+    @apply border-gray-600;
+  }
+
+  .high-contrast input:focus, .high-contrast textarea:focus, .high-contrast select:focus {
+    @apply border-yellow-600;
+    @apply ring-1 ring-yellow-600;
+  }
 }
 
 @layer components {
@@ -96,7 +125,6 @@
     @apply bg-gradient-to-r from-blue-600 to-blue-800;
     @apply py-20;
     @apply text-center;
-    @apply text-white;
     @apply text-3xl;
   }
 
@@ -155,28 +183,14 @@
     @apply bg-gray-900;
     @apply text-white;
   }
-}
 
-.meta-tags {
-  display: none;
-}
+  /* Keyboard navigation support */
+  [tabindex]:focus {
+    @apply outline-none;
+    @apply ring-1 ring-blue-600 dark:ring-blue-500;
+  }
 
-.meta-tags::before {
-  content: '<meta name="description" content="Personalized Learning Companion"/>';
-  white-space: pre;
-}
-
-.meta-tags::after {
-  content: '<meta name="keywords" content="learning, companion, personalized"/>';
-  white-space: pre;
-}
-
-.meta-tags::after {
-  content: '<meta name="robots" content="index, follow"/>';
-  white-space: pre;
-}
-
-.meta-tags::after {
-  content: '<meta name="author" content="Your Name"/>';
-  white-space: pre;
+  [tabindex]:focus:not(:focus-visible) {
+    @apply outline-none;
+  }
 }
