@@ -86,7 +86,6 @@ export default function DashboardPage() {
             userId: user.id,
             progress: user.progress,
             goals: user.goals,
-            preferences: user.preferences,
           }),
         });
         const data = await response.json();
@@ -97,58 +96,25 @@ export default function DashboardPage() {
   }, [user]);
 
   const getPersonalizedLearningPlanRecommendation = () => {
-    if (user && user.progress && user.goals && user.preferences) {
-      const progressPercentage = calculateProgressPercentage(user.progress);
-      const goalPriority = getGoalPriority(user.goals);
-      const preferenceWeight = getPreferenceWeight(user.preferences);
-
-      const recommendedPlan = studyPlanOptions.find((plan) => {
-        const planProgressPercentage = calculatePlanProgressPercentage(plan, user.progress);
-        const planGoalPriority = getPlanGoalPriority(plan, user.goals);
-        const planPreferenceWeight = getPlanPreferenceWeight(plan, user.preferences);
-
-        return (
-          planProgressPercentage >= progressPercentage &&
-          planGoalPriority >= goalPriority &&
-          planPreferenceWeight >= preferenceWeight
-        );
-      });
-
-      return recommendedPlan;
+    if (user && user.progress && user.goals) {
+      const progressPercentage = user.progress.completedLessons / user.progress.totalLessons;
+      const goalPriority = user.goals.priority;
+      const recommendedPlanType = getRecommendedPlanType(progressPercentage, goalPriority);
+      return recommendedPlanType;
     }
     return null;
   };
 
-  const calculateProgressPercentage = (progress) => {
-    const totalLessons = progress.totalLessons;
-    const completedLessons = progress.completedLessons;
-    return (completedLessons / totalLessons) * 100;
-  };
-
-  const getGoalPriority = (goals) => {
-    const priority = goals.reduce((acc, goal) => acc + goal.priority, 0);
-    return priority / goals.length;
-  };
-
-  const getPreferenceWeight = (preferences) => {
-    const weight = preferences.reduce((acc, preference) => acc + preference.weight, 0);
-    return weight / preferences.length;
-  };
-
-  const calculatePlanProgressPercentage = (plan, progress) => {
-    const planLessons = plan.lessons;
-    const completedPlanLessons = progress.completedLessons.filter((lesson) => planLessons.includes(lesson));
-    return (completedPlanLessons.length / planLessons.length) * 100;
-  };
-
-  const getPlanGoalPriority = (plan, goals) => {
-    const planGoalPriority = goals.reduce((acc, goal) => acc + (plan.goals.includes(goal) ? goal.priority : 0), 0);
-    return planGoalPriority / goals.length;
-  };
-
-  const getPlanPreferenceWeight = (plan, preferences) => {
-    const planPreferenceWeight = preferences.reduce((acc, preference) => acc + (plan.preferences.includes(preference) ? preference.weight : 0), 0);
-    return planPreferenceWeight / preferences.length;
+  const getRecommendedPlanType = (progressPercentage, goalPriority) => {
+    if (progressPercentage < 0.3 && goalPriority === 'high') {
+      return 'Intensive Plan';
+    } else if (progressPercentage < 0.6 && goalPriority === 'medium') {
+      return 'Balanced Plan';
+    } else if (progressPercentage >= 0.6 && goalPriority === 'low') {
+      return 'Relaxed Plan';
+    } else {
+      return 'Standard Plan';
+    }
   };
 
   return (
@@ -158,30 +124,45 @@ export default function DashboardPage() {
           <div className="col-md-4">
             <StudyPlanCard
               title="Recommended Study Plan"
-              description="Based on your progress, goals, and preferences"
+              description="Based on your progress and goals"
               plan={getPersonalizedLearningPlanRecommendation()}
             />
           </div>
           <div className="col-md-4">
-            <ProgressCard title="Your Progress" progress={user.progress} />
+            <ProgressCard
+              title="Your Progress"
+              description="Track your progress and stay motivated"
+              progress={user ? user.progress : null}
+            />
           </div>
           <div className="col-md-4">
-            <CommunityCard title="Join Our Community" />
+            <CommunityCard
+              title="Join the Community"
+              description="Connect with other learners and get support"
+            />
           </div>
         </div>
         <div className="row">
           <div className="col-md-4">
-            <ResourceCard title="Additional Resources" />
+            <ResourceCard
+              title="Recommended Resources"
+              description="Get access to relevant resources and materials"
+              resources={learningPlanRecommendations}
+            />
           </div>
           <div className="col-md-4">
-            <Link href="/study-plans">
-              <a>View All Study Plans</a>
-            </Link>
+            <StudyPlanCard
+              title="Personalized Study Plan"
+              description="Based on your preferences and goals"
+              plan={personalizedPlan}
+            />
           </div>
           <div className="col-md-4">
-            <Link href="/progress">
-              <a>View Your Progress</a>
-            </Link>
+            <StudyPlanCard
+              title="Customized Study Plan"
+              description="Create a plan tailored to your needs"
+              plan={customizedPlan}
+            />
           </div>
         </div>
       </div>

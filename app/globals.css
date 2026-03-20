@@ -157,13 +157,82 @@
     @apply text-black;
   }
 
-  .high-contrast input, .high-contrast textarea, .high-contrast select {
-    @apply bg-gray-800;
-    @apply border-gray-600;
+  /* Responsive design */
+  @media (max-width: 768px) {
+    body {
+      font-size: 16px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.8rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+    }
+
+    h2 {
+      font-size: 1.9rem;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+    }
+
+    button {
+      @apply py-2 px-4;
+    }
+
+    input, textarea, select {
+      @apply py-2 px-4;
+    }
   }
 
-  .high-contrast input:focus, .high-contrast textarea:focus, .high-contrast select:focus {
-    @apply border-yellow-600;
-    @apply ring-1 ring-yellow-600;
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+    }
+
+    button {
+      @apply py-1 px-3;
+    }
+
+    input, textarea, select {
+      @apply py-1 px-3;
+    }
+  }
+
+  /* Accessibility */
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  [aria-hidden="true"] {
+    display: none;
+  }
+
+  [tabindex="-1"] {
+    outline: none;
+  }
+
+  [disabled] {
+    @apply opacity-50;
+    @apply cursor-not-allowed;
   }
 }
