@@ -126,12 +126,18 @@
     @apply py-20;
     @apply text-center;
     @apply text-3xl;
+    @apply md:py-24;
+    @apply lg:py-28;
+    @apply xl:py-32;
   }
 
   .feature-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
     @apply gap-4;
     @apply py-10;
+    @apply md:gap-6;
+    @apply lg:gap-8;
+    @apply xl:gap-10;
   }
 
   .feature-grid-item {
@@ -140,57 +146,32 @@
     @apply px-6;
     @apply rounded;
     @apply shadow;
+    @apply md:py-6;
+    @apply lg:py-8;
+    @apply xl:py-10;
   }
 
   .pricing-table {
     @apply table w-full;
     @apply border-collapse;
-    @apply text-center;
+    @apply border-gray-300 dark:border-gray-600;
+    @apply text-left;
+    @apply md:text-center;
+  }
+
+  .pricing-table th, .pricing-table td {
+    @apply py-2;
+    @apply px-4;
+    @apply border-b;
+    @apply border-gray-300 dark:border-gray-600;
   }
 
   .pricing-table th {
-    @apply bg-gray-200 dark:bg-gray-700;
-    @apply py-2;
-    @apply px-4;
+    @apply bg-gray-100 dark:bg-gray-700;
+    @apply font-bold;
   }
 
   .pricing-table td {
-    @apply py-2;
-    @apply px-4;
-    @apply border-b;
-    @apply border-gray-300 dark:border-gray-600;
-  }
-
-  .faq {
-    @apply py-10;
-  }
-
-  .faq-item {
-    @apply py-4;
-    @apply border-b;
-    @apply border-gray-300 dark:border-gray-600;
-  }
-
-  .footer {
-    @apply bg-gray-200 dark:bg-gray-700;
-    @apply py-4;
-    @apply text-center;
-  }
-}
-
-@layer utilities {
-  .dark-mode {
-    @apply bg-gray-900;
-    @apply text-white;
-  }
-
-  /* Keyboard navigation support */
-  [tabindex]:focus {
-    @apply outline-none;
-    @apply ring-1 ring-blue-600 dark:ring-blue-500;
-  }
-
-  [tabindex]:focus:not(:focus-visible) {
-    @apply outline-none;
+    @apply bg-white dark:bg-gray-800;
   }
 }
