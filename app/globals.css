@@ -43,16 +43,22 @@
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
+    font-size: 16px;
+    line-height: 1.5;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
     color: #333;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
   }
 
   a {
     @apply text-blue-600 dark:text-blue-400;
     transition: color 0.2s ease;
+    text-decoration: none;
   }
 
   a:hover {
@@ -66,6 +72,7 @@
     @apply rounded;
     @apply transition duration-200;
     @apply hover:bg-blue-800 dark:hover:bg-blue-600;
+    font-size: 1rem;
   }
 
   input, textarea, select {
@@ -74,6 +81,7 @@
     @apply py-2 px-4;
     @apply rounded;
     @apply transition duration-200;
+    font-size: 1rem;
   }
 
   input:focus, textarea:focus, select:focus {
@@ -89,6 +97,7 @@
     @apply py-20;
     @apply text-center;
     @apply text-white;
+    @apply text-3xl;
   }
 
   .feature-grid {
@@ -158,16 +167,16 @@
 }
 
 .meta-tags::after {
-  content: '<meta name="keywords" content="Personalized Learning, Companion, Education"/>';
+  content: '<meta name="keywords" content="learning, companion, personalized"/>';
   white-space: pre;
 }
 
-body::before {
-  content: '<title>Personalized Learning Companion</title>';
-  display: none;
+.meta-tags::after {
+  content: '<meta name="robots" content="index, follow"/>';
+  white-space: pre;
 }
 
-body::after {
-  content: '<meta name="robots" content="index, follow"/>';
-  display: none;
+.meta-tags::after {
+  content: '<meta name="author" content="Your Name"/>';
+  white-space: pre;
 }

@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState(null);
+  const [recommendedPlan, setRecommendedPlan] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -21,6 +22,27 @@ export default function DashboardPage() {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      const getRecommendedPlan = async () => {
+        const response = await fetch('/api/recommended-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            progress: user.progress,
+            goals: user.goals,
+          }),
+        });
+        const data = await response.json();
+        setRecommendedPlan(data);
+      };
+      getRecommendedPlan();
+    }
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -31,6 +53,18 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="flex flex-col items-center justify-center h-full p-4">
         <h1 className="text-5xl font-bold mb-8">Welcome, {user?.name}!</h1>
+        {recommendedPlan && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-8">
+            <h2 className="text-lg font-bold">Recommended Learning Plan:</h2>
+            <p>{recommendedPlan.name}</p>
+            <p>{recommendedPlan.description}</p>
+            <Link href={recommendedPlan.link}>
+              <a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Start Plan
+              </a>
+            </Link>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 p-4 bg-gray-100 rounded-lg shadow-md">
           <Link href="/study-plan">
             <StudyPlanCard />
