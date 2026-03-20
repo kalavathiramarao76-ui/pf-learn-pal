@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+  }
+
+  body {
+    @apply bg-gray-100 dark:bg-gray-900;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+    color: #333;
+  }
+
+  a {
+    @apply text-blue-600 dark:text-blue-400;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    @apply text-blue-800 dark:text-blue-500;
+  }
+
+  button {
+    @apply bg-blue-600 dark:bg-blue-500;
+    @apply text-white;
+    @apply py-2 px-4;
+    @apply rounded;
+    @apply transition duration-200;
+    @apply hover:bg-blue-800 dark:hover:bg-blue-600;
+  }
+
+  input, textarea, select {
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply border-gray-300 dark:border-gray-600;
+    @apply py-2 px-4;
+    @apply rounded;
+    @apply transition duration-200;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none;
+    @apply border-blue-600 dark:border-blue-500;
+    @apply ring-1 ring-blue-600 dark:ring-blue-500;
+  }
+}
+
+@layer components {
+  .hero {
+    @apply bg-gradient-to-r from-blue-600 to-blue-800;
+    @apply py-20;
+    @apply text-center;
+    @apply text-white;
+  }
+
+  .feature-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+    @apply gap-4;
+    @apply py-10;
+  }
+
+  .feature-grid-item {
+    @apply bg-white dark:bg-gray-800;
+    @apply py-4;
+    @apply px-6;
+    @apply rounded;
+    @apply shadow;
+  }
+
+  .pricing-table {
+    @apply table w-full;
+    @apply border-collapse;
+    @apply text-center;
+  }
+
+  .pricing-table th {
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply py-2;
+    @apply px-4;
+  }
+
+  .pricing-table td {
+    @apply py-2;
+    @apply px-4;
+    @apply border-b;
+    @apply border-gray-300 dark:border-gray-600;
+  }
+
+  .faq {
+    @apply py-10;
+  }
+
+  .faq-item {
+    @apply py-4;
+    @apply border-b;
+    @apply border-gray-300 dark:border-gray-600;
+  }
+
+  .footer {
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply py-4;
+    @apply text-center;
+  }
+}
+
+@layer utilities {
+  .dark-mode {
+    @apply bg-gray-900;
+    @apply text-white;
+  }
+}
