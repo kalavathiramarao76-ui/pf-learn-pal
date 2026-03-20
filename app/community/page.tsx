@@ -20,6 +20,7 @@ export default function CommunityPage() {
   const characterLimit = 200;
   const [postPreview, setPostPreview] = useState('');
   const [editorValue, setEditorValue] = useState('');
+  const [characterCount, setCharacterCount] = useState(0);
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -40,6 +41,7 @@ export default function CommunityPage() {
       setPosts(updatedPosts);
       setValue('communityPosts', JSON.stringify(updatedPosts));
       setEditorValue('');
+      setCharacterCount(0);
     } else {
       alert('Post exceeds character limit. Please shorten your post.');
     }
@@ -82,129 +84,100 @@ export default function CommunityPage() {
   const handleEditorChange = (value: string) => {
     setEditorValue(value);
     setPostPreview(value.substring(0, characterLimit));
+    setCharacterCount(value.length);
   };
 
   return (
     <div className="flex flex-col items-center py-12">
       <h1 className="text-3xl font-bold mb-4">Community Forum</h1>
       {isLoggedIn ? (
-        <div className="flex flex-col w-full max-w-md p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          <form onSubmit={handlePostSubmit}>
-            <ReactQuill
-              value={editorValue}
-              onChange={handleEditorChange}
-              placeholder="Write your post here..."
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline', 'strike'],
-                  ['blockquote', 'code-block'],
-                  [{ header: 1 }, { header: 2 }],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  [{ script: 'sub' }, { script: 'super' }],
-                  [{ indent: '-1' }, { indent: '+1' }],
-                  [{ direction: 'rtl' }],
-                  [{ font: [] }],
-                  [{ align: [] }],
-                  ['clean'],
-                ],
-              }}
-            />
-            <div className="mt-4">
-              <p>Live Preview:</p>
-              <div
-                className="p-4 bg-gray-100 border border-gray-300 rounded-lg"
-                dangerouslySetInnerHTML={{ __html: postPreview }}
-              />
-            </div>
+        <div className="flex flex-col w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Create a Post</h2>
+          <ReactQuill
+            value={editorValue}
+            onChange={handleEditorChange}
+            placeholder="Write your post here..."
+          />
+          <div className="flex justify-between mb-4">
+            <p>Character Count: {characterCount}/{characterLimit}</p>
             <button
               type="submit"
-              className="mt-4 py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handlePostSubmit}
             >
-              Post
+              Submit Post
             </button>
-          </form>
+          </div>
+          <h2 className="text-xl font-bold mb-4">Post Preview</h2>
+          <p className="bg-gray-100 p-4">{postPreview}</p>
         </div>
       ) : (
-        <div className="flex flex-col w-full max-w-md p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <div className="flex flex-col w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Login or Register</h2>
           <form onSubmit={handleLogin}>
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-              Username
-            </label>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="mb-4 p-2 border border-gray-400 rounded"
             />
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-              Password
-            </label>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="mb-4 p-2 border border-gray-400 rounded"
             />
             <button
               type="submit"
-              className="py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Login
             </button>
           </form>
-          <p className="text-gray-700 text-sm mt-2">
-            Don't have an account?{' '}
+          <form onSubmit={handleRegister}>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="mb-4 p-2 border border-gray-400 rounded"
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="mb-4 p-2 border border-gray-400 rounded"
+            />
             <button
-              type="button"
-              className="text-blue-500 hover:text-blue-700"
-              onClick={(e) => {
-                e.preventDefault();
-                const registerForm = (
-                  <form onSubmit={handleRegister}>
-                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-                      Username
-                    </label>
-                    <input
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      id="username"
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                    />
-                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-                      Password
-                    </label>
-                    <input
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button
-                      type="submit"
-                      className="py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      Register
-                    </button>
-                  </form>
-                );
-                alert(registerForm);
-              }}
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Register
             </button>
-          </p>
+          </form>
         </div>
       )}
-      {posts.map((post, index) => (
-        <div key={index} className="w-full max-w-md p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md mb-4">
-          <p className="text-gray-700 text-sm">{post.text}</p>
-          <p className="text-gray-500 text-xs">Posted by {post.author} at {post.timestamp}</p>
-        </div>
-      ))}
+      {isLoggedIn && (
+        <button
+          type="button"
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+      )}
+      <h2 className="text-xl font-bold mt-8">Community Posts</h2>
+      <div className="flex flex-col w-full max-w-md">
+        {posts.map((post, index) => (
+          <div key={index} className="bg-gray-100 p-4 mb-4">
+            <p>{post.text}</p>
+            <p className="text-gray-600">Posted by {post.author} at {post.timestamp}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

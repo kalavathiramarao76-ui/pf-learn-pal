@@ -52,7 +52,7 @@
     color: #333;
     font-size: 1.5rem;
     line-height: 1.2;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   a {
@@ -73,6 +73,7 @@
     @apply transition duration-200;
     @apply hover:bg-blue-800 dark:hover:bg-blue-600;
     font-size: 1rem;
+    margin: 1rem;
   }
 
   input, textarea, select {
@@ -82,6 +83,7 @@
     @apply rounded;
     @apply transition duration-200;
     font-size: 1rem;
+    margin: 0.5rem;
   }
 
   input:focus, textarea:focus, select:focus {
@@ -129,49 +131,32 @@
     @apply md:py-24;
     @apply lg:py-28;
     @apply xl:py-32;
+    @apply mx-10;
+    @apply md:mx-20;
+    @apply lg:mx-30;
+    @apply xl:mx-40;
   }
 
   .feature-grid {
     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
-    @apply gap-4;
+    @apply gap-6;
     @apply py-10;
-    @apply md:gap-6;
-    @apply lg:gap-8;
-    @apply xl:gap-10;
+    @apply md:gap-8;
+    @apply lg:gap-10;
+    @apply xl:gap-12;
+    @apply mx-10;
+    @apply md:mx-20;
+    @apply lg:mx-30;
+    @apply xl:mx-40;
   }
 
   .feature-grid-item {
     @apply bg-white dark:bg-gray-800;
-    @apply py-4;
-    @apply px-6;
+    @apply p-6;
     @apply rounded;
-    @apply shadow;
-    @apply md:py-6;
-    @apply lg:py-8;
-    @apply xl:py-10;
-  }
-
-  .pricing-table {
-    @apply table w-full;
-    @apply border-collapse;
-    @apply border-gray-300 dark:border-gray-600;
-    @apply text-left;
-    @apply md:text-center;
-  }
-
-  .pricing-table th, .pricing-table td {
-    @apply py-2;
-    @apply px-4;
-    @apply border-b;
-    @apply border-gray-300 dark:border-gray-600;
-  }
-
-  .pricing-table th {
-    @apply bg-gray-100 dark:bg-gray-700;
-    @apply font-bold;
-  }
-
-  .pricing-table td {
-    @apply bg-white dark:bg-gray-800;
+    @apply shadow-md;
+    @apply md:p-8;
+    @apply lg:p-10;
+    @apply xl:p-12;
   }
 }

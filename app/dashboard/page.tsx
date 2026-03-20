@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [recommendedPlan, setRecommendedPlan] = useState(null);
   const [personalizedPlan, setPersonalizedPlan] = useState(null);
+  const [customizedPlan, setCustomizedPlan] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -95,167 +96,107 @@ export default function DashboardPage() {
     } else if (progressPercentage < 50) {
       recommendedPlan = {
         name: 'Intermediate Plan',
-        description: 'Develop intermediate skills and knowledge',
+        description: 'Build on your foundation and develop intermediate skills',
         link: '/intermediate-plan',
-      };
-    } else if (progressPercentage < 80) {
-      recommendedPlan = {
-        name: 'Advanced Plan',
-        description: 'Refine advanced skills and knowledge',
-        link: '/advanced-plan',
       };
     } else {
       recommendedPlan = {
-        name: 'Mastery Plan',
-        description: 'Achieve mastery in the subject',
-        link: '/mastery-plan',
+        name: 'Advanced Plan',
+        description: 'Refine your skills and become an expert',
+        link: '/advanced-plan',
       };
     }
-
-    if (goals.includes('career-advancement')) {
-      recommendedPlan = {
-        name: 'Career Advancement Plan',
-        description: 'Develop skills for career advancement',
-        link: '/career-advancement-plan',
-      };
-    }
-
     return recommendedPlan;
   };
 
-  const getPersonalizedPlanBasedOnProgressGoalsAndPreferences = (user: any) => {
-    const progressPercentage = calculateProgressPercentage(user.progress);
-    const goals = user.goals;
-    const preferences = user.preferences;
-    let personalizedPlan;
+  const handleCustomizePlan = async (event: any) => {
+    event.preventDefault();
+    const progress = event.target.progress.value;
+    const goals = event.target.goals.value;
+    const preferences = event.target.preferences.value;
 
-    if (progressPercentage < 20) {
-      if (preferences.includes('video-lessons')) {
-        personalizedPlan = {
-          name: 'Foundational Video Plan',
-          description: 'Build a strong foundation with video lessons',
-          link: '/foundational-video-plan',
-        };
-      } else if (preferences.includes('text-based-lessons')) {
-        personalizedPlan = {
-          name: 'Foundational Text Plan',
-          description: 'Build a strong foundation with text-based lessons',
-          link: '/foundational-text-plan',
-        };
-      } else {
-        personalizedPlan = {
-          name: 'Foundational Plan',
-          description: 'Build a strong foundation in the basics',
-          link: '/foundational-plan',
-        };
-      }
-    } else if (progressPercentage < 50) {
-      if (preferences.includes('interactive-exercises')) {
-        personalizedPlan = {
-          name: 'Intermediate Interactive Plan',
-          description: 'Develop intermediate skills with interactive exercises',
-          link: '/intermediate-interactive-plan',
-        };
-      } else if (preferences.includes('quizzes')) {
-        personalizedPlan = {
-          name: 'Intermediate Quiz Plan',
-          description: 'Develop intermediate skills with quizzes',
-          link: '/intermediate-quiz-plan',
-        };
-      } else {
-        personalizedPlan = {
-          name: 'Intermediate Plan',
-          description: 'Develop intermediate skills and knowledge',
-          link: '/intermediate-plan',
-        };
-      }
-    } else if (progressPercentage < 80) {
-      if (preferences.includes('project-based-learning')) {
-        personalizedPlan = {
-          name: 'Advanced Project Plan',
-          description: 'Refine advanced skills with project-based learning',
-          link: '/advanced-project-plan',
-        };
-      } else if (preferences.includes('real-world-applications')) {
-        personalizedPlan = {
-          name: 'Advanced Real-World Plan',
-          description: 'Refine advanced skills with real-world applications',
-          link: '/advanced-real-world-plan',
-        };
-      } else {
-        personalizedPlan = {
-          name: 'Advanced Plan',
-          description: 'Refine advanced skills and knowledge',
-          link: '/advanced-plan',
-        };
-      }
-    } else {
-      if (preferences.includes('expert-mentorship')) {
-        personalizedPlan = {
-          name: 'Mastery Mentorship Plan',
-          description: 'Achieve mastery with expert mentorship',
-          link: '/mastery-mentorship-plan',
-        };
-      } else if (preferences.includes('peer-review')) {
-        personalizedPlan = {
-          name: 'Mastery Peer Review Plan',
-          description: 'Achieve mastery with peer review',
-          link: '/mastery-peer-review-plan',
-        };
-      } else {
-        personalizedPlan = {
-          name: 'Mastery Plan',
-          description: 'Achieve mastery in the subject',
-          link: '/mastery-plan',
-        };
-      }
-    }
-
-    if (goals.includes('career-advancement')) {
-      personalizedPlan = {
-        name: 'Career Advancement Plan',
-        description: 'Develop skills for career advancement',
-        link: '/career-advancement-plan',
-      };
-    }
-
-    return personalizedPlan;
+    const response = await fetch('/api/customized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        progress: progress,
+        goals: goals,
+        preferences: preferences,
+      }),
+    });
+    const data = await response.json();
+    setCustomizedPlan(data);
   };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <div className="row">
-          <div className="col-md-4">
+      <h1>Personalized Learning Companion</h1>
+      {user && (
+        <div>
+          <h2>Recommended Plan</h2>
+          {recommendedPlan && (
             <StudyPlanCard
-              title="Recommended Plan"
-              plan={recommendedPlan}
+              name={recommendedPlan.name}
+              description={recommendedPlan.description}
+              link={recommendedPlan.link}
             />
-          </div>
-          <div className="col-md-4">
+          )}
+          <h2>Personalized Plan</h2>
+          {personalizedPlan && (
             <StudyPlanCard
-              title="Personalized Plan"
-              plan={personalizedPlan || getPersonalizedPlanBasedOnProgressGoalsAndPreferences(user)}
+              name={personalizedPlan.name}
+              description={personalizedPlan.description}
+              link={personalizedPlan.link}
             />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Progress"
-              progress={user?.progress}
-              percentage={calculateProgressPercentage(user?.progress)}
-            />
-          </div>
+          )}
+          <h2>Customize Your Plan</h2>
+          <form onSubmit={handleCustomizePlan}>
+            <label>
+              Progress:
+              <select name="progress">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </label>
+            <br />
+            <label>
+              Goals:
+              <select name="goals">
+                <option value="short-term">Short-term</option>
+                <option value="long-term">Long-term</option>
+              </select>
+            </label>
+            <br />
+            <label>
+              Preferences:
+              <select name="preferences">
+                <option value="theory">Theory</option>
+                <option value="practical">Practical</option>
+              </select>
+            </label>
+            <br />
+            <button type="submit">Customize Plan</button>
+          </form>
+          {customizedPlan && (
+            <div>
+              <h2>Customized Plan</h2>
+              <StudyPlanCard
+                name={customizedPlan.name}
+                description={customizedPlan.description}
+                link={customizedPlan.link}
+              />
+            </div>
+          )}
+          <ProgressCard progress={user.progress} />
+          <CommunityCard />
+          <ResourceCard />
+          <button onClick={handleLogout}>Logout</button>
         </div>
-        <div className="row">
-          <div className="col-md-4">
-            <CommunityCard title="Community" />
-          </div>
-          <div className="col-md-4">
-            <ResourceCard title="Resources" />
-          </div>
-        </div>
-      </div>
-      <button onClick={handleLogout}>Logout</button>
+      )}
     </DashboardLayout>
   );
 }
