@@ -86,6 +86,7 @@ export default function DashboardPage() {
             userId: user.id,
             progress: user.progress,
             goals: user.goals,
+            preferences: user.preferences,
           }),
         });
         const data = await response.json();
@@ -95,27 +96,40 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getPersonalizedLearningPlanRecommendation = () => {
-    if (user && user.progress && user.goals) {
-      const progressPercentage = user.progress.completedLessons / user.progress.totalLessons;
-      const goalPriority = user.goals.priority;
-      const recommendedPlanType = getRecommendedPlanType(progressPercentage, goalPriority);
-      return recommendedPlanType;
+  const getPersonalizedLearningPlanRecommendation = async () => {
+    if (user) {
+      const response = await fetch('/api/personalized-learning-plan-recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          progress: user.progress,
+          goals: user.goals,
+          preferences: user.preferences,
+          learningStyle: user.learningStyle,
+          pace: user.pace,
+        }),
+      });
+      const data = await response.json();
+      return data;
     }
     return null;
   };
 
-  const getRecommendedPlanType = (progressPercentage, goalPriority) => {
-    if (progressPercentage < 0.3 && goalPriority === 'high') {
-      return 'Intensive Plan';
-    } else if (progressPercentage < 0.6 && goalPriority === 'medium') {
-      return 'Balanced Plan';
-    } else if (progressPercentage >= 0.6 && goalPriority === 'low') {
-      return 'Relaxed Plan';
-    } else {
-      return 'Standard Plan';
+  useEffect(() => {
+    if (user) {
+      getPersonalizedLearningPlanRecommendation().then((recommendation) => {
+        if (recommendation) {
+          const recommendedPlan = studyPlanOptions.find((plan) => plan.name === recommendation.planName);
+          if (recommendedPlan) {
+            setSelectedStudyPlan(recommendedPlan);
+          }
+        }
+      });
     }
-  };
+  }, [user, studyPlanOptions]);
 
   return (
     <DashboardLayout>
@@ -124,45 +138,22 @@ export default function DashboardPage() {
           <div className="col-md-4">
             <StudyPlanCard
               title="Recommended Study Plan"
-              description="Based on your progress and goals"
-              plan={getPersonalizedLearningPlanRecommendation()}
+              plan={recommendedPlan}
+              options={studyPlanOptions}
+              selectedPlan={selectedStudyPlan}
+              onSelectPlan={(plan) => setSelectedStudyPlan(plan)}
             />
           </div>
           <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              description="Track your progress and stay motivated"
-              progress={user ? user.progress : null}
-            />
+            <ProgressCard title="Your Progress" progress={user?.progress} />
           </div>
           <div className="col-md-4">
-            <CommunityCard
-              title="Join the Community"
-              description="Connect with other learners and get support"
-            />
+            <CommunityCard title="Join Our Community" />
           </div>
         </div>
         <div className="row">
-          <div className="col-md-4">
-            <ResourceCard
-              title="Recommended Resources"
-              description="Get access to relevant resources and materials"
-              resources={learningPlanRecommendations}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Personalized Study Plan"
-              description="Based on your preferences and goals"
-              plan={personalizedPlan}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Customized Study Plan"
-              description="Create a plan tailored to your needs"
-              plan={customizedPlan}
-            />
+          <div className="col-md-12">
+            <ResourceCard title="Recommended Resources" resources={learningPlanRecommendations} />
           </div>
         </div>
       </div>
