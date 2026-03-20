@@ -144,19 +144,38 @@
     @apply md:gap-8;
     @apply lg:gap-10;
     @apply xl:gap-12;
-    @apply mx-10;
-    @apply md:mx-20;
-    @apply lg:mx-30;
-    @apply xl:mx-40;
+  }
+}
+
+@layer utilities {
+  @media (max-width: 640px) {
+    body {
+      font-size: 14px;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.2rem;
+    }
+    button {
+      font-size: 0.8rem;
+      margin: 0.5rem;
+    }
+    input, textarea, select {
+      font-size: 0.8rem;
+      margin: 0.2rem;
+    }
   }
 
-  .feature-grid-item {
-    @apply bg-white dark:bg-gray-800;
-    @apply p-6;
-    @apply rounded;
-    @apply shadow-md;
-    @apply md:p-8;
-    @apply lg:p-10;
-    @apply xl:p-12;
+  @media (max-width: 1280px) {
+    .hero {
+      @apply py-16;
+      @apply md:py-20;
+      @apply lg:py-24;
+    }
+    .feature-grid {
+      @apply gap-4;
+      @apply py-8;
+      @apply md:gap-6;
+      @apply lg:gap-8;
+    }
   }
 }

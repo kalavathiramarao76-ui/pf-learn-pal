@@ -16,6 +16,12 @@ export default function DashboardPage() {
   const [recommendedPlan, setRecommendedPlan] = useState(null);
   const [personalizedPlan, setPersonalizedPlan] = useState(null);
   const [customizedPlan, setCustomizedPlan] = useState(null);
+  const [studyPlanOptions, setStudyPlanOptions] = useState([
+    { name: 'Foundational Plan', description: 'Build a strong foundation in the basics', link: '/foundational-plan' },
+    { name: 'Intermediate Plan', description: 'Improve your skills with intermediate-level content', link: '/intermediate-plan' },
+    { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
+  ]);
+  const [selectedStudyPlan, setSelectedStudyPlan] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -96,107 +102,85 @@ export default function DashboardPage() {
     } else if (progressPercentage < 50) {
       recommendedPlan = {
         name: 'Intermediate Plan',
-        description: 'Build on your foundation and develop intermediate skills',
+        description: 'Improve your skills with intermediate-level content',
         link: '/intermediate-plan',
       };
     } else {
       recommendedPlan = {
         name: 'Advanced Plan',
-        description: 'Refine your skills and become an expert',
+        description: 'Master advanced topics and techniques',
         link: '/advanced-plan',
       };
     }
     return recommendedPlan;
   };
 
-  const handleCustomizePlan = async (event: any) => {
-    event.preventDefault();
-    const progress = event.target.progress.value;
-    const goals = event.target.goals.value;
-    const preferences = event.target.preferences.value;
-
-    const response = await fetch('/api/customized-plan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        progress: progress,
-        goals: goals,
-        preferences: preferences,
-      }),
-    });
-    const data = await response.json();
-    setCustomizedPlan(data);
+  const handleCustomizeStudyPlan = (studyPlan: any) => {
+    setSelectedStudyPlan(studyPlan);
+    const customizedPlan = {
+      name: studyPlan.name,
+      description: studyPlan.description,
+      link: studyPlan.link,
+    };
+    setCustomizedPlan(customizedPlan);
   };
 
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      {user && (
-        <div>
-          <h2>Recommended Plan</h2>
-          {recommendedPlan && (
+      <div className="container">
+        <div className="row">
+          <div className="col-md-4">
             <StudyPlanCard
-              name={recommendedPlan.name}
-              description={recommendedPlan.description}
-              link={recommendedPlan.link}
+              title="Recommended Study Plan"
+              studyPlan={recommendedPlan || getRecommendedPlanBasedOnProgressAndGoals(user)}
             />
-          )}
-          <h2>Personalized Plan</h2>
-          {personalizedPlan && (
+          </div>
+          <div className="col-md-4">
             <StudyPlanCard
-              name={personalizedPlan.name}
-              description={personalizedPlan.description}
-              link={personalizedPlan.link}
+              title="Personalized Study Plan"
+              studyPlan={personalizedPlan}
             />
-          )}
-          <h2>Customize Your Plan</h2>
-          <form onSubmit={handleCustomizePlan}>
-            <label>
-              Progress:
-              <select name="progress">
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </label>
-            <br />
-            <label>
-              Goals:
-              <select name="goals">
-                <option value="short-term">Short-term</option>
-                <option value="long-term">Long-term</option>
-              </select>
-            </label>
-            <br />
-            <label>
-              Preferences:
-              <select name="preferences">
-                <option value="theory">Theory</option>
-                <option value="practical">Practical</option>
-              </select>
-            </label>
-            <br />
-            <button type="submit">Customize Plan</button>
-          </form>
-          {customizedPlan && (
-            <div>
-              <h2>Customized Plan</h2>
-              <StudyPlanCard
-                name={customizedPlan.name}
-                description={customizedPlan.description}
-                link={customizedPlan.link}
-              />
-            </div>
-          )}
-          <ProgressCard progress={user.progress} />
-          <CommunityCard />
-          <ResourceCard />
-          <button onClick={handleLogout}>Logout</button>
+          </div>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Customized Study Plan"
+              studyPlan={customizedPlan}
+            />
+          </div>
         </div>
-      )}
+        <div className="row">
+          <div className="col-md-12">
+            <h2>Customize Your Study Plan</h2>
+            <div className="study-plan-options">
+              {studyPlanOptions.map((studyPlan, index) => (
+                <div key={index} className="study-plan-option">
+                  <h3>{studyPlan.name}</h3>
+                  <p>{studyPlan.description}</p>
+                  <button onClick={() => handleCustomizeStudyPlan(studyPlan)}>Select</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ProgressCard
+              title="Progress"
+              progress={user.progress}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard
+              title="Community"
+            />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard
+              title="Resources"
+            />
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }

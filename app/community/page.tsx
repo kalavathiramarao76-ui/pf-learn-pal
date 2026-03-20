@@ -21,6 +21,8 @@ export default function CommunityPage() {
   const [postPreview, setPostPreview] = useState('');
   const [editorValue, setEditorValue] = useState('');
   const [characterCount, setCharacterCount] = useState(0);
+  const [editingPost, setEditingPost] = useState(null);
+  const [reportingPost, setReportingPost] = useState(null);
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -37,11 +39,25 @@ export default function CommunityPage() {
   const handlePostSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (editorValue.length <= characterLimit) {
-      const updatedPosts = [...posts, { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' }];
-      setPosts(updatedPosts);
-      setValue('communityPosts', JSON.stringify(updatedPosts));
-      setEditorValue('');
-      setCharacterCount(0);
+      if (editingPost) {
+        const updatedPosts = posts.map((post) => {
+          if (post.text === editingPost.text) {
+            return { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
+          }
+          return post;
+        });
+        setPosts(updatedPosts);
+        setValue('communityPosts', JSON.stringify(updatedPosts));
+        setEditorValue('');
+        setCharacterCount(0);
+        setEditingPost(null);
+      } else {
+        const updatedPosts = [...posts, { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' }];
+        setPosts(updatedPosts);
+        setValue('communityPosts', JSON.stringify(updatedPosts));
+        setEditorValue('');
+        setCharacterCount(0);
+      }
     } else {
       alert('Post exceeds character limit. Please shorten your post.');
     }
@@ -87,52 +103,60 @@ export default function CommunityPage() {
     setCharacterCount(value.length);
   };
 
+  const handleEditPost = (post: any) => {
+    setEditingPost(post);
+    setEditorValue(post.text);
+    setCharacterCount(post.text.length);
+  };
+
+  const handleDeletePost = (post: any) => {
+    const updatedPosts = posts.filter((p) => p.text !== post.text);
+    setPosts(updatedPosts);
+    setValue('communityPosts', JSON.stringify(updatedPosts));
+  };
+
+  const handleReportPost = (post: any) => {
+    setReportingPost(post);
+    // Add reporting logic here
+  };
+
   return (
     <div className="flex flex-col items-center py-12">
-      <h1 className="text-3xl font-bold mb-4">Community Forum</h1>
+      <h1 className="text-3xl font-bold mb-4">Community Page</h1>
       {isLoggedIn ? (
-        <div className="flex flex-col w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Create a Post</h2>
-          <ReactQuill
-            value={editorValue}
-            onChange={handleEditorChange}
-            placeholder="Write your post here..."
-          />
-          <div className="flex justify-between mb-4">
-            <p>Character Count: {characterCount}/{characterLimit}</p>
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={handlePostSubmit}
-            >
-              Submit Post
+        <div>
+          <form onSubmit={handlePostSubmit}>
+            <ReactQuill
+              value={editorValue}
+              onChange={handleEditorChange}
+              placeholder="Write a post..."
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              Character count: {characterCount} / {characterLimit}
+            </p>
+            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2">
+              {editingPost ? 'Update Post' : 'Create Post'}
             </button>
-          </div>
-          <h2 className="text-xl font-bold mb-4">Post Preview</h2>
-          <p className="bg-gray-100 p-4">{postPreview}</p>
+          </form>
         </div>
       ) : (
-        <div className="flex flex-col w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Login or Register</h2>
+        <div>
           <form onSubmit={handleLogin}>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Username"
-              className="mb-4 p-2 border border-gray-400 rounded"
+              className="py-2 px-4 border border-gray-400 rounded mb-2"
             />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="mb-4 p-2 border border-gray-400 rounded"
+              className="py-2 px-4 border border-gray-400 rounded mb-2"
             />
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
+            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Login
             </button>
           </form>
@@ -142,39 +166,49 @@ export default function CommunityPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Username"
-              className="mb-4 p-2 border border-gray-400 rounded"
+              className="py-2 px-4 border border-gray-400 rounded mb-2"
             />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="mb-4 p-2 border border-gray-400 rounded"
+              className="py-2 px-4 border border-gray-400 rounded mb-2"
             />
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
+            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Register
             </button>
           </form>
         </div>
       )}
-      {isLoggedIn && (
-        <button
-          type="button"
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
-      )}
-      <h2 className="text-xl font-bold mt-8">Community Posts</h2>
-      <div className="flex flex-col w-full max-w-md">
+      <div className="mt-4">
         {posts.map((post, index) => (
-          <div key={index} className="bg-gray-100 p-4 mb-4">
-            <p>{post.text}</p>
-            <p className="text-gray-600">Posted by {post.author} at {post.timestamp}</p>
+          <div key={index} className="bg-white p-4 border border-gray-400 rounded mb-2">
+            <p className="text-lg font-bold">{post.author}</p>
+            <p className="text-sm text-gray-500">{post.timestamp}</p>
+            <p className="text-lg">{post.text}</p>
+            {isLoggedIn && (
+              <div>
+                <button
+                  onClick={() => handleEditPost(post)}
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeletePost(post)}
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => handleReportPost(post)}
+                  className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Report
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
