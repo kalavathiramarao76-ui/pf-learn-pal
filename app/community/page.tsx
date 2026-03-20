@@ -70,23 +70,19 @@ export default function CommunityPage() {
         setCharacterCount(0);
       }
     } else {
-      setEditError('Post exceeds character limit. Please shorten your post.');
+      setEditError('Post exceeds character limit. Please shorten your post to 200 characters or less.');
       setTimeout(() => setEditError(''), 3000);
     }
   };
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    // existing login logic
-  };
-
-  const handleEditPost = (post: any) => {
+  const handlePostEdit = (post: any) => {
     setEditingPost(post);
-    setIsEditing(true);
     setEditorValue(post.text);
     setCharacterCount(post.text.length);
+    setIsEditing(true);
   };
 
-  const handleReportPost = (post: any) => {
+  const handlePostReport = (post: any) => {
     setReportingPost(post);
     setIsReporting(true);
   };
@@ -94,14 +90,31 @@ export default function CommunityPage() {
   const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (reportReason && reportDescription) {
-      // existing report logic
-      setReportSuccess('Post reported successfully!');
+      // Send report to server or handle report logic here
+      setReportSuccess('Report submitted successfully!');
       setTimeout(() => setReportSuccess(''), 3000);
+      setReportingPost(null);
       setIsReporting(false);
+      setReportReason('');
+      setReportDescription('');
     } else {
-      setReportError('Please fill out all fields.');
+      setReportError('Please select a reason and provide a description for the report.');
       setTimeout(() => setReportError(''), 3000);
     }
+  };
+
+  const handleReportCancel = () => {
+    setReportingPost(null);
+    setIsReporting(false);
+    setReportReason('');
+    setReportDescription('');
+  };
+
+  const handleEditCancel = () => {
+    setEditingPost(null);
+    setIsEditing(false);
+    setEditorValue('');
+    setCharacterCount(0);
   };
 
   return (
@@ -119,57 +132,62 @@ export default function CommunityPage() {
               }}
               placeholder="Write your post here..."
             />
-            <p>Character count: {characterCount}/{characterLimit}</p>
-            <button type="submit">Post</button>
-            {isEditing ? <button type="button" onClick={() => setIsEditing(false)}>Cancel editing</button> : null}
+            <p>Character count: {characterCount}/200</p>
+            {isEditing ? (
+              <button type="submit">Edit Post</button>
+            ) : (
+              <button type="submit">Create Post</button>
+            )}
+            {isEditing ? (
+              <button type="button" onClick={handleEditCancel}>
+                Cancel Edit
+              </button>
+            ) : null}
+            {editError ? <p style={{ color: 'red' }}>{editError}</p> : null}
+            {editSuccess ? <p style={{ color: 'green' }}>{editSuccess}</p> : null}
           </form>
-          {editError ? <p style={{ color: 'red' }}>{editError}</p> : null}
-          {editSuccess ? <p style={{ color: 'green' }}>{editSuccess}</p> : null}
         </div>
       ) : (
-        <div>
-          <h2>Login to create a post</h2>
-          <form onSubmit={handleLogin}>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-            <button type="submit">Login</button>
-          </form>
-        </div>
+        <p>Please log in to create a post.</p>
       )}
       <h2>Posts</h2>
-      <ul>
-        {posts.map((post, index) => (
-          <li key={index}>
-            <p>{post.text}</p>
-            <p>Author: {post.author}</p>
-            <p>Timestamp: {post.timestamp}</p>
-            {isLoggedIn ? (
-              <div>
-                <button onClick={() => handleEditPost(post)}>Edit</button>
-                <button onClick={() => handleReportPost(post)}>Report</button>
-              </div>
-            ) : null}
-          </li>
-        ))}
-      </ul>
+      {posts.map((post, index) => (
+        <div key={index}>
+          <p>{post.text}</p>
+          <p>Author: {post.author}</p>
+          <p>Timestamp: {post.timestamp}</p>
+          {isLoggedIn ? (
+            <div>
+              <button onClick={() => handlePostEdit(post)}>Edit Post</button>
+              <button onClick={() => handlePostReport(post)}>Report Post</button>
+            </div>
+          ) : null}
+        </div>
+      ))}
       {isReporting ? (
         <div>
-          <h2>Report post</h2>
+          <h2>Report Post</h2>
           <form onSubmit={handleReportSubmit}>
-            <label>Reason for reporting:</label>
-            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-              <option value="">Select a reason</option>
-              <option value="spam">Spam</option>
-              <option value="harassment">Harassment</option>
-              <option value="other">Other</option>
-            </select>
-            <label>Description:</label>
-            <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
-            <button type="submit">Report</button>
-            <button type="button" onClick={() => setIsReporting(false)}>Cancel reporting</button>
+            <label>
+              Reason for report:
+              <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+                <option value="">Select a reason</option>
+                <option value="spam">Spam</option>
+                <option value="harassment">Harassment</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              Description:
+              <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
+            </label>
+            <button type="submit">Submit Report</button>
+            <button type="button" onClick={handleReportCancel}>
+              Cancel Report
+            </button>
+            {reportError ? <p style={{ color: 'red' }}>{reportError}</p> : null}
+            {reportSuccess ? <p style={{ color: 'green' }}>{reportSuccess}</p> : null}
           </form>
-          {reportError ? <p style={{ color: 'red' }}>{reportError}</p> : null}
-          {reportSuccess ? <p style={{ color: 'green' }}>{reportSuccess}</p> : null}
         </div>
       ) : null}
     </div>

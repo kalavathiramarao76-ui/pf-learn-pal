@@ -96,42 +96,60 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getPersonalizedLearningPlanRecommendation = async () => {
-    if (user) {
-      const response = await fetch('/api/personalized-learning-plan-recommendation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          progress: user.progress,
-          goals: user.goals,
-          preferences: user.preferences,
-          learningStyle: user.learningStyle,
-          pace: user.pace,
-        }),
+  const getPersonalizedLearningPlanRecommendation = () => {
+    if (user && user.progress && user.goals && user.preferences) {
+      const progressPercentage = calculateProgressPercentage(user.progress);
+      const goalPriority = getGoalPriority(user.goals);
+      const preferenceWeight = getPreferenceWeight(user.preferences);
+
+      const recommendedPlan = studyPlanOptions.find((plan) => {
+        const planProgressPercentage = calculatePlanProgressPercentage(plan, user.progress);
+        const planGoalPriority = getPlanGoalPriority(plan, user.goals);
+        const planPreferenceWeight = getPlanPreferenceWeight(plan, user.preferences);
+
+        return (
+          planProgressPercentage >= progressPercentage &&
+          planGoalPriority >= goalPriority &&
+          planPreferenceWeight >= preferenceWeight
+        );
       });
-      const data = await response.json();
-      return data;
+
+      return recommendedPlan;
     }
     return null;
   };
 
-  useEffect(() => {
-    if (user) {
-      getPersonalizedLearningPlanRecommendation().then((recommendation) => {
-        if (recommendation) {
-          const recommendedPlan = {
-            name: recommendation.planName,
-            description: recommendation.planDescription,
-            link: recommendation.planLink,
-          };
-          setRecommendedPlan(recommendedPlan);
-        }
-      });
-    }
-  }, [user]);
+  const calculateProgressPercentage = (progress) => {
+    const totalLessons = progress.totalLessons;
+    const completedLessons = progress.completedLessons;
+    return (completedLessons / totalLessons) * 100;
+  };
+
+  const getGoalPriority = (goals) => {
+    const priority = goals.reduce((acc, goal) => acc + goal.priority, 0);
+    return priority / goals.length;
+  };
+
+  const getPreferenceWeight = (preferences) => {
+    const weight = preferences.reduce((acc, preference) => acc + preference.weight, 0);
+    return weight / preferences.length;
+  };
+
+  const calculatePlanProgressPercentage = (plan, progress) => {
+    const planLessons = plan.lessons;
+    const completedPlanLessons = progress.completedLessons.filter((lesson) => planLessons.includes(lesson));
+    return (completedPlanLessons.length / planLessons.length) * 100;
+  };
+
+  const getPlanGoalPriority = (plan, goals) => {
+    const planGoalPriority = goals.reduce((acc, goal) => acc + (plan.goals.includes(goal) ? goal.priority : 0), 0);
+    return planGoalPriority / goals.length;
+  };
+
+  const getPlanPreferenceWeight = (plan, preferences) => {
+    const planPreferenceWeight = preferences.reduce((acc, preference) => acc + (plan.preferences.includes(preference) ? preference.weight : 0), 0);
+    return planPreferenceWeight / preferences.length;
+  };
 
   return (
     <DashboardLayout>
@@ -140,8 +158,8 @@ export default function DashboardPage() {
           <div className="col-md-4">
             <StudyPlanCard
               title="Recommended Study Plan"
-              plan={recommendedPlan}
-              onClick={() => router.push(recommendedPlan.link)}
+              description="Based on your progress, goals, and preferences"
+              plan={getPersonalizedLearningPlanRecommendation()}
             />
           </div>
           <div className="col-md-4">
