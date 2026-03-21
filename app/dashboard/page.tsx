@@ -68,6 +68,7 @@ export default function DashboardPage() {
             userId: user.id,
             progress: user.progress,
             goals: user.goals,
+            learningStyle: user.learningStyle,
           }),
         });
         const data = await response.json();
@@ -87,9 +88,10 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
+            progress: user.progress,
+            goals: user.goals,
             learningStyle: user.learningStyle,
             knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
           }),
         });
         const data = await response.json();
@@ -101,97 +103,185 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const getLearningPlanRecommendations = async () => {
-        const response = await fetch('/api/learning-plan-recommendations', {
+      const getCustomizedPlan = async () => {
+        const response = await fetch('/api/customized-plan', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             userId: user.id,
+            progress: user.progress,
+            goals: user.goals,
             learningStyle: user.learningStyle,
             knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
+            topics: user.topics,
           }),
         });
         const data = await response.json();
-        setLearningPlanRecommendations(data);
+        setCustomizedPlan(data);
       };
+      getCustomizedPlan();
+    }
+  }, [user]);
+
+  const getLearningPlanRecommendations = async () => {
+    const response = await fetch('/api/learning-plan-recommendations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        progress: user.progress,
+        goals: user.goals,
+        learningStyle: user.learningStyle,
+        knowledgeLevel: user.knowledgeLevel,
+      }),
+    });
+    const data = await response.json();
+    setLearningPlanRecommendations(data);
+  };
+
+  useEffect(() => {
+    if (user) {
       getLearningPlanRecommendations();
     }
   }, [user]);
 
-  const handlePlanRecommendationEngine = async () => {
-    if (user) {
-      const response = await fetch('/api/plan-recommendation-engine', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          learningStyle: user.learningStyle,
-          knowledgeLevel: user.knowledgeLevel,
-          goals: user.goals,
-          algorithm: planRecommendationEngine.algorithm,
-          parameters: planRecommendationEngine.parameters,
-        }),
-      });
-      const data = await response.json();
-      setRecommendedPlan(data);
-    }
+  const handlePlanRecommendationEngineChange = (event) => {
+    setPlanRecommendationEngine({
+      ...planRecommendationEngine,
+      algorithm: event.target.value,
+    });
   };
 
-  const handleCustomizationOptions = async () => {
-    if (user) {
-      const response = await fetch('/api/customization-options', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          learningStyle: customizationOptions.learningStyle,
-          knowledgeLevel: customizationOptions.knowledgeLevel,
-          goals: customizationOptions.goals,
-          topics: customizationOptions.topics,
-        }),
-      });
-      const data = await response.json();
-      setCustomizedPlan(data);
-    }
+  const handleCustomizationOptionsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  const handleIsCustomizingPlanChange = (event) => {
+    setIsCustomizingPlan(event.target.checked);
   };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard plan={recommendedPlan} />
-            )}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && (
-              <StudyPlanCard plan={personalizedPlan} />
-            )}
-            <h2>Customized Plan</h2>
-            {customizedPlan && (
-              <StudyPlanCard plan={customizedPlan} />
-            )}
-            <h2>Learning Plan Recommendations</h2>
-            {learningPlanRecommendations.map((plan) => (
-              <StudyPlanCard key={plan.id} plan={plan} />
-            ))}
-            <h2>Progress</h2>
-            <ProgressCard progress={userProgress} />
-            <h2>Community</h2>
-            <CommunityCard />
-            <h2>Resources</h2>
-            <ResourceCard />
-          </div>
-        )}
+      <h1>Personalized Learning Companion</h1>
+      <StudyPlanCard
+        studyPlanOptions={studyPlanOptions}
+        selectedStudyPlan={selectedStudyPlan}
+        setSelectedStudyPlan={setSelectedStudyPlan}
+      />
+      <ProgressCard
+        userProgress={userProgress}
+        setUserProgress={setUserProgress}
+      />
+      <CommunityCard />
+      <ResourceCard />
+      {recommendedPlan && (
+        <div>
+          <h2>Recommended Plan</h2>
+          <p>{recommendedPlan.name}</p>
+          <p>{recommendedPlan.description}</p>
+        </div>
+      )}
+      {personalizedPlan && (
+        <div>
+          <h2>Personalized Plan</h2>
+          <p>{personalizedPlan.name}</p>
+          <p>{personalizedPlan.description}</p>
+        </div>
+      )}
+      {customizedPlan && (
+        <div>
+          <h2>Customized Plan</h2>
+          <p>{customizedPlan.name}</p>
+          <p>{customizedPlan.description}</p>
+        </div>
+      )}
+      <div>
+        <h2>Learning Plan Recommendations</h2>
+        <ul>
+          {learningPlanRecommendations.map((recommendation) => (
+            <li key={recommendation.id}>
+              <p>{recommendation.name}</p>
+              <p>{recommendation.description}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2>Plan Recommendation Engine</h2>
+        <select value={planRecommendationEngine.algorithm} onChange={handlePlanRecommendationEngineChange}>
+          <option value="collaborativeFiltering">Collaborative Filtering</option>
+          <option value="contentBasedFiltering">Content-Based Filtering</option>
+        </select>
+      </div>
+      <div>
+        <h2>Customization Options</h2>
+        <form>
+          <label>
+            Learning Style:
+            <select
+              value={customizationOptions.learningStyle}
+              onChange={handleCustomizationOptionsChange}
+              name="learningStyle"
+            >
+              <option value="">Select a learning style</option>
+              <option value="visual">Visual</option>
+              <option value="auditory">Auditory</option>
+              <option value="kinesthetic">Kinesthetic</option>
+            </select>
+          </label>
+          <label>
+            Knowledge Level:
+            <select
+              value={customizationOptions.knowledgeLevel}
+              onChange={handleCustomizationOptionsChange}
+              name="knowledgeLevel"
+            >
+              <option value="">Select a knowledge level</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </label>
+          <label>
+            Goals:
+            <input
+              type="text"
+              value={customizationOptions.goals}
+              onChange={handleCustomizationOptionsChange}
+              name="goals"
+            />
+          </label>
+          <label>
+            Topics:
+            <input
+              type="text"
+              value={customizationOptions.topics.join(', ')}
+              onChange={(event) => {
+                const topics = event.target.value.split(', ');
+                setCustomizationOptions({
+                  ...customizationOptions,
+                  topics,
+                });
+              }}
+              name="topics"
+            />
+          </label>
+        </form>
+      </div>
+      <div>
+        <h2>Is Customizing Plan</h2>
+        <input
+          type="checkbox"
+          checked={isCustomizingPlan}
+          onChange={handleIsCustomizingPlanChange}
+        />
       </div>
     </DashboardLayout>
   );
