@@ -84,7 +84,7 @@ export default function DashboardPage() {
             userId: user.id,
             progress: user.progress,
             goals: user.goals,
-            preferences: user.preferences,
+            learningStyle: user.learningStyle,
           }),
         });
         const data = await response.json();
@@ -95,7 +95,7 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
-    if (user && planRecommendationEngine) {
+    if (user) {
       const getLearningPlanRecommendations = async () => {
         const response = await fetch('/api/learning-plan-recommendations', {
           method: 'POST',
@@ -104,8 +104,9 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            algorithm: planRecommendationEngine.algorithm,
-            parameters: planRecommendationEngine.parameters,
+            progress: user.progress,
+            goals: user.goals,
+            learningStyle: user.learningStyle,
           }),
         });
         const data = await response.json();
@@ -113,92 +114,99 @@ export default function DashboardPage() {
       };
       getLearningPlanRecommendations();
     }
-  }, [user, planRecommendationEngine]);
+  }, [user]);
 
-  const handlePlanRecommendationEngineChange = (event) => {
-    const { name, value } = event.target;
-    setPlanRecommendationEngine((prevEngine) => ({ ...prevEngine, [name]: value }));
+  const handlePlanRecommendation = async () => {
+    if (user) {
+      const response = await fetch('/api/recommend-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          progress: user.progress,
+          goals: user.goals,
+          learningStyle: user.learningStyle,
+        }),
+      });
+      const data = await response.json();
+      setRecommendedPlan(data);
+    }
   };
 
-  const handlePlanRecommendationEngineParameterChange = (event) => {
-    const { name, value } = event.target;
-    setPlanRecommendationEngine((prevEngine) => ({
-      ...prevEngine,
-      parameters: { ...prevEngine.parameters, [name]: value },
-    }));
+  const handleCustomizePlan = async () => {
+    if (user) {
+      const response = await fetch('/api/customize-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          learningStyle: customizationOptions.learningStyle,
+          knowledgeLevel: customizationOptions.knowledgeLevel,
+          goals: customizationOptions.goals,
+          topics: customizationOptions.topics,
+        }),
+      });
+      const data = await response.json();
+      setCustomizedPlan(data);
+    }
   };
 
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
-      />
-      <ProgressCard user={user} />
-      <CommunityCard />
-      <ResourceCard />
-      {recommendedPlan && (
-        <div>
-          <h2>Recommended Plan</h2>
-          <p>{recommendedPlan.name}</p>
-          <p>{recommendedPlan.description}</p>
-        </div>
-      )}
-      {personalizedPlan && (
-        <div>
-          <h2>Personalized Plan</h2>
-          <p>{personalizedPlan.name}</p>
-          <p>{personalizedPlan.description}</p>
-        </div>
-      )}
-      {learningPlanRecommendations.length > 0 && (
-        <div>
-          <h2>Learning Plan Recommendations</h2>
-          <ul>
-            {learningPlanRecommendations.map((recommendation) => (
-              <li key={recommendation.id}>
-                <p>{recommendation.name}</p>
-                <p>{recommendation.description}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <div>
-        <h2>Plan Recommendation Engine</h2>
-        <form>
-          <label>
-            Algorithm:
-            <select
-              name="algorithm"
-              value={planRecommendationEngine.algorithm}
-              onChange={handlePlanRecommendationEngineChange}
-            >
-              <option value="collaborativeFiltering">Collaborative Filtering</option>
-              <option value="contentBasedFiltering">Content-Based Filtering</option>
-            </select>
-          </label>
-          <label>
-            Number of Recommendations:
-            <input
-              type="number"
-              name="numRecommendations"
-              value={planRecommendationEngine.parameters.numRecommendations}
-              onChange={handlePlanRecommendationEngineParameterChange}
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description="Get a personalized learning plan based on your progress and goals"
+              link="/recommended-plan"
+              onClick={handlePlanRecommendation}
             />
-          </label>
-          <label>
-            Similarity Threshold:
-            <input
-              type="number"
-              name="similarityThreshold"
-              value={planRecommendationEngine.parameters.similarityThreshold}
-              onChange={handlePlanRecommendationEngineParameterChange}
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              description="Track your progress and stay motivated"
+              link="/progress"
             />
-          </label>
-        </form>
+          </div>
+          <div className="col-md-4">
+            <CommunityCard
+              title="Join the Community"
+              description="Connect with other learners and get support"
+              link="/community"
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard
+              title="Learning Resources"
+              description="Access a library of learning resources and tools"
+              link="/resources"
+            />
+          </div>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Customize Your Plan"
+              description="Create a customized learning plan based on your needs and goals"
+              link="/customize-plan"
+              onClick={handleCustomizePlan}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Personalized Plan"
+              description="Get a personalized learning plan based on your learning style and goals"
+              link="/personalized-plan"
+            />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

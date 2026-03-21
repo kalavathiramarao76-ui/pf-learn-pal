@@ -162,42 +162,40 @@
   }
 
   .sr-only-focusable:focus {
-    @apply outline-none;
-    @apply ring-2;
-    @apply ring-blue-600 dark:ring-blue-500;
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    white-space: normal;
+    width: auto;
   }
 
   /* High contrast mode */
   .high-contrast {
-    @apply bg-black;
-    @apply text-white;
+    filter: invert(100%);
   }
 
-  .high-contrast a {
-    @apply text-white;
+  /* Keyboard navigation */
+  [tabindex]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #51a7e8;
   }
 
-  .high-contrast a:hover {
-    @apply text-gray-200;
+  /* High contrast mode toggle */
+  .high-contrast-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #fff;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
   }
 
-  .high-contrast button {
-    @apply bg-white;
-    @apply text-black;
-  }
-
-  .high-contrast button:hover {
-    @apply bg-gray-200;
-    @apply text-black;
-  }
-
-  .high-contrast input, .high-contrast textarea, .high-contrast select {
-    @apply bg-white;
-    @apply text-black;
-  }
-
-  .high-contrast input:focus, .high-contrast textarea:focus, .high-contrast select:focus {
-    @apply border-white;
-    @apply ring-1 ring-white;
+  .high-contrast-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #51a7e8;
   }
 }
