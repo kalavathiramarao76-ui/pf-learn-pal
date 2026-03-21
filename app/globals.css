@@ -8,6 +8,7 @@
     src: url('/fonts/Inter.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
+    font-display: swap;
   }
 
   @font-face {
@@ -15,6 +16,7 @@
     src: url('/fonts/Inter-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
+    font-display: swap;
   }
 
   @font-face {
@@ -22,6 +24,7 @@
     src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
     font-weight: 600;
     font-style: normal;
+    font-display: swap;
   }
 
   @font-face {
@@ -29,6 +32,7 @@
     src: url('/fonts/Inter-Medium.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
+    font-display: swap;
   }
 
   @font-face {
@@ -36,6 +40,7 @@
     src: url('/fonts/Inter-Light.woff2') format('woff2');
     font-weight: 300;
     font-style: normal;
+    font-display: swap;
   }
 
   body {
@@ -157,45 +162,7 @@
     margin: 0;
     overflow: visible;
     position: static;
-    white-space: normal;
     width: auto;
-  }
-
-  .sr-only-focusable:focus {
-    clip: auto;
-    height: auto;
-    margin: 0;
-    overflow: visible;
-    position: static;
     white-space: normal;
-    width: auto;
-  }
-
-  /* High contrast mode */
-  .high-contrast {
-    filter: invert(100%);
-  }
-
-  /* Keyboard navigation */
-  [tabindex]:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px #51a7e8;
-  }
-
-  /* High contrast mode toggle */
-  .high-contrast-toggle {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #fff;
-    border: none;
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  .high-contrast-toggle:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px #51a7e8;
   }
 }
