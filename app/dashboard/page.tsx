@@ -87,7 +87,8 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            progress: user.progress,
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
             goals: user.goals,
           }),
         });
@@ -100,73 +101,97 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const getUserProgress = async () => {
-        const response = await fetch('/api/user-progress', {
-          method: 'GET',
+      const getLearningPlanRecommendations = async () => {
+        const response = await fetch('/api/learning-plan-recommendations', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            userId: user.id,
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
+          }),
         });
         const data = await response.json();
-        setUserProgress({
-          completedLessons: data.completedLessons,
-          totalLessons: data.totalLessons,
-          progressPercentage: (data.completedLessons / data.totalLessons) * 100,
-        });
+        setLearningPlanRecommendations(data);
       };
-      getUserProgress();
+      getLearningPlanRecommendations();
     }
   }, [user]);
+
+  const handlePlanRecommendationEngine = async () => {
+    if (user) {
+      const response = await fetch('/api/plan-recommendation-engine', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          learningStyle: user.learningStyle,
+          knowledgeLevel: user.knowledgeLevel,
+          goals: user.goals,
+          algorithm: planRecommendationEngine.algorithm,
+          parameters: planRecommendationEngine.parameters,
+        }),
+      });
+      const data = await response.json();
+      setRecommendedPlan(data);
+    }
+  };
+
+  const handleCustomizationOptions = async () => {
+    if (user) {
+      const response = await fetch('/api/customization-options', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          learningStyle: customizationOptions.learningStyle,
+          knowledgeLevel: customizationOptions.knowledgeLevel,
+          goals: customizationOptions.goals,
+          topics: customizationOptions.topics,
+        }),
+      });
+      const data = await response.json();
+      setCustomizedPlan(data);
+    }
+  };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              plan={recommendedPlan}
-              onClick={() => router.push('/recommended-plan')}
-            />
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard plan={recommendedPlan} />
+            )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard plan={personalizedPlan} />
+            )}
+            <h2>Customized Plan</h2>
+            {customizedPlan && (
+              <StudyPlanCard plan={customizedPlan} />
+            )}
+            <h2>Learning Plan Recommendations</h2>
+            {learningPlanRecommendations.map((plan) => (
+              <StudyPlanCard key={plan.id} plan={plan} />
+            ))}
+            <h2>Progress</h2>
+            <ProgressCard progress={userProgress} />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
           </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              progress={userProgress}
-              onClick={() => router.push('/progress')}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard
-              title="Join the Community"
-              description="Connect with other learners and get support"
-              onClick={() => router.push('/community')}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard
-              title="Resources"
-              description="Access additional learning resources"
-              onClick={() => router.push('/resources')}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Personalized Plan"
-              plan={personalizedPlan}
-              onClick={() => router.push('/personalized-plan')}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Customized Plan"
-              plan={customizedPlan}
-              onClick={() => router.push('/customized-plan')}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </DashboardLayout>
   );

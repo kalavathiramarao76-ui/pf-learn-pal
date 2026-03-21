@@ -156,13 +156,73 @@
     border: 0;
   }
 
-  .sr-only-focusable {
-    clip: auto;
-    height: auto;
-    margin: 0;
-    overflow: visible;
-    position: static;
-    width: auto;
-    white-space: normal;
+  /* Improved typography and readability */
+  p {
+    @apply text-gray-600 dark:text-gray-400;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+
+  blockquote {
+    @apply text-gray-600 dark:text-gray-400;
+    font-size: 1.2rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-left: 4px solid #ccc;
+  }
+
+  code {
+    @apply text-gray-600 dark:text-gray-400;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+  }
+
+  pre {
+    @apply text-gray-600 dark:text-gray-400;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    overflow-x: auto;
+  }
+
+  /* Improved visual design */
+  .container {
+    @apply max-w-7xl mx-auto p-4;
+  }
+
+  .card {
+    @apply bg-white dark:bg-gray-800;
+    @apply shadow-md;
+    @apply rounded;
+    @apply p-4;
+    @apply mb-4;
+  }
+
+  .card-header {
+    @apply bg-gray-100 dark:bg-gray-700;
+    @apply py-2;
+    @apply px-4;
+    @apply rounded-t;
+  }
+
+  .card-body {
+    @apply py-4;
+    @apply px-4;
+  }
+
+  .card-footer {
+    @apply bg-gray-100 dark:bg-gray-700;
+    @apply py-2;
+    @apply px-4;
+    @apply rounded-b;
   }
 }
