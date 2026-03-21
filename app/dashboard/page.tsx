@@ -78,40 +78,81 @@ export default function DashboardPage() {
         const data = await response.json();
         setRecommendedPlan(data);
 
-        // Develop a personalized learning plan recommendation engine
-        const personalizedPlanRecommendationEngine = {
-          learningStyle: user.learningStyle,
-          knowledgeLevel: user.progress,
-          goals: user.goals,
-          recommendedPlan: data,
-        };
-
-        // Calculate a score for each study plan option based on the user's progress, goals, and learning style
-        const studyPlanScores = studyPlanOptions.map((option) => {
-          let score = 0;
-          if (option.name === 'Foundational Plan' && user.progress < 0.3) {
-            score += 1;
-          } else if (option.name === 'Intermediate Plan' && user.progress >= 0.3 && user.progress < 0.7) {
-            score += 1;
-          } else if (option.name === 'Advanced Plan' && user.progress >= 0.7) {
-            score += 1;
-          }
-          if (option.description.includes(user.goals)) {
-            score += 1;
-          }
-          if (option.name.includes(user.learningStyle)) {
-            score += 1;
-          }
-          return { ...option, score };
+        // Develop a personalized learning plan recommendation engine using machine learning algorithms
+        const mlModel = await fetch('/api/ml-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
+          }),
         });
+        const mlData = await mlModel.json();
+        const personalizedPlanRecommendations = mlData.recommendations;
 
-        // Sort the study plan options based on their scores and select the top option
-        const sortedStudyPlanOptions = studyPlanScores.sort((a, b) => b.score - a.score);
-        const topStudyPlanOption = sortedStudyPlanOptions[0];
+        // Use a collaborative filtering algorithm to recommend learning plans
+        const collaborativeFiltering = async () => {
+          const cfResponse = await fetch('/api/collaborative-filtering', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              learningStyle: user.learningStyle,
+              knowledgeLevel: user.knowledgeLevel,
+              goals: user.goals,
+            }),
+          });
+          const cfData = await cfResponse.json();
+          const cfRecommendations = cfData.recommendations;
+          setLearningPlanRecommendations(cfRecommendations);
+        };
+        collaborativeFiltering();
 
-        // Update the personalized plan and selected study plan
-        setPersonalizedPlan(topStudyPlanOption);
-        setSelectedStudyPlan(topStudyPlanOption);
+        // Use a content-based filtering algorithm to recommend learning plans
+        const contentBasedFiltering = async () => {
+          const cbfResponse = await fetch('/api/content-based-filtering', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              learningStyle: user.learningStyle,
+              knowledgeLevel: user.knowledgeLevel,
+              goals: user.goals,
+            }),
+          });
+          const cbfData = await cbfResponse.json();
+          const cbfRecommendations = cbfData.recommendations;
+          setLearningPlanRecommendations((prevRecommendations) => [...prevRecommendations, ...cbfRecommendations]);
+        };
+        contentBasedFiltering();
+
+        // Use a hybrid approach to recommend learning plans
+        const hybridApproach = async () => {
+          const hybridResponse = await fetch('/api/hybrid-approach', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              learningStyle: user.learningStyle,
+              knowledgeLevel: user.knowledgeLevel,
+              goals: user.goals,
+            }),
+          });
+          const hybridData = await hybridResponse.json();
+          const hybridRecommendations = hybridData.recommendations;
+          setLearningPlanRecommendations((prevRecommendations) => [...prevRecommendations, ...hybridRecommendations]);
+        };
+        hybridApproach();
       };
       getRecommendedPlan();
     }
@@ -119,40 +160,14 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Study Plan"
-              description={recommendedPlan ? recommendedPlan.description : ''}
-              link={recommendedPlan ? recommendedPlan.link : ''}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Personalized Study Plan"
-              description={personalizedPlan ? personalizedPlan.description : ''}
-              link={personalizedPlan ? personalizedPlan.link : ''}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="User Progress"
-              progress={userProgress.progressPercentage}
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <CommunityCard title="Community" />
-          </div>
-          <div className="col-md-4">
-            <ResourceCard title="Resources" />
-          </div>
-        </div>
-      </div>
+      <StudyPlanCard
+        studyPlanOptions={studyPlanOptions}
+        selectedStudyPlan={selectedStudyPlan}
+        setSelectedStudyPlan={setSelectedStudyPlan}
+      />
+      <ProgressCard userProgress={userProgress} />
+      <CommunityCard />
+      <ResourceCard />
     </DashboardLayout>
   );
 }

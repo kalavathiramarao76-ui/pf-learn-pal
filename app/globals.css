@@ -112,9 +112,93 @@
 }
 
 @layer utilities {
-  @media (max-width: 640px) {
+  @media (max-width: 1280px) {
+    body {
+      font-size: 17px;
+    }
+
+    h1 {
+      font-size: 2.3rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+    }
+
+    h3 {
+      font-size: 1.8rem;
+    }
+
+    h4 {
+      font-size: 1.6rem;
+    }
+
+    h5 {
+      font-size: 1.4rem;
+    }
+
+    h6 {
+      font-size: 1.2rem;
+    }
+
+    button {
+      @apply py-2.5 px-4.5;
+      font-size: 1rem;
+      margin: 0.8rem;
+    }
+
+    input, textarea, select {
+      @apply py-2.5 px-4.5;
+      font-size: 1rem;
+      margin: 0.5rem;
+    }
+  }
+
+  @media (max-width: 1024px) {
     body {
       font-size: 16px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+    }
+
+    h2 {
+      font-size: 1.9rem;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+    }
+
+    h4 {
+      font-size: 1.4rem;
+    }
+
+    h5 {
+      font-size: 1.3rem;
+    }
+
+    h6 {
+      font-size: 1.2rem;
+    }
+
+    button {
+      @apply py-2.2 px-4;
+      font-size: 0.9rem;
+      margin: 0.6rem;
+    }
+
+    input, textarea, select {
+      @apply py-2.2 px-4;
+      font-size: 0.9rem;
+      margin: 0.4rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body {
+      font-size: 15px;
     }
 
     h1 {
@@ -122,39 +206,39 @@
     }
 
     h2 {
-      font-size: 1.8rem;
+      font-size: 1.7rem;
     }
 
     h3 {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
     }
 
     h4 {
-      font-size: 1.3rem;
-    }
-
-    h5 {
       font-size: 1.2rem;
     }
 
-    h6 {
+    h5 {
       font-size: 1.1rem;
     }
 
-    button {
-      @apply py-2 px-4;
+    h6 {
       font-size: 1rem;
-      margin: 0.5rem;
+    }
+
+    button {
+      @apply py-1.8 px-3.5;
+      font-size: 0.8rem;
+      margin: 0.4rem;
     }
 
     input, textarea, select {
-      @apply py-2 px-4;
-      font-size: 1rem;
-      margin: 0.5rem;
+      @apply py-1.8 px-3.5;
+      font-size: 0.8rem;
+      margin: 0.3rem;
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
     body {
       font-size: 14px;
     }
@@ -185,37 +269,56 @@
 
     button {
       @apply py-1.5 px-3;
-      font-size: 0.9rem;
+      font-size: 0.7rem;
       margin: 0.3rem;
     }
 
     input, textarea, select {
       @apply py-1.5 px-3;
-      font-size: 0.9rem;
-      margin: 0.3rem;
+      font-size: 0.7rem;
+      margin: 0.2rem;
     }
   }
-}
 
-@layer components {
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
+  @media (max-width: 480px) {
+    body {
+      font-size: 13px;
+    }
 
-  .focusable {
-    outline: none;
-  }
+    h1 {
+      font-size: 1.6rem;
+    }
 
-  .focusable:focus {
-    @apply ring-2;
-    @apply ring-blue-600 dark:ring-blue-500;
+    h2 {
+      font-size: 1.3rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+    }
+
+    h4 {
+      font-size: 1rem;
+    }
+
+    h5 {
+      font-size: 0.9rem;
+    }
+
+    h6 {
+      font-size: 0.8rem;
+    }
+
+    button {
+      @apply py-1.2 px-2.5;
+      font-size: 0.6rem;
+      margin: 0.2rem;
+    }
+
+    input, textarea, select {
+      @apply py-1.2 px-2.5;
+      font-size: 0.6rem;
+      margin: 0.1rem;
+    }
   }
 }
