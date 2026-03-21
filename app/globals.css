@@ -151,62 +151,53 @@
     border: 0;
   }
 
+  .sr-only-focusable {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    white-space: normal;
+    width: auto;
+  }
+
+  .sr-only-focusable:focus {
+    @apply outline-none;
+    @apply ring-2;
+    @apply ring-blue-600 dark:ring-blue-500;
+  }
+
   /* High contrast mode */
   .high-contrast {
     @apply bg-black;
     @apply text-white;
   }
 
-  /* Responsive typography */
-  @media (max-width: 768px) {
-    h1 {
-      font-size: 2rem;
-    }
-
-    h2 {
-      font-size: 1.8rem;
-    }
-
-    h3 {
-      font-size: 1.6rem;
-    }
-
-    h4 {
-      font-size: 1.4rem;
-    }
-
-    h5 {
-      font-size: 1.2rem;
-    }
-
-    h6 {
-      font-size: 1rem;
-    }
+  .high-contrast a {
+    @apply text-white;
   }
 
-  @media (max-width: 480px) {
-    h1 {
-      font-size: 1.8rem;
-    }
+  .high-contrast a:hover {
+    @apply text-gray-200;
+  }
 
-    h2 {
-      font-size: 1.6rem;
-    }
+  .high-contrast button {
+    @apply bg-white;
+    @apply text-black;
+  }
 
-    h3 {
-      font-size: 1.4rem;
-    }
+  .high-contrast button:hover {
+    @apply bg-gray-200;
+    @apply text-black;
+  }
 
-    h4 {
-      font-size: 1.2rem;
-    }
+  .high-contrast input, .high-contrast textarea, .high-contrast select {
+    @apply bg-white;
+    @apply text-black;
+  }
 
-    h5 {
-      font-size: 1rem;
-    }
-
-    h6 {
-      font-size: 0.9rem;
-    }
+  .high-contrast input:focus, .high-contrast textarea:focus, .high-contrast select:focus {
+    @apply border-white;
+    @apply ring-1 ring-white;
   }
 }
