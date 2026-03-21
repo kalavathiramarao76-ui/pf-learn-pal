@@ -23,10 +23,31 @@
 
   main {
     display: block;
+    role: main;
   }
 
-  header, footer, nav, main, section, article, aside {
+  header, footer, nav, section, article, aside {
     display: block;
+  }
+
+  header {
+    role: banner;
+  }
+
+  nav {
+    role: navigation;
+  }
+
+  section {
+    role: region;
+  }
+
+  article {
+    role: article;
+  }
+
+  aside {
+    role: complementary;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -91,6 +112,7 @@
     margin: 1rem;
     @apply shadow-md;
     @apply active:scale-95;
+    role: button;
   }
 
   input, textarea, select {
@@ -104,6 +126,14 @@
     @apply focus:outline-none;
     @apply focus:ring-2;
     @apply focus:ring-blue-600 dark:focus:ring-blue-500;
+  }
+
+  input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    role: textbox;
+  }
+
+  input[type="checkbox"], input[type="radio"] {
+    role: checkbox;
   }
 
   input:focus, textarea:focus, select:focus {
@@ -184,141 +214,15 @@
     }
 
     button {
-      @apply py-2.2 px-4;
+      @apply py-2 px-4;
       font-size: 0.9rem;
-      margin: 0.6rem;
+      margin: 0.7rem;
     }
 
     input, textarea, select {
-      @apply py-2.2 px-4;
+      @apply py-2 px-4;
       font-size: 0.9rem;
-      margin: 0.4rem;
-    }
-  }
-
-  @media (max-width: 768px) {
-    body {
-      font-size: 15px;
-    }
-
-    h1 {
-      font-size: 2rem;
-    }
-
-    h2 {
-      font-size: 1.7rem;
-    }
-
-    h3 {
-      font-size: 1.4rem;
-    }
-
-    h4 {
-      font-size: 1.2rem;
-    }
-
-    h5 {
-      font-size: 1.1rem;
-    }
-
-    h6 {
-      font-size: 1rem;
-    }
-
-    button {
-      @apply py-1.8 px-3.5;
-      font-size: 0.8rem;
-      margin: 0.4rem;
-    }
-
-    input, textarea, select {
-      @apply py-1.8 px-3.5;
-      font-size: 0.8rem;
-      margin: 0.3rem;
-    }
-  }
-
-  @media (max-width: 640px) {
-    body {
-      font-size: 14px;
-    }
-
-    h1 {
-      font-size: 1.8rem;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-    }
-
-    h3 {
-      font-size: 1.3rem;
-    }
-
-    h4 {
-      font-size: 1.2rem;
-    }
-
-    h5 {
-      font-size: 1.1rem;
-    }
-
-    h6 {
-      font-size: 1rem;
-    }
-
-    button {
-      @apply py-1.5 px-3;
-      font-size: 0.7rem;
-      margin: 0.3rem;
-    }
-
-    input, textarea, select {
-      @apply py-1.5 px-3;
-      font-size: 0.7rem;
-      margin: 0.2rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    body {
-      font-size: 13px;
-    }
-
-    h1 {
-      font-size: 1.6rem;
-    }
-
-    h2 {
-      font-size: 1.3rem;
-    }
-
-    h3 {
-      font-size: 1.1rem;
-    }
-
-    h4 {
-      font-size: 1rem;
-    }
-
-    h5 {
-      font-size: 0.9rem;
-    }
-
-    h6 {
-      font-size: 0.8rem;
-    }
-
-    button {
-      @apply py-1.2 px-2.5;
-      font-size: 0.6rem;
-      margin: 0.2rem;
-    }
-
-    input, textarea, select {
-      @apply py-1.2 px-2.5;
-      font-size: 0.6rem;
-      margin: 0.1rem;
+      margin: 0.5rem;
     }
   }
 }

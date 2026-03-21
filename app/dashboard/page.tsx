@@ -78,96 +78,101 @@ export default function DashboardPage() {
         const data = await response.json();
         setRecommendedPlan(data);
 
-        // Develop a personalized learning plan recommendation engine using machine learning algorithms
-        const mlModel = await fetch('/api/ml-model', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
-          }),
-        });
-        const mlData = await mlModel.json();
-        const personalizedPlanRecommendations = mlData.recommendations;
-
-        // Use a collaborative filtering algorithm to recommend learning plans
-        const collaborativeFiltering = async () => {
-          const cfResponse = await fetch('/api/collaborative-filtering', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              learningStyle: user.learningStyle,
-              knowledgeLevel: user.knowledgeLevel,
-              goals: user.goals,
-            }),
-          });
-          const cfData = await cfResponse.json();
-          const cfRecommendations = cfData.recommendations;
-          setLearningPlanRecommendations(cfRecommendations);
+        // Develop a personalized learning plan recommendation engine
+        const personalizedLearningPlanRecommendationEngine = {
+          userProgress: userProgress,
+          userGoals: user.goals,
+          userLearningStyle: user.learningStyle,
+          recommendedPlan: recommendedPlan,
         };
-        collaborativeFiltering();
 
-        // Use a content-based filtering algorithm to recommend learning plans
-        const contentBasedFiltering = async () => {
-          const cbfResponse = await fetch('/api/content-based-filtering', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              learningStyle: user.learningStyle,
-              knowledgeLevel: user.knowledgeLevel,
-              goals: user.goals,
-            }),
-          });
-          const cbfData = await cbfResponse.json();
-          const cbfRecommendations = cbfData.recommendations;
-          setLearningPlanRecommendations((prevRecommendations) => [...prevRecommendations, ...cbfRecommendations]);
+        const calculatePersonalizedPlan = () => {
+          const planScore = calculatePlanScore(personalizedLearningPlanRecommendationEngine);
+          const recommendedPlanOptions = getRecommendedPlanOptions(planScore);
+          return recommendedPlanOptions;
         };
-        contentBasedFiltering();
 
-        // Use a hybrid approach to recommend learning plans
-        const hybridApproach = async () => {
-          const hybridResponse = await fetch('/api/hybrid-approach', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              learningStyle: user.learningStyle,
-              knowledgeLevel: user.knowledgeLevel,
-              goals: user.goals,
-            }),
-          });
-          const hybridData = await hybridResponse.json();
-          const hybridRecommendations = hybridData.recommendations;
-          setLearningPlanRecommendations((prevRecommendations) => [...prevRecommendations, ...hybridRecommendations]);
+        const calculatePlanScore = (engine: any) => {
+          const planScore = 0;
+          if (engine.userProgress.progressPercentage > 50) {
+            planScore += 10;
+          }
+          if (engine.userGoals.includes('improve skills')) {
+            planScore += 20;
+          }
+          if (engine.userLearningStyle === 'visual') {
+            planScore += 15;
+          }
+          return planScore;
         };
-        hybridApproach();
+
+        const getRecommendedPlanOptions = (planScore: number) => {
+          if (planScore > 40) {
+            return [
+              { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
+              { name: 'Expert Plan', description: 'Become an expert in the field', link: '/expert-plan' },
+            ];
+          } else if (planScore > 20) {
+            return [
+              { name: 'Intermediate Plan', description: 'Improve your skills with intermediate-level content', link: '/intermediate-plan' },
+              { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
+            ];
+          } else {
+            return [
+              { name: 'Foundational Plan', description: 'Build a strong foundation in the basics', link: '/foundational-plan' },
+              { name: 'Intermediate Plan', description: 'Improve your skills with intermediate-level content', link: '/intermediate-plan' },
+            ];
+          }
+        };
+
+        const personalizedPlanOptions = calculatePersonalizedPlan();
+        setPersonalizedPlan(personalizedPlanOptions);
       };
       getRecommendedPlan();
     }
-  }, [user]);
+  }, [user, userProgress, recommendedPlan]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
-      />
-      <ProgressCard userProgress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description="Based on your progress, goals, and learning style"
+              plan={recommendedPlan}
+            />
+          </div>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Plan"
+              description="Based on your progress, goals, and learning style"
+              plan={personalizedPlan}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              progress={userProgress}
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <CommunityCard
+              title="Join the Community"
+              description="Connect with other learners and get support"
+            />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard
+              title="Additional Resources"
+              description="Get access to additional resources and tools"
+            />
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
