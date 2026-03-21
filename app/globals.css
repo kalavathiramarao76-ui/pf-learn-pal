@@ -157,27 +157,56 @@
     @apply text-white;
   }
 
-  .high-contrast a {
-    @apply text-yellow-400;
+  /* Responsive typography */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+    }
+
+    h4 {
+      font-size: 1.4rem;
+    }
+
+    h5 {
+      font-size: 1.2rem;
+    }
+
+    h6 {
+      font-size: 1rem;
+    }
   }
 
-  .high-contrast a:hover {
-    @apply text-yellow-600;
-  }
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.8rem;
+    }
 
-  .high-contrast button {
-    @apply bg-yellow-600;
-    @apply text-black;
-  }
+    h2 {
+      font-size: 1.6rem;
+    }
 
-  .high-contrast input, .high-contrast textarea, .high-contrast select {
-    @apply bg-white;
-    @apply border-yellow-400;
-    @apply text-black;
-  }
+    h3 {
+      font-size: 1.4rem;
+    }
 
-  .high-contrast input:focus, .high-contrast textarea:focus, .high-contrast select:focus {
-    @apply border-yellow-600;
-    @apply ring-1 ring-yellow-600;
+    h4 {
+      font-size: 1.2rem;
+    }
+
+    h5 {
+      font-size: 1rem;
+    }
+
+    h6 {
+      font-size: 0.9rem;
+    }
   }
 }

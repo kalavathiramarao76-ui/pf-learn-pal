@@ -29,6 +29,13 @@ export default function DashboardPage() {
     goals: '',
     recommendedPlan: '',
   });
+  const [customizationOptions, setCustomizationOptions] = useState({
+    learningStyle: '',
+    knowledgeLevel: '',
+    goals: '',
+    topics: [],
+  });
+  const [isCustomizingPlan, setIsCustomizingPlan] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -101,77 +108,106 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getRecommendedPlanEngine = async () => {
-    if (user) {
-      const response = await fetch('/api/recommended-plan-engine', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          learningStyle: user.learningStyle,
-          knowledgeLevel: user.knowledgeLevel,
-          goals: user.goals,
-        }),
-      });
-      const data = await response.json();
-      setRecommendedPlanEngine({
-        learningStyle: data.learningStyle,
-        knowledgeLevel: data.knowledgeLevel,
-        goals: data.goals,
-        recommendedPlan: data.recommendedPlan,
-      });
-    }
+  const handleCustomizePlan = () => {
+    setIsCustomizingPlan(true);
   };
 
-  useEffect(() => {
-    getRecommendedPlanEngine();
-  }, [user]);
+  const handleSaveCustomizedPlan = async () => {
+    const response = await fetch('/api/customized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        customizationOptions: customizationOptions,
+      }),
+    });
+    const data = await response.json();
+    setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
+  };
+
+  const handleUpdateCustomizationOptions = (key, value) => {
+    setCustomizationOptions({ ...customizationOptions, [key]: value });
+  };
+
+  const handleAddTopic = (topic) => {
+    setCustomizationOptions({ ...customizationOptions, topics: [...customizationOptions.topics, topic] });
+  };
+
+  const handleRemoveTopic = (topic) => {
+    setCustomizationOptions({ ...customizationOptions, topics: customizationOptions.topics.filter((t) => t !== topic) });
+  };
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto p-4 pt-6 md:p-6 lg:p-12 xl:p-24">
-        <div className="flex flex-wrap justify-center mb-4">
-          <StudyPlanCard
-            title="Recommended Plan"
-            description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
-            link={recommendedPlan ? recommendedPlan.link : ''}
-          />
-          <StudyPlanCard
-            title="Personalized Plan"
-            description={personalizedPlan ? personalizedPlan.description : 'No plan personalized'}
-            link={personalizedPlan ? personalizedPlan.link : ''}
-          />
-          <StudyPlanCard
-            title="Customized Plan"
-            description={customizedPlan ? customizedPlan.description : 'No plan customized'}
-            link={customizedPlan ? customizedPlan.link : ''}
-          />
-          <StudyPlanCard
-            title="Recommended Plan Engine"
-            description={recommendedPlanEngine.recommendedPlan}
-            link={recommendedPlanEngine.recommendedPlan ? '/recommended-plan-engine' : ''}
-          />
-        </div>
-        <div className="flex flex-wrap justify-center mb-4">
-          {studyPlanOptions.map((option, index) => (
-            <Link key={index} href={option.link}>
-              <a>
-                <StudyPlanCard
-                  title={option.name}
-                  description={option.description}
-                  link={option.link}
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && <StudyPlanCard plan={personalizedPlan} />}
+            <h2>Customize Your Plan</h2>
+            <button onClick={handleCustomizePlan}>Customize Plan</button>
+            {isCustomizingPlan && (
+              <div>
+                <label>Learning Style:</label>
+                <select
+                  value={customizationOptions.learningStyle}
+                  onChange={(e) => handleUpdateCustomizationOptions('learningStyle', e.target.value)}
+                >
+                  <option value="">Select a learning style</option>
+                  <option value="visual">Visual</option>
+                  <option value="auditory">Auditory</option>
+                  <option value="kinesthetic">Kinesthetic</option>
+                </select>
+                <label>Knowledge Level:</label>
+                <select
+                  value={customizationOptions.knowledgeLevel}
+                  onChange={(e) => handleUpdateCustomizationOptions('knowledgeLevel', e.target.value)}
+                >
+                  <option value="">Select a knowledge level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+                <label>Goals:</label>
+                <input
+                  type="text"
+                  value={customizationOptions.goals}
+                  onChange={(e) => handleUpdateCustomizationOptions('goals', e.target.value)}
                 />
-              </a>
-            </Link>
-          ))}
-        </div>
-        <div className="flex flex-wrap justify-center mb-4">
-          <ProgressCard title="Progress" description="Track your progress" link="/progress" />
-          <CommunityCard title="Community" description="Join our community" link="/community" />
-          <ResourceCard title="Resources" description="Access our resources" link="/resources" />
-        </div>
+                <label>Topics:</label>
+                <ul>
+                  {customizationOptions.topics.map((topic) => (
+                    <li key={topic}>
+                      {topic}
+                      <button onClick={() => handleRemoveTopic(topic)}>Remove</button>
+                    </li>
+                  ))}
+                </ul>
+                <input
+                  type="text"
+                  placeholder="Add a topic"
+                  onChange={(e) => handleAddTopic(e.target.value)}
+                />
+                <button onClick={handleSaveCustomizedPlan}>Save Customized Plan</button>
+              </div>
+            )}
+            {customizedPlan && (
+              <div>
+                <h2>Customized Plan</h2>
+                <StudyPlanCard plan={customizedPlan} />
+              </div>
+            )}
+          </div>
+        )}
+        <ProgressCard />
+        <CommunityCard />
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );
