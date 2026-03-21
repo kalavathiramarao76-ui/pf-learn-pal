@@ -84,108 +84,118 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const getPersonalizedPlan = async () => {
-        const response = await fetch('/api/personalized-plan', {
+      const getPersonalizedPlanRecommendations = async () => {
+        const response = await fetch('/api/personalized-plan-recommendations', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             userId: user.id,
-            progress: user.progress,
-            goals: user.goals,
             learningStyle: user.learningStyle,
-            userFeedback: userFeedback,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
           }),
         });
         const data = await response.json();
-        setPersonalizedPlan(data);
+        setLearningPlanRecommendations(data);
       };
-      getPersonalizedPlan();
+      getPersonalizedPlanRecommendations();
     }
-  }, [user, userFeedback]);
+  }, [user]);
 
-  const trainModel = async () => {
-    const response = await fetch('/api/train-model', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userFeedback: userFeedback,
-      }),
-    });
-    const data = await response.json();
-    setPlanRecommendationEngine(data);
-  };
-
-  const predictRecommendations = async () => {
-    const response = await fetch('/api/predict-recommendations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        planRecommendationEngine: planRecommendationEngine,
-      }),
-    });
-    const data = await response.json();
-    setLearningPlanRecommendations(data);
-  };
-
-  const handleUserFeedback = (rating, comment) => {
-    setUserFeedback({
-      ratings: [...userFeedback.ratings, rating],
-      comments: [...userFeedback.comments, comment],
-    });
-    trainModel();
-    predictRecommendations();
+  const getPersonalizedPlanRecommendation = (learningStyle: string, knowledgeLevel: string, goals: string) => {
+    const recommendationEngine = {
+      learningStyle,
+      knowledgeLevel,
+      goals,
+      recommendedPlan: '',
+    };
+    setRecommendedPlanEngine(recommendationEngine);
+    const getRecommendation = async () => {
+      const response = await fetch('/api/personalized-plan-recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(recommendationEngine),
+      });
+      const data = await response.json();
+      setPersonalizedPlan(data);
+    };
+    getRecommendation();
   };
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
-      />
-      <ProgressCard
-        userProgress={userProgress}
-        setUserProgress={setUserProgress}
-      />
-      <CommunityCard />
-      <ResourceCard />
-      {recommendedPlan && (
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard
+                name={recommendedPlan.name}
+                description={recommendedPlan.description}
+                link={recommendedPlan.link}
+              />
+            )}
+            <h2>Personalized Plan Recommendations</h2>
+            {learningPlanRecommendations.length > 0 && (
+              <div>
+                {learningPlanRecommendations.map((recommendation, index) => (
+                  <StudyPlanCard
+                    key={index}
+                    name={recommendation.name}
+                    description={recommendation.description}
+                    link={recommendation.link}
+                  />
+                ))}
+              </div>
+            )}
+            <button onClick={() => getPersonalizedPlanRecommendation(user.learningStyle, user.knowledgeLevel, user.goals)}>
+              Get Personalized Plan Recommendation
+            </button>
+            {personalizedPlan && (
+              <div>
+                <h2>Personalized Plan</h2>
+                <StudyPlanCard
+                  name={personalizedPlan.name}
+                  description={personalizedPlan.description}
+                  link={personalizedPlan.link}
+                />
+              </div>
+            )}
+          </div>
+        )}
         <div>
-          <h2>Recommended Plan</h2>
-          <p>{recommendedPlan.name}</p>
-          <p>{recommendedPlan.description}</p>
+          <h2>Study Plan Options</h2>
+          {studyPlanOptions.map((option, index) => (
+            <StudyPlanCard
+              key={index}
+              name={option.name}
+              description={option.description}
+              link={option.link}
+            />
+          ))}
         </div>
-      )}
-      {personalizedPlan && (
         <div>
-          <h2>Personalized Plan</h2>
-          <p>{personalizedPlan.name}</p>
-          <p>{personalizedPlan.description}</p>
+          <h2>Progress</h2>
+          <ProgressCard
+            completedLessons={userProgress.completedLessons}
+            totalLessons={userProgress.totalLessons}
+            progressPercentage={userProgress.progressPercentage}
+          />
         </div>
-      )}
-      {learningPlanRecommendations.length > 0 && (
         <div>
-          <h2>Learning Plan Recommendations</h2>
-          <ul>
-            {learningPlanRecommendations.map((recommendation) => (
-              <li key={recommendation.id}>
-                <p>{recommendation.name}</p>
-                <p>{recommendation.description}</p>
-              </li>
-            ))}
-          </ul>
+          <h2>Community</h2>
+          <CommunityCard />
         </div>
-      )}
-      <button onClick={() => handleUserFeedback(5, 'Great plan!')}>
-        Provide Feedback
-      </button>
+        <div>
+          <h2>Resources</h2>
+          <ResourceCard />
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
