@@ -24,6 +24,7 @@
   main {
     display: block;
     role: main;
+    aria-label: "Main content";
   }
 
   header, footer, nav, section, article, aside {
@@ -32,22 +33,27 @@
 
   header {
     role: banner;
+    aria-label: "Header";
   }
 
   nav {
     role: navigation;
+    aria-label: "Navigation";
   }
 
   section {
     role: region;
+    aria-label: "Section";
   }
 
   article {
     role: article;
+    aria-label: "Article";
   }
 
   aside {
     role: complementary;
+    aria-label: "Aside";
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -95,6 +101,7 @@
     text-decoration: none;
     @apply hover:underline;
     @apply transition-all duration-200;
+    aria-label: "Link";
   }
 
   a:hover {
@@ -113,6 +120,7 @@
     @apply shadow-md;
     @apply active:scale-95;
     role: button;
+    aria-label: "Button";
   }
 
   input, textarea, select {
@@ -130,10 +138,12 @@
 
   input[type="text"], input[type="email"], input[type="password"], textarea, select {
     role: textbox;
+    aria-label: "Text input";
   }
 
   input[type="checkbox"], input[type="radio"] {
     role: checkbox;
+    aria-label: "Checkbox";
   }
 
   input:focus, textarea:focus, select:focus {
@@ -180,49 +190,6 @@
     input, textarea, select {
       @apply py-2.5 px-4.5;
       font-size: 1rem;
-      margin: 0.5rem;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    body {
-      font-size: 16px;
-    }
-
-    h1 {
-      font-size: 2.2rem;
-    }
-
-    h2 {
-      font-size: 1.9rem;
-    }
-
-    h3 {
-      font-size: 1.6rem;
-    }
-
-    h4 {
-      font-size: 1.4rem;
-    }
-
-    h5 {
-      font-size: 1.3rem;
-    }
-
-    h6 {
-      font-size: 1.2rem;
-    }
-
-    button {
-      @apply py-2 px-4;
-      font-size: 0.9rem;
-      margin: 0.7rem;
-    }
-
-    input, textarea, select {
-      @apply py-2 px-4;
-      font-size: 0.9rem;
-      margin: 0.5rem;
     }
   }
 }

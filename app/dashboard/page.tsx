@@ -78,98 +78,103 @@ export default function DashboardPage() {
         const data = await response.json();
         setRecommendedPlan(data);
 
-        // Develop a personalized learning plan recommendation engine
-        const personalizedLearningPlanRecommendationEngine = {
-          userProgress: userProgress,
-          userGoals: user.goals,
-          userLearningStyle: user.learningStyle,
-          recommendedPlan: recommendedPlan,
+        const developPersonalizedPlan = async () => {
+          const userProgressResponse = await fetch('/api/user-progress', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+            }),
+          });
+          const userProgressData = await userProgressResponse.json();
+          setUserProgress(userProgressData);
+
+          const userGoalsResponse = await fetch('/api/user-goals', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+            }),
+          });
+          const userGoalsData = await userGoalsResponse.json();
+          const userGoals = userGoalsData.goals;
+
+          const userLearningStyleResponse = await fetch('/api/user-learning-style', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+            }),
+          });
+          const userLearningStyleData = await userLearningStyleResponse.json();
+          const userLearningStyle = userLearningStyleData.learningStyle;
+
+          const personalizedPlanRecommendations = await getPersonalizedPlanRecommendations(userProgressData, userGoals, userLearningStyle);
+          setPersonalizedPlan(personalizedPlanRecommendations);
         };
 
-        const calculatePersonalizedPlan = () => {
-          const planScore = calculatePlanScore(personalizedLearningPlanRecommendationEngine);
-          const recommendedPlanOptions = getRecommendedPlanOptions(planScore);
-          return recommendedPlanOptions;
-        };
-
-        const calculatePlanScore = (engine: any) => {
-          const planScore = 0;
-          if (engine.userProgress.progressPercentage > 50) {
-            planScore += 10;
-          }
-          if (engine.userGoals.includes('improve skills')) {
-            planScore += 20;
-          }
-          if (engine.userLearningStyle === 'visual') {
-            planScore += 15;
-          }
-          return planScore;
-        };
-
-        const getRecommendedPlanOptions = (planScore: number) => {
-          if (planScore > 40) {
-            return [
-              { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
-              { name: 'Expert Plan', description: 'Become an expert in the field', link: '/expert-plan' },
-            ];
-          } else if (planScore > 20) {
-            return [
-              { name: 'Intermediate Plan', description: 'Improve your skills with intermediate-level content', link: '/intermediate-plan' },
-              { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
-            ];
-          } else {
-            return [
-              { name: 'Foundational Plan', description: 'Build a strong foundation in the basics', link: '/foundational-plan' },
-              { name: 'Intermediate Plan', description: 'Improve your skills with intermediate-level content', link: '/intermediate-plan' },
-            ];
-          }
-        };
-
-        const personalizedPlanOptions = calculatePersonalizedPlan();
-        setPersonalizedPlan(personalizedPlanOptions);
+        developPersonalizedPlan();
       };
+
       getRecommendedPlan();
     }
-  }, [user, userProgress, recommendedPlan]);
+  }, [user]);
+
+  const getPersonalizedPlanRecommendations = async (userProgress, userGoals, userLearningStyle) => {
+    const response = await fetch('/api/personalized-plan-recommendations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userProgress,
+        userGoals,
+        userLearningStyle,
+      }),
+    });
+    const data = await response.json();
+    return data;
+  };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
         <div className="row">
           <div className="col-md-4">
             <StudyPlanCard
               title="Recommended Plan"
-              description="Based on your progress, goals, and learning style"
-              plan={recommendedPlan}
+              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+              link={recommendedPlan ? recommendedPlan.link : '#'}
             />
           </div>
           <div className="col-md-4">
             <StudyPlanCard
               title="Personalized Plan"
-              description="Based on your progress, goals, and learning style"
-              plan={personalizedPlan}
+              description={personalizedPlan ? personalizedPlan.description : 'No plan available'}
+              link={personalizedPlan ? personalizedPlan.link : '#'}
             />
           </div>
           <div className="col-md-4">
             <ProgressCard
-              title="Your Progress"
-              progress={userProgress}
+              title="User Progress"
+              progressPercentage={userProgress.progressPercentage}
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
             />
           </div>
         </div>
         <div className="row">
           <div className="col-md-4">
-            <CommunityCard
-              title="Join the Community"
-              description="Connect with other learners and get support"
-            />
+            <CommunityCard title="Community" description="Join our community to connect with other learners" link="/community" />
           </div>
           <div className="col-md-4">
-            <ResourceCard
-              title="Additional Resources"
-              description="Get access to additional resources and tools"
-            />
+            <ResourceCard title="Resources" description="Access additional resources to support your learning" link="/resources" />
           </div>
         </div>
       </div>
