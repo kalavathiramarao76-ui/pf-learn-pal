@@ -72,68 +72,25 @@ export default function CommunityPage() {
         setTimeout(() => setEditSuccess(''), 3000);
       } else {
         const newPost = { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
-        setPosts([...posts, newPost]);
+        setPosts((prevPosts) => [...prevPosts, newPost]);
         setValue('communityPosts', JSON.stringify([...posts, newPost]));
         setEditorValue('');
         setCharacterCount(0);
       }
-      setIsEditingLoading(false);
-    } else {
-      setEditError('Post exceeds character limit!');
-      setTimeout(() => setEditError(''), 3000);
     }
   };
 
-  const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (reportReason && reportDescription) {
-      setIsReportingLoading(true);
-      const reportedPost = { text: reportingPost.text, reason: reportReason, description: reportDescription };
-      axios.post('/api/report-post', reportedPost)
-        .then((response) => {
-          setReportSuccess('Post reported successfully!');
-          setTimeout(() => setReportSuccess(''), 3000);
-        })
-        .catch((error) => {
-          setReportError('Failed to report post!');
-          setTimeout(() => setReportError(''), 3000);
-        })
-        .finally(() => {
-          setIsReportingLoading(false);
-          setReportingPost(null);
-          setReportReason('');
-          setReportDescription('');
-          setIsReporting(false);
-        });
-    } else {
-      setReportError('Please fill out all fields!');
-      setTimeout(() => setReportError(''), 3000);
-    }
+  const handleEditorChange = (value: string) => {
+    setEditorValue(value);
+    setCharacterCount(value.length);
+    setPostPreview(value);
   };
 
-  const handleEditPost = (post: any) => {
-    setEditingPost(post);
-    setEditorValue(post.text);
-    setIsEditing(true);
-  };
-
-  const handleReportPost = (post: any) => {
-    setReportingPost(post);
-    setIsReporting(true);
+  const handlePreview = () => {
     setModalIsOpen(true);
   };
 
-  const handleCancelEdit = () => {
-    setEditingPost(null);
-    setEditorValue('');
-    setIsEditing(false);
-  };
-
-  const handleCancelReport = () => {
-    setReportingPost(null);
-    setReportReason('');
-    setReportDescription('');
-    setIsReporting(false);
+  const handleClosePreview = () => {
     setModalIsOpen(false);
   };
 
@@ -141,75 +98,126 @@ export default function CommunityPage() {
     <div>
       <h1>Community Page</h1>
       {isLoggedIn ? (
-        <div>
+        <form onSubmit={handlePostSubmit}>
           <ReactQuill
             value={editorValue}
-            onChange={(value) => {
-              setEditorValue(value);
-              setCharacterCount(value.length);
-            }}
+            onChange={handleEditorChange}
             placeholder="Write a post..."
+            modules={{
+              toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ header: 1 }, { header: 2 }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ script: 'sub' }, { script: 'super' }],
+                [{ indent: '-1' }, { indent: '+1' }],
+                [{ direction: 'rtl' }],
+                [{ font: [] }],
+                [{ align: [] }],
+                ['clean'],
+              ],
+            }}
           />
-          <p>Character count: {characterCount}/{characterLimit}</p>
-          {isEditing ? (
-            <button onClick={handlePostSubmit} disabled={isEditingLoading}>
-              {isEditingLoading ? 'Editing...' : 'Save Changes'}
-            </button>
-          ) : (
-            <button onClick={handlePostSubmit} disabled={isEditingLoading}>
-              {isEditingLoading ? 'Posting...' : 'Post'}
-            </button>
-          )}
-          {editError && <p style={{ color: 'red' }}>{editError}</p>}
-          {editSuccess && <p style={{ color: 'green' }}>{editSuccess}</p>}
-        </div>
+          <p>Character count: {characterCount} / {characterLimit}</p>
+          <button type="submit">Post</button>
+          <button type="button" onClick={handlePreview}>
+            Preview
+          </button>
+        </form>
       ) : (
         <p>Please log in to post.</p>
       )}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={handleClosePreview}
+        contentLabel="Post Preview"
+      >
+        <h2>Post Preview</h2>
+        <p>{postPreview}</p>
+        <button onClick={handleClosePreview}>Close</button>
+      </Modal>
       <ul>
         {posts.map((post, index) => (
           <li key={index}>
             <p>{post.text}</p>
-            <p>Author: {post.author}</p>
-            <p>Timestamp: {post.timestamp}</p>
-            {isLoggedIn ? (
-              <div>
-                <button onClick={() => handleEditPost(post)}>
-                  <FaEdit /> Edit
-                </button>
-                <button onClick={() => handleReportPost(post)}>
-                  <FiFlag /> Report
-                </button>
-              </div>
-            ) : (
-              <p>Please log in to interact with posts.</p>
+            <p>Posted by {post.author} at {post.timestamp}</p>
+            {isLoggedIn && (
+              <button onClick={() => {
+                setEditingPost(post);
+                setIsEditing(true);
+                setEditorValue(post.text);
+              }}>
+                <FaEdit />
+              </button>
+            )}
+            {isLoggedIn && (
+              <button onClick={() => {
+                setReportingPost(post);
+                setIsReporting(true);
+              }}>
+                <FiFlag />
+              </button>
             )}
           </li>
         ))}
       </ul>
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={handleCancelReport}
-        contentLabel="Report Post"
-      >
-        <h2>Report Post</h2>
-        <form onSubmit={handleReportSubmit}>
-          <label>Reason:</label>
-          <input type="text" value={reportReason} onChange={(e) => setReportReason(e.target.value)} />
-          <label>Description:</label>
-          <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
-          {isReportingLoading ? (
-            <button disabled>Reporting...</button>
-          ) : (
-            <button type="submit">Report</button>
-          )}
-          <button type="button" onClick={handleCancelReport}>
-            Cancel
-          </button>
+      {isEditing && (
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          setIsEditingLoading(true);
+          const updatedPosts = posts.map((post) => {
+            if (post.text === editingPost.text) {
+              return { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
+            }
+            return post;
+          });
+          setPosts(updatedPosts);
+          setValue('communityPosts', JSON.stringify(updatedPosts));
+          setEditorValue('');
+          setCharacterCount(0);
+          setEditingPost(null);
+          setIsEditing(false);
+          setEditSuccess('Post edited successfully!');
+          setTimeout(() => setEditSuccess(''), 3000);
+        }}>
+          <ReactQuill
+            value={editorValue}
+            onChange={handleEditorChange}
+            placeholder="Write a post..."
+            modules={{
+              toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ header: 1 }, { header: 2 }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ script: 'sub' }, { script: 'super' }],
+                [{ indent: '-1' }, { indent: '+1' }],
+                [{ direction: 'rtl' }],
+                [{ font: [] }],
+                [{ align: [] }],
+                ['clean'],
+              ],
+            }}
+          />
+          <p>Character count: {characterCount} / {characterLimit}</p>
+          <button type="submit">Save Changes</button>
         </form>
-        {reportError && <p style={{ color: 'red' }}>{reportError}</p>}
-        {reportSuccess && <p style={{ color: 'green' }}>{reportSuccess}</p>}
-      </Modal>
+      )}
+      {isReporting && (
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          setIsReportingLoading(true);
+          // Report post logic here
+          setReportingPost(null);
+          setIsReporting(false);
+        }}>
+          <label>Report Reason:</label>
+          <input type="text" value={reportReason} onChange={(e) => setReportReason(e.target.value)} />
+          <label>Report Description:</label>
+          <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
+          <button type="submit">Report</button>
+        </form>
+      )}
     </div>
   );
 }
