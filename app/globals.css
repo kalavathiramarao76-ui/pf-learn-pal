@@ -155,80 +155,54 @@
   .high-contrast button {
     @apply bg-yellow-600;
     @apply text-black;
-    @apply hover:bg-yellow-700;
   }
 
-  /* Typography improvements */
-  p {
-    @apply text-gray-700 dark:text-gray-300;
-    font-size: 1.1rem;
-    line-height: 1.5;
-    margin-bottom: 1rem;
+  /* Accessibility improvements */
+  [role="button"] {
+    cursor: pointer;
   }
 
-  blockquote {
-    @apply text-gray-600 dark:text-gray-400;
-    font-size: 1.2rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-    @apply italic;
-    @apply pl-4;
-    @apply border-l-4 border-gray-200 dark:border-gray-600;
+  [role="link"] {
+    text-decoration: none;
+    @apply hover:underline;
   }
 
-  code {
-    @apply text-gray-600 dark:text-gray-400;
-    font-size: 1rem;
-    line-height: 1.2;
-    @apply font-mono;
-    @apply bg-gray-100 dark:bg-gray-800;
-    @apply py-1 px-2;
-    @apply rounded;
+  [aria-label] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
-  pre {
-    @apply text-gray-600 dark:text-gray-400;
-    font-size: 1rem;
-    line-height: 1.2;
-    @apply font-mono;
-    @apply bg-gray-100 dark:bg-gray-800;
-    @apply py-2 px-4;
-    @apply rounded;
-    @apply overflow-x-auto;
+  [aria-labelledby] {
+    display: block;
   }
 
-  /* Visual design improvements */
-  .container {
-    @apply max-w-7xl;
-    @apply mx-auto;
-    @apply px-4;
-    @apply py-6;
+  [aria-describedby] {
+    display: block;
   }
 
-  .card {
-    @apply bg-white dark:bg-gray-800;
-    @apply shadow-md;
-    @apply rounded;
-    @apply py-4;
-    @apply px-6;
+  [role="region"] {
+    display: block;
   }
 
-  .card-header {
-    @apply bg-gray-100 dark:bg-gray-700;
-    @apply py-2;
-    @apply px-4;
-    @apply rounded-t;
+  [role="alert"] {
+    display: block;
+    @apply text-red-600;
   }
 
-  .card-body {
-    @apply py-4;
-    @apply px-6;
+  [role="alertdialog"] {
+    display: block;
+    @apply text-red-600;
   }
 
-  .card-footer {
-    @apply bg-gray-100 dark:bg-gray-700;
-    @apply py-2;
-    @apply px-4;
-    @apply rounded-b;
+  [role="dialog"] {
+    display: block;
+    @apply text-red-600;
   }
 }

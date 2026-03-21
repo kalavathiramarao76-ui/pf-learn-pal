@@ -86,7 +86,6 @@ export default function DashboardPage() {
             userId: user.id,
             progress: user.progress,
             goals: user.goals,
-            preferences: user.preferences,
           }),
         });
         const data = await response.json();
@@ -96,28 +95,40 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getCustomizedPlan = async (selectedPlan: any) => {
-    const response = await fetch('/api/customized-plan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        selectedPlan: selectedPlan,
-        progress: user.progress,
-        goals: user.goals,
-        preferences: user.preferences,
-      }),
-    });
-    const data = await response.json();
-    setCustomizedPlan(data);
+  const getPersonalizedLearningPlanRecommendation = async () => {
+    if (user) {
+      const response = await fetch('/api/personalized-learning-plan-recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          progress: user.progress,
+          goals: user.goals,
+          preferences: user.preferences,
+        }),
+      });
+      const data = await response.json();
+      return data;
+    }
+    return null;
   };
 
-  const handlePlanSelection = (selectedPlan: any) => {
-    setSelectedStudyPlan(selectedPlan);
-    getCustomizedPlan(selectedPlan);
-  };
+  useEffect(() => {
+    const getPersonalizedLearningPlanRecommendationAsync = async () => {
+      const personalizedLearningPlanRecommendation = await getPersonalizedLearningPlanRecommendation();
+      if (personalizedLearningPlanRecommendation) {
+        const recommendedPlan = {
+          name: 'Personalized Learning Plan',
+          description: 'A customized learning plan based on your progress and goals',
+          link: '/personalized-learning-plan',
+        };
+        setRecommendedPlan(recommendedPlan);
+      }
+    };
+    getPersonalizedLearningPlanRecommendationAsync();
+  }, [user]);
 
   return (
     <DashboardLayout>
@@ -125,31 +136,25 @@ export default function DashboardPage() {
         <div className="row">
           <div className="col-md-4">
             <StudyPlanCard
-              studyPlanOptions={studyPlanOptions}
-              handlePlanSelection={handlePlanSelection}
-              selectedStudyPlan={selectedStudyPlan}
+              title="Recommended Study Plan"
+              plan={recommendedPlan}
+              options={studyPlanOptions}
+              selectedPlan={selectedStudyPlan}
+              onSelectPlan={(plan) => setSelectedStudyPlan(plan)}
             />
           </div>
           <div className="col-md-4">
-            <ProgressCard user={user} />
+            <ProgressCard title="Your Progress" progress={user?.progress} />
           </div>
           <div className="col-md-4">
-            <CommunityCard />
+            <CommunityCard title="Join Our Community" />
           </div>
         </div>
         <div className="row">
           <div className="col-md-12">
-            <ResourceCard learningPlanRecommendations={learningPlanRecommendations} />
+            <ResourceCard title="Recommended Resources" resources={learningPlanRecommendations} />
           </div>
         </div>
-        {customizedPlan && (
-          <div className="row">
-            <div className="col-md-12">
-              <h2>Customized Plan</h2>
-              <p>{customizedPlan.description}</p>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );
