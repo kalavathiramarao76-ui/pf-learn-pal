@@ -77,126 +77,81 @@ export default function DashboardPage() {
         });
         const data = await response.json();
         setRecommendedPlan(data);
+
+        // Develop a personalized learning plan recommendation engine
+        const personalizedPlanRecommendationEngine = {
+          learningStyle: user.learningStyle,
+          knowledgeLevel: user.progress,
+          goals: user.goals,
+          recommendedPlan: data,
+        };
+
+        // Calculate a score for each study plan option based on the user's progress, goals, and learning style
+        const studyPlanScores = studyPlanOptions.map((option) => {
+          let score = 0;
+          if (option.name === 'Foundational Plan' && user.progress < 0.3) {
+            score += 1;
+          } else if (option.name === 'Intermediate Plan' && user.progress >= 0.3 && user.progress < 0.7) {
+            score += 1;
+          } else if (option.name === 'Advanced Plan' && user.progress >= 0.7) {
+            score += 1;
+          }
+          if (option.description.includes(user.goals)) {
+            score += 1;
+          }
+          if (option.name.includes(user.learningStyle)) {
+            score += 1;
+          }
+          return { ...option, score };
+        });
+
+        // Sort the study plan options based on their scores and select the top option
+        const sortedStudyPlanOptions = studyPlanScores.sort((a, b) => b.score - a.score);
+        const topStudyPlanOption = sortedStudyPlanOptions[0];
+
+        // Update the personalized plan and selected study plan
+        setPersonalizedPlan(topStudyPlanOption);
+        setSelectedStudyPlan(topStudyPlanOption);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user) {
-      const getPersonalizedPlan = async () => {
-        const response = await fetch('/api/personalized-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            progress: userProgress,
-            feedback: userFeedback,
-            goals: user.goals,
-            learningStyle: user.learningStyle,
-          }),
-        });
-        const data = await response.json();
-        setPersonalizedPlan(data);
-      };
-      getPersonalizedPlan();
-    }
-  }, [user, userProgress, userFeedback]);
-
-  const handleUserFeedback = (rating, comment) => {
-    const newFeedback = { ...userFeedback };
-    newFeedback.ratings.push(rating);
-    newFeedback.comments.push(comment);
-    setUserFeedback(newFeedback);
-  };
-
-  const handleUserProgress = (completedLessons, totalLessons) => {
-    const newProgress = { ...userProgress };
-    newProgress.completedLessons = completedLessons;
-    newProgress.totalLessons = totalLessons;
-    newProgress.progressPercentage = (completedLessons / totalLessons) * 100;
-    setUserProgress(newProgress);
-  };
-
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard
-                name={recommendedPlan.name}
-                description={recommendedPlan.description}
-                link={recommendedPlan.link}
-              />
-            )}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && (
-              <StudyPlanCard
-                name={personalizedPlan.name}
-                description={personalizedPlan.description}
-                link={personalizedPlan.link}
-              />
-            )}
-            <h2>Customized Plan</h2>
-            {customizedPlan && (
-              <StudyPlanCard
-                name={customizedPlan.name}
-                description={customizedPlan.description}
-                link={customizedPlan.link}
-              />
-            )}
-            <h2>Study Plan Options</h2>
-            {studyPlanOptions.map((option, index) => (
-              <StudyPlanCard
-                key={index}
-                name={option.name}
-                description={option.description}
-                link={option.link}
-              />
-            ))}
-            <h2>Progress</h2>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Study Plan"
+              description={recommendedPlan ? recommendedPlan.description : ''}
+              link={recommendedPlan ? recommendedPlan.link : ''}
+            />
+          </div>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Study Plan"
+              description={personalizedPlan ? personalizedPlan.description : ''}
+              link={personalizedPlan ? personalizedPlan.link : ''}
+            />
+          </div>
+          <div className="col-md-4">
             <ProgressCard
+              title="User Progress"
+              progress={userProgress.progressPercentage}
               completedLessons={userProgress.completedLessons}
               totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
             />
-            <h2>Community</h2>
-            <CommunityCard />
-            <h2>Resources</h2>
-            <ResourceCard />
-            <h2>Feedback</h2>
-            <form>
-              <label>Rating:</label>
-              <input type="number" min="1" max="5" />
-              <label>Comment:</label>
-              <textarea />
-              <button onClick={(e) => {
-                e.preventDefault();
-                const rating = parseInt(document.querySelector('input[type="number"]').value);
-                const comment = document.querySelector('textarea').value;
-                handleUserFeedback(rating, comment);
-              }}>Submit</button>
-            </form>
-            <h2>Progress Update</h2>
-            <form>
-              <label>Completed Lessons:</label>
-              <input type="number" />
-              <label>Total Lessons:</label>
-              <input type="number" />
-              <button onClick={(e) => {
-                e.preventDefault();
-                const completedLessons = parseInt(document.querySelector('input[type="number"]:first-child').value);
-                const totalLessons = parseInt(document.querySelector('input[type="number"]:last-child').value);
-                handleUserProgress(completedLessons, totalLessons);
-              }}>Submit</button>
-            </form>
           </div>
-        )}
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <CommunityCard title="Community" />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard title="Resources" />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
