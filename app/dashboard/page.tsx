@@ -84,8 +84,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const getPersonalizedPlanRecommendations = async () => {
-        const response = await fetch('/api/personalized-plan-recommendations', {
+      const getPersonalizedPlan = async () => {
+        const response = await fetch('/api/personalized-plan', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -93,59 +93,31 @@ export default function DashboardPage() {
           body: JSON.stringify({
             userId: user.id,
             progress: userProgress,
+            feedback: userFeedback,
             goals: user.goals,
             learningStyle: user.learningStyle,
           }),
         });
         const data = await response.json();
-        setLearningPlanRecommendations(data);
+        setPersonalizedPlan(data);
       };
-      getPersonalizedPlanRecommendations();
+      getPersonalizedPlan();
     }
-  }, [user, userProgress]);
+  }, [user, userProgress, userFeedback]);
 
-  const calculateProgressPercentage = () => {
-    if (userProgress.totalLessons > 0) {
-      return (userProgress.completedLessons / userProgress.totalLessons) * 100;
-    } else {
-      return 0;
-    }
+  const handleUserFeedback = (rating, comment) => {
+    const newFeedback = { ...userFeedback };
+    newFeedback.ratings.push(rating);
+    newFeedback.comments.push(comment);
+    setUserFeedback(newFeedback);
   };
 
-  const updateProgress = async () => {
-    const response = await fetch('/api/update-progress', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        completedLessons: userProgress.completedLessons,
-        totalLessons: userProgress.totalLessons,
-      }),
-    });
-    const data = await response.json();
-    setUserProgress(data);
-  };
-
-  const handleCustomizePlan = async () => {
-    setIsCustomizingPlan(true);
-    const response = await fetch('/api/customize-plan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        learningStyle: customizationOptions.learningStyle,
-        knowledgeLevel: customizationOptions.knowledgeLevel,
-        goals: customizationOptions.goals,
-        topics: customizationOptions.topics,
-      }),
-    });
-    const data = await response.json();
-    setCustomizedPlan(data);
-    setIsCustomizingPlan(false);
+  const handleUserProgress = (completedLessons, totalLessons) => {
+    const newProgress = { ...userProgress };
+    newProgress.completedLessons = completedLessons;
+    newProgress.totalLessons = totalLessons;
+    newProgress.progressPercentage = (completedLessons / totalLessons) * 100;
+    setUserProgress(newProgress);
   };
 
   return (
@@ -162,68 +134,15 @@ export default function DashboardPage() {
                 link={recommendedPlan.link}
               />
             )}
-            <h2>Personalized Plan Recommendations</h2>
-            {learningPlanRecommendations.map((plan) => (
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
               <StudyPlanCard
-                key={plan.id}
-                name={plan.name}
-                description={plan.description}
-                link={plan.link}
+                name={personalizedPlan.name}
+                description={personalizedPlan.description}
+                link={personalizedPlan.link}
               />
-            ))}
-            <h2>Progress</h2>
-            <ProgressCard
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={calculateProgressPercentage()}
-            />
-            <h2>Customize Plan</h2>
-            {isCustomizingPlan ? (
-              <p>Customizing plan...</p>
-            ) : (
-              <div>
-                <select
-                  value={customizationOptions.learningStyle}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      learningStyle: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">Select learning style</option>
-                  <option value="visual">Visual</option>
-                  <option value="auditory">Auditory</option>
-                  <option value="kinesthetic">Kinesthetic</option>
-                </select>
-                <select
-                  value={customizationOptions.knowledgeLevel}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      knowledgeLevel: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">Select knowledge level</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-                <input
-                  type="text"
-                  value={customizationOptions.goals}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      goals: e.target.value,
-                    })
-                  }
-                  placeholder="Enter goals"
-                />
-                <button onClick={handleCustomizePlan}>Customize Plan</button>
-              </div>
             )}
+            <h2>Customized Plan</h2>
             {customizedPlan && (
               <StudyPlanCard
                 name={customizedPlan.name}
@@ -231,12 +150,53 @@ export default function DashboardPage() {
                 link={customizedPlan.link}
               />
             )}
+            <h2>Study Plan Options</h2>
+            {studyPlanOptions.map((option, index) => (
+              <StudyPlanCard
+                key={index}
+                name={option.name}
+                description={option.description}
+                link={option.link}
+              />
+            ))}
+            <h2>Progress</h2>
+            <ProgressCard
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
+            <h2>Feedback</h2>
+            <form>
+              <label>Rating:</label>
+              <input type="number" min="1" max="5" />
+              <label>Comment:</label>
+              <textarea />
+              <button onClick={(e) => {
+                e.preventDefault();
+                const rating = parseInt(document.querySelector('input[type="number"]').value);
+                const comment = document.querySelector('textarea').value;
+                handleUserFeedback(rating, comment);
+              }}>Submit</button>
+            </form>
+            <h2>Progress Update</h2>
+            <form>
+              <label>Completed Lessons:</label>
+              <input type="number" />
+              <label>Total Lessons:</label>
+              <input type="number" />
+              <button onClick={(e) => {
+                e.preventDefault();
+                const completedLessons = parseInt(document.querySelector('input[type="number"]:first-child').value);
+                const totalLessons = parseInt(document.querySelector('input[type="number"]:last-child').value);
+                handleUserProgress(completedLessons, totalLessons);
+              }}>Submit</button>
+            </form>
           </div>
         )}
-        <h2>Community</h2>
-        <CommunityCard />
-        <h2>Resources</h2>
-        <ResourceCard />
       </div>
     </DashboardLayout>
   );

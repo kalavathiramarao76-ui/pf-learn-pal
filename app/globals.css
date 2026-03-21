@@ -5,44 +5,8 @@
 @layer base {
   @font-face {
     font-family: 'Inter';
-    src: url('/fonts/Inter.woff2') format('woff2'),
-         url('/fonts/Inter-Bold.woff2') format('woff2'),
-         url('/fonts/Inter-SemiBold.woff2') format('woff2'),
-         url('/fonts/Inter-Medium.woff2') format('woff2'),
-         url('/fonts/Inter-Light.woff2') format('woff2');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: 'Inter';
-    src: url('/fonts/Inter-Bold.woff2') format('woff2');
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: 'Inter';
-    src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: 'Inter';
-    src: url('/fonts/Inter-Medium.woff2') format('woff2');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: 'Inter';
-    src: url('/fonts/Inter-Light.woff2') format('woff2');
-    font-weight: 300;
+    src: url('/fonts/Inter-Variant.woff2') format('woff2');
+    font-weight: 100 900;
     font-style: normal;
     font-display: swap;
   }
@@ -144,71 +108,5 @@
 
   input:focus, textarea:focus, select:focus {
     @apply border-blue-600 dark:border-blue-500;
-    @apply ring-2;
-    @apply ring-blue-600 dark:ring-blue-500;
-  }
-
-  @media (max-width: 768px) {
-    body {
-      font-size: 16px;
-    }
-    h1 {
-      font-size: 2rem;
-    }
-    h2 {
-      font-size: 1.8rem;
-    }
-    h3 {
-      font-size: 1.6rem;
-    }
-    h4 {
-      font-size: 1.4rem;
-    }
-    h5 {
-      font-size: 1.2rem;
-    }
-    h6 {
-      font-size: 1rem;
-    }
-    button {
-      @apply py-2 px-4;
-      font-size: 1rem;
-    }
-    input, textarea, select {
-      @apply py-2 px-4;
-      font-size: 1rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    body {
-      font-size: 14px;
-    }
-    h1 {
-      font-size: 1.8rem;
-    }
-    h2 {
-      font-size: 1.6rem;
-    }
-    h3 {
-      font-size: 1.4rem;
-    }
-    h4 {
-      font-size: 1.2rem;
-    }
-    h5 {
-      font-size: 1rem;
-    }
-    h6 {
-      font-size: 0.9rem;
-    }
-    button {
-      @apply py-1 px-3;
-      font-size: 0.9rem;
-    }
-    input, textarea, select {
-      @apply py-1 px-3;
-      font-size: 0.9rem;
-    }
   }
 }
