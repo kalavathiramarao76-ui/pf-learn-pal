@@ -80,7 +80,6 @@ export default function CommunityPage() {
     setEditingPost(post);
     setEditorValue(post.text);
     setIsEditing(true);
-    setModalIsOpen(true);
   };
 
   const handleReportPost = (post: any) => {
@@ -93,7 +92,7 @@ export default function CommunityPage() {
     e.preventDefault();
     if (reportReason && reportDescription) {
       const reportData = {
-        post: reportingPost,
+        postId: reportingPost.text,
         reason: reportReason,
         description: reportDescription,
       };
@@ -101,17 +100,31 @@ export default function CommunityPage() {
         .then((response) => {
           setReportSuccess('Report submitted successfully!');
           setTimeout(() => setReportSuccess(''), 3000);
+          setModalIsOpen(false);
           setReportingPost(null);
-          setIsReporting(false);
           setReportReason('');
           setReportDescription('');
-          setModalIsOpen(false);
         })
         .catch((error) => {
           setReportError('Error submitting report. Please try again.');
           setTimeout(() => setReportError(''), 3000);
         });
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+    setIsEditing(false);
+    setEditorValue('');
+    setCharacterCount(0);
+  };
+
+  const handleCancelReport = () => {
+    setReportingPost(null);
+    setIsReporting(false);
+    setModalIsOpen(false);
+    setReportReason('');
+    setReportDescription('');
   };
 
   return (
@@ -126,23 +139,16 @@ export default function CommunityPage() {
               setCharacterCount(value.length);
             }}
             placeholder="Write a post..."
-            modules={{
-              toolbar: [
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ header: 1 }, { header: 2 }],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                [{ script: 'sub' }, { script: 'super' }],
-                [{ indent: '-1' }, { indent: '+1' }],
-                [{ direction: 'rtl' }],
-                [{ font: [] }],
-                [{ align: [] }],
-                ['clean'],
-              ],
-            }}
           />
-          <p>Character count: {characterCount}/{characterLimit}</p>
-          <button onClick={handlePostSubmit}>Post</button>
+          <p>Character count: {characterCount}</p>
+          {isEditing ? (
+            <button onClick={handlePostSubmit}>Save Changes</button>
+          ) : (
+            <button onClick={handlePostSubmit}>Post</button>
+          )}
+          {isEditing ? (
+            <button onClick={handleCancelEdit}>Cancel Edit</button>
+          ) : null}
         </div>
       ) : (
         <p>Please log in to post.</p>
@@ -153,89 +159,43 @@ export default function CommunityPage() {
             <p>{post.text}</p>
             <p>Author: {post.author}</p>
             <p>Timestamp: {post.timestamp}</p>
-            {isLoggedIn ? (
-              <div>
-                <button onClick={() => handleEditPost(post)}>
-                  <FaEdit /> Edit
-                </button>
-                <button onClick={() => handleReportPost(post)}>
-                  <FiFlag /> Report
-                </button>
-              </div>
-            ) : (
-              <p>Please log in to edit or report posts.</p>
-            )}
+            <button onClick={() => handleEditPost(post)}>
+              <FaEdit /> Edit
+            </button>
+            <button onClick={() => handleReportPost(post)}>
+              <FiFlag /> Report
+            </button>
           </li>
         ))}
       </ul>
       <Modal
         isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
-        style={{
-          overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          content: {
-            width: '500px',
-            margin: '40px auto',
-            padding: '20px',
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '10px',
-            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
-          },
-        }}
+        onRequestClose={handleCancelReport}
+        contentLabel="Report Post"
       >
-        {isEditing ? (
-          <div>
-            <h2>Edit Post</h2>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => {
-                setEditorValue(value);
-                setCharacterCount(value.length);
-              }}
-              placeholder="Write a post..."
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline', 'strike'],
-                  ['blockquote', 'code-block'],
-                  [{ header: 1 }, { header: 2 }],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  [{ script: 'sub' }, { script: 'super' }],
-                  [{ indent: '-1' }, { indent: '+1' }],
-                  [{ direction: 'rtl' }],
-                  [{ font: [] }],
-                  [{ align: [] }],
-                  ['clean'],
-                ],
-              }}
-            />
-            <p>Character count: {characterCount}/{characterLimit}</p>
-            <button onClick={handlePostSubmit}>Save Changes</button>
-            {editError ? <p style={{ color: 'red' }}>{editError}</p> : null}
-            {editSuccess ? <p style={{ color: 'green' }}>{editSuccess}</p> : null}
-          </div>
-        ) : isReporting ? (
-          <div>
-            <h2>Report Post</h2>
-            <form onSubmit={handleReportSubmit}>
-              <label>Reason for reporting:</label>
-              <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-                <option value="">Select a reason</option>
-                <option value="spam">Spam</option>
-                <option value="harassment">Harassment</option>
-                <option value="other">Other</option>
-              </select>
-              <label>Description:</label>
-              <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
-              <button type="submit">Submit Report</button>
-              {reportError ? <p style={{ color: 'red' }}>{reportError}</p> : null}
-              {reportSuccess ? <p style={{ color: 'green' }}>{reportSuccess}</p> : null}
-            </form>
-          </div>
-        ) : null}
+        <h2>Report Post</h2>
+        <form onSubmit={handleReportSubmit}>
+          <label>
+            Reason:
+            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+              <option value="">Select a reason</option>
+              <option value="spam">Spam</option>
+              <option value="harassment">Harassment</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label>
+            Description:
+            <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
+          </label>
+          <button type="submit">Submit Report</button>
+          <button type="button" onClick={handleCancelReport}>Cancel</button>
+        </form>
       </Modal>
+      {editSuccess ? <p style={{ color: 'green' }}>{editSuccess}</p> : null}
+      {reportSuccess ? <p style={{ color: 'green' }}>{reportSuccess}</p> : null}
+      {editError ? <p style={{ color: 'red' }}>{editError}</p> : null}
+      {reportError ? <p style={{ color: 'red' }}>{reportError}</p> : null}
     </div>
   );
 }

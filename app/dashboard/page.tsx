@@ -23,6 +23,12 @@ export default function DashboardPage() {
   ]);
   const [selectedStudyPlan, setSelectedStudyPlan] = useState(null);
   const [learningPlanRecommendations, setLearningPlanRecommendations] = useState([]);
+  const [recommendedPlanEngine, setRecommendedPlanEngine] = useState({
+    learningStyle: '',
+    knowledgeLevel: '',
+    goals: '',
+    recommendedPlan: '',
+  });
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -95,65 +101,76 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getPersonalizedLearningPlanRecommendation = async () => {
+  const getRecommendedPlanEngine = async () => {
     if (user) {
-      const response = await fetch('/api/personalized-learning-plan-recommendation', {
+      const response = await fetch('/api/recommended-plan-engine', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           userId: user.id,
-          progress: user.progress,
+          learningStyle: user.learningStyle,
+          knowledgeLevel: user.knowledgeLevel,
           goals: user.goals,
-          preferences: user.preferences,
         }),
       });
       const data = await response.json();
-      return data;
+      setRecommendedPlanEngine({
+        learningStyle: data.learningStyle,
+        knowledgeLevel: data.knowledgeLevel,
+        goals: data.goals,
+        recommendedPlan: data.recommendedPlan,
+      });
     }
-    return null;
   };
 
   useEffect(() => {
-    const getPersonalizedLearningPlanRecommendationAsync = async () => {
-      const personalizedLearningPlanRecommendation = await getPersonalizedLearningPlanRecommendation();
-      if (personalizedLearningPlanRecommendation) {
-        const recommendedPlan = {
-          name: 'Personalized Learning Plan',
-          description: 'A customized learning plan based on your progress and goals',
-          link: '/personalized-learning-plan',
-        };
-        setRecommendedPlan(recommendedPlan);
-      }
-    };
-    getPersonalizedLearningPlanRecommendationAsync();
+    getRecommendedPlanEngine();
   }, [user]);
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Study Plan"
-              plan={recommendedPlan}
-              options={studyPlanOptions}
-              selectedPlan={selectedStudyPlan}
-              onSelectPlan={(plan) => setSelectedStudyPlan(plan)}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard title="Your Progress" progress={user?.progress} />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard title="Join Our Community" />
-          </div>
+      <div className="container mx-auto p-4 pt-6 md:p-6 lg:p-12 xl:p-24">
+        <div className="flex flex-wrap justify-center mb-4">
+          <StudyPlanCard
+            title="Recommended Plan"
+            description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+            link={recommendedPlan ? recommendedPlan.link : ''}
+          />
+          <StudyPlanCard
+            title="Personalized Plan"
+            description={personalizedPlan ? personalizedPlan.description : 'No plan personalized'}
+            link={personalizedPlan ? personalizedPlan.link : ''}
+          />
+          <StudyPlanCard
+            title="Customized Plan"
+            description={customizedPlan ? customizedPlan.description : 'No plan customized'}
+            link={customizedPlan ? customizedPlan.link : ''}
+          />
+          <StudyPlanCard
+            title="Recommended Plan Engine"
+            description={recommendedPlanEngine.recommendedPlan}
+            link={recommendedPlanEngine.recommendedPlan ? '/recommended-plan-engine' : ''}
+          />
         </div>
-        <div className="row">
-          <div className="col-md-12">
-            <ResourceCard title="Recommended Resources" resources={learningPlanRecommendations} />
-          </div>
+        <div className="flex flex-wrap justify-center mb-4">
+          {studyPlanOptions.map((option, index) => (
+            <Link key={index} href={option.link}>
+              <a>
+                <StudyPlanCard
+                  title={option.name}
+                  description={option.description}
+                  link={option.link}
+                />
+              </a>
+            </Link>
+          ))}
+        </div>
+        <div className="flex flex-wrap justify-center mb-4">
+          <ProgressCard title="Progress" description="Track your progress" link="/progress" />
+          <CommunityCard title="Community" description="Join our community" link="/community" />
+          <ResourceCard title="Resources" description="Access our resources" link="/resources" />
         </div>
       </div>
     </DashboardLayout>
