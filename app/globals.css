@@ -12,19 +12,19 @@
   }
 
   body {
-    @apply bg-gray-50 dark:bg-gray-950;
+    @apply bg-gray-200 dark:bg-gray-900;
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
     font-size: 18px;
     line-height: 1.6;
-    @apply text-gray-900 dark:text-gray-50;
+    @apply text-gray-900 dark:text-gray-100;
   }
 
   main {
     display: block;
     role: main;
-    aria-label: "Main content";
+    aria-label: "Main content area of the application";
   }
 
   header, footer, nav, section, article, aside {
@@ -33,32 +33,32 @@
 
   header {
     role: banner;
-    aria-label: "Header";
+    aria-label: "Header section containing site navigation and logo";
   }
 
   nav {
     role: navigation;
-    aria-label: "Navigation";
+    aria-label: "Main navigation menu";
   }
 
   section {
     role: region;
-    aria-label: "Section";
+    aria-label: "Section of related content";
   }
 
   article {
     role: article;
-    aria-label: "Article";
+    aria-label: "Independent piece of content";
   }
 
   aside {
     role: complementary;
-    aria-label: "Aside";
+    aria-label: "Supplementary content related to the main content";
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
-    @apply text-gray-950 dark:text-gray-50;
+    @apply text-gray-900 dark:text-gray-100;
     font-size: 2rem;
     line-height: 1.2;
     margin-bottom: 1.5rem;
@@ -96,38 +96,38 @@
   }
 
   a {
-    @apply text-blue-700 dark:text-blue-300;
+    @apply text-blue-800 dark:text-blue-400;
     transition: color 0.2s ease;
     text-decoration: none;
     @apply hover:underline;
     @apply transition-all duration-200;
-    aria-label: "Link";
+    aria-label: "Link to external or internal content";
     role: link;
   }
 
   a:hover {
-    @apply text-blue-900 dark:text-blue-500;
+    @apply text-blue-900 dark:text-blue-600;
   }
 
   button {
-    @apply bg-blue-700 dark:bg-blue-600;
+    @apply bg-blue-800 dark:bg-blue-700;
     @apply text-white;
     @apply py-3 px-5;
     @apply rounded;
     @apply transition duration-200;
-    @apply hover:bg-blue-900 dark:hover:bg-blue-700;
+    @apply hover:bg-blue-900 dark:hover:bg-blue-800;
     font-size: 1.1rem;
     margin: 1rem;
     @apply shadow-md;
     @apply active:scale-95;
     role: button;
-    aria-label: "Button";
+    aria-label: "Button to perform an action";
     aria-pressed: false;
   }
 
   input, textarea, select {
-    @apply bg-gray-100 dark:bg-gray-800;
-    @apply border-gray-300 dark:border-gray-600;
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply border-gray-400 dark:border-gray-600;
     @apply py-3 px-5;
     @apply rounded;
     @apply transition duration-200;
@@ -140,13 +140,13 @@
 
   input[type="text"], input[type="email"], input[type="password"], textarea, select {
     role: textbox;
-    aria-label: "Text input";
+    aria-label: "Text input field for user data";
     aria-required: false;
   }
 
   input[type="checkbox"], input[type="radio"] {
     role: checkbox;
-    aria-label: "Checkbox";
+    aria-label: "Checkbox option";
     aria-checked: false;
   }
 
@@ -157,50 +157,10 @@
   [role="dialog"] {
     role: dialog;
     aria-modal: true;
-    aria-label: "Dialog";
+    aria-label: "Dialog window for user interaction";
   }
 
   [role="alert"] {
     role: alert;
-    aria-live: assertive;
-    aria-atomic: true;
-    aria-label: "Alert";
+    aria-label: "Alert message for user notification";
   }
-
-  [role="tooltip"] {
-    role: tooltip;
-    aria-label: "Tooltip";
-  }
-}
-
-@layer utilities {
-  @media (max-width: 1280px) {
-    body {
-      font-size: 17px;
-    }
-
-    h1 {
-      font-size: 2.3rem;
-    }
-
-    h2 {
-      font-size: 2rem;
-    }
-
-    h3 {
-      font-size: 1.8rem;
-    }
-
-    h4 {
-      font-size: 1.6rem;
-    }
-
-    h5 {
-      font-size: 1.4rem;
-    }
-
-    h6 {
-      font-size: 1.2rem;
-    }
-  }
-}

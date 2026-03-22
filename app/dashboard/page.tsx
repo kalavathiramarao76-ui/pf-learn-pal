@@ -79,74 +79,199 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const userGoals = user.goals;
-          const userProgress = user.progress;
-          const userLearningStyle = user.learningStyle;
+          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              progress: user.progress,
+              goals: user.goals,
+              learningStyle: user.learningStyle,
+            }),
+          });
+          const personalizedPlanData = await personalizedPlanResponse.json();
+          setPersonalizedPlan(personalizedPlanData);
 
-          const planRecommendations = await getPlanRecommendations(userGoals, userProgress, userLearningStyle);
-          setLearningPlanRecommendations(planRecommendations);
-
-          const personalizedPlan = await createPersonalizedPlan(planRecommendations, userGoals, userProgress, userLearningStyle);
-          setPersonalizedPlan(personalizedPlan);
+          const learningPlanRecommendationsResponse = await fetch('/api/learning-plan-recommendations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              progress: user.progress,
+              goals: user.goals,
+              learningStyle: user.learningStyle,
+            }),
+          });
+          const learningPlanRecommendationsData = await learningPlanRecommendationsResponse.json();
+          setLearningPlanRecommendations(learningPlanRecommendationsData);
         };
-
         developPersonalizedPlan();
       };
-
       getRecommendedPlan();
     }
   }, [user]);
 
-  const getPlanRecommendations = async (userGoals, userProgress, userLearningStyle) => {
-    const response = await fetch('/api/plan-recommendations', {
+  const handleCustomizePlan = async () => {
+    setIsCustomizingPlan(true);
+    const customizedPlanResponse = await fetch('/api/customized-plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        userGoals,
-        userProgress,
-        userLearningStyle,
+        userId: user.id,
+        learningStyle: customizationOptions.learningStyle,
+        knowledgeLevel: customizationOptions.knowledgeLevel,
+        goals: customizationOptions.goals,
+        topics: customizationOptions.topics,
       }),
     });
-    const data = await response.json();
-    return data;
+    const customizedPlanData = await customizedPlanResponse.json();
+    setCustomizedPlan(customizedPlanData);
+    setIsCustomizingPlan(false);
   };
 
-  const createPersonalizedPlan = async (planRecommendations, userGoals, userProgress, userLearningStyle) => {
-    const plan = {
-      name: 'Personalized Plan',
-      description: 'A customized plan based on your goals, progress, and learning style',
-      lessons: [],
-    };
-
-    planRecommendations.forEach((recommendation) => {
-      plan.lessons.push(recommendation.lesson);
+  const handlePlanRecommendation = async () => {
+    const planRecommendationResponse = await fetch('/api/plan-recommendation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        algorithm: planRecommendationEngine.algorithm,
+        parameters: planRecommendationEngine.parameters,
+      }),
     });
-
-    return plan;
+    const planRecommendationData = await planRecommendationResponse.json();
+    setRecommendedPlan(planRecommendationData);
   };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard plan={recommendedPlan} />
-            )}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && (
-              <StudyPlanCard plan={personalizedPlan} />
-            )}
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+              link={recommendedPlan ? recommendedPlan.link : '#'}
+            />
           </div>
-        )}
-        <div className="cards">
-          <ProgressCard progress={userProgress} />
-          <CommunityCard />
-          <ResourceCard />
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Plan"
+              description={personalizedPlan ? personalizedPlan.description : 'No plan available'}
+              link={personalizedPlan ? personalizedPlan.link : '#'}
+            />
+          </div>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Customized Plan"
+              description={customizedPlan ? customizedPlan.description : 'No plan available'}
+              link={customizedPlan ? customizedPlan.link : '#'}
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ProgressCard
+              title="User Progress"
+              progress={userProgress.progressPercentage}
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard title="Community" />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard title="Resources" />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-12">
+            <h2>Learning Plan Recommendations</h2>
+            <ul>
+              {learningPlanRecommendations.map((recommendation, index) => (
+                <li key={index}>{recommendation.name}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-12">
+            <h2>Customize Your Plan</h2>
+            <form>
+              <div className="form-group">
+                <label>Learning Style:</label>
+                <select
+                  value={customizationOptions.learningStyle}
+                  onChange={(e) =>
+                    setCustomizationOptions({
+                      ...customizationOptions,
+                      learningStyle: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Select a learning style</option>
+                  <option value="visual">Visual</option>
+                  <option value="auditory">Auditory</option>
+                  <option value="kinesthetic">Kinesthetic</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Knowledge Level:</label>
+                <select
+                  value={customizationOptions.knowledgeLevel}
+                  onChange={(e) =>
+                    setCustomizationOptions({
+                      ...customizationOptions,
+                      knowledgeLevel: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Select a knowledge level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Goals:</label>
+                <input
+                  type="text"
+                  value={customizationOptions.goals}
+                  onChange={(e) =>
+                    setCustomizationOptions({
+                      ...customizationOptions,
+                      goals: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="form-group">
+                <label>Topics:</label>
+                <input
+                  type="text"
+                  value={customizationOptions.topics.join(', ')}
+                  onChange={(e) =>
+                    setCustomizationOptions({
+                      ...customizationOptions,
+                      topics: e.target.value.split(', '),
+                    })
+                  }
+                />
+              </div>
+              <button type="button" onClick={handleCustomizePlan}>
+                Customize Plan
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </DashboardLayout>
