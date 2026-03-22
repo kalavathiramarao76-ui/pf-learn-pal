@@ -128,20 +128,44 @@
   input, textarea, select {
     @apply bg-gray-200 dark:bg-gray-700;
     @apply border-gray-400 dark:border-gray-600;
-    @apply py-3 px-5;
     @apply rounded;
+    @apply py-2 px-3;
     @apply transition duration-200;
-    font-size: 1.1rem;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+    font-size: 1rem;
     margin: 0.5rem;
-    @apply focus:outline-none;
-    @apply focus:ring-2;
-    @apply focus:ring-blue-600 dark:focus:ring-blue-500;
+    @apply text-gray-900 dark:text-gray-100;
+    role: textbox;
+    aria-label: "Input field to enter data, such as a username, password, or search query";
   }
 
-  input[type="text"], input[type="email"], input[type="password"], textarea, select {
-    role: textbox;
-    aria-label: "Text input field for entering user data, such as name, email address, or password, with clear and concise labeling";
-    aria-required: true;
+  input[type="checkbox"], input[type="radio"] {
+    @apply mr-2;
+    @apply accent-blue-800 dark:accent-blue-700;
+  }
+
+  label {
+    @apply text-gray-900 dark:text-gray-100;
+    font-size: 1rem;
+    margin: 0.5rem;
+    @apply block;
+  }
+
+  table {
+    @apply border-collapse;
+    @apply w-full;
+    @apply table-auto;
+  }
+
+  th, td {
+    @apply border;
+    @apply p-2;
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  th {
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply font-bold;
   }
 
   img {
@@ -149,12 +173,77 @@
     @apply h-auto;
     @apply mx-auto;
     @apply my-4;
-    aria-label: "Image providing visual context, such as an illustration, diagram, or screenshot, with a clear and descriptive alt text";
+    @apply rounded;
+    @apply shadow-md;
+    role: img;
+    aria-label: "Image providing visual context or illustration, such as a diagram, graph, or screenshot";
   }
 
-  svg {
-    @apply fill-current;
-    @apply text-gray-600 dark:text-gray-400;
-    aria-label: "Icon representing a specific concept, such as a navigation icon, a button icon, or a status icon, with a clear and descriptive alt text";
+  @media (max-width: 768px) {
+    body {
+      font-size: 16px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.8rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+    }
+
+    h3 {
+      font-size: 1.7rem;
+    }
+
+    h4 {
+      font-size: 1.5rem;
+    }
+
+    h5 {
+      font-size: 1.3rem;
+    }
+
+    h6 {
+      font-size: 1.1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.6rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    h4 {
+      font-size: 1.3rem;
+    }
+
+    h5 {
+      font-size: 1.1rem;
+    }
+
+    h6 {
+      font-size: 1rem;
+    }
   }
 }
