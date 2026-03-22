@@ -79,44 +79,15 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const userProgressResponse = await fetch('/api/user-progress', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-            }),
-          });
-          const userProgressData = await userProgressResponse.json();
-          setUserProgress(userProgressData);
+          const userGoals = user.goals;
+          const userProgress = user.progress;
+          const userLearningStyle = user.learningStyle;
 
-          const userGoalsResponse = await fetch('/api/user-goals', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-            }),
-          });
-          const userGoalsData = await userGoalsResponse.json();
-          const userGoals = userGoalsData.goals;
+          const planRecommendations = await getPlanRecommendations(userGoals, userProgress, userLearningStyle);
+          setLearningPlanRecommendations(planRecommendations);
 
-          const userLearningStyleResponse = await fetch('/api/user-learning-style', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-            }),
-          });
-          const userLearningStyleData = await userLearningStyleResponse.json();
-          const userLearningStyle = userLearningStyleData.learningStyle;
-
-          const personalizedPlanRecommendations = await getPersonalizedPlanRecommendations(userProgressData, userGoals, userLearningStyle);
-          setPersonalizedPlan(personalizedPlanRecommendations);
+          const personalizedPlan = await createPersonalizedPlan(planRecommendations, userGoals, userProgress, userLearningStyle);
+          setPersonalizedPlan(personalizedPlan);
         };
 
         developPersonalizedPlan();
@@ -126,15 +97,15 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const getPersonalizedPlanRecommendations = async (userProgress, userGoals, userLearningStyle) => {
-    const response = await fetch('/api/personalized-plan-recommendations', {
+  const getPlanRecommendations = async (userGoals, userProgress, userLearningStyle) => {
+    const response = await fetch('/api/plan-recommendations', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        userProgress,
         userGoals,
+        userProgress,
         userLearningStyle,
       }),
     });
@@ -142,40 +113,40 @@ export default function DashboardPage() {
     return data;
   };
 
+  const createPersonalizedPlan = async (planRecommendations, userGoals, userProgress, userLearningStyle) => {
+    const plan = {
+      name: 'Personalized Plan',
+      description: 'A customized plan based on your goals, progress, and learning style',
+      lessons: [],
+    };
+
+    planRecommendations.forEach((recommendation) => {
+      plan.lessons.push(recommendation.lesson);
+    });
+
+    return plan;
+  };
+
   return (
     <DashboardLayout>
       <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
-              link={recommendedPlan ? recommendedPlan.link : '#'}
-            />
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard plan={recommendedPlan} />
+            )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard plan={personalizedPlan} />
+            )}
           </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Personalized Plan"
-              description={personalizedPlan ? personalizedPlan.description : 'No plan available'}
-              link={personalizedPlan ? personalizedPlan.link : '#'}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="User Progress"
-              progressPercentage={userProgress.progressPercentage}
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <CommunityCard title="Community" description="Join our community to connect with other learners" link="/community" />
-          </div>
-          <div className="col-md-4">
-            <ResourceCard title="Resources" description="Access additional resources to support your learning" link="/resources" />
-          </div>
+        )}
+        <div className="cards">
+          <ProgressCard progress={userProgress} />
+          <CommunityCard />
+          <ResourceCard />
         </div>
       </div>
     </DashboardLayout>

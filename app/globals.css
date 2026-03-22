@@ -102,6 +102,7 @@
     @apply hover:underline;
     @apply transition-all duration-200;
     aria-label: "Link";
+    role: link;
   }
 
   a:hover {
@@ -121,6 +122,7 @@
     @apply active:scale-95;
     role: button;
     aria-label: "Button";
+    aria-pressed: false;
   }
 
   input, textarea, select {
@@ -139,15 +141,35 @@
   input[type="text"], input[type="email"], input[type="password"], textarea, select {
     role: textbox;
     aria-label: "Text input";
+    aria-required: false;
   }
 
   input[type="checkbox"], input[type="radio"] {
     role: checkbox;
     aria-label: "Checkbox";
+    aria-checked: false;
   }
 
   input:focus, textarea:focus, select:focus {
     @apply border-blue-600 dark:border-blue-500;
+  }
+
+  [role="dialog"] {
+    role: dialog;
+    aria-modal: true;
+    aria-label: "Dialog";
+  }
+
+  [role="alert"] {
+    role: alert;
+    aria-live: assertive;
+    aria-atomic: true;
+    aria-label: "Alert";
+  }
+
+  [role="tooltip"] {
+    role: tooltip;
+    aria-label: "Tooltip";
   }
 }
 
@@ -179,17 +201,6 @@
 
     h6 {
       font-size: 1.2rem;
-    }
-
-    button {
-      @apply py-2.5 px-4.5;
-      font-size: 1rem;
-      margin: 0.8rem;
-    }
-
-    input, textarea, select {
-      @apply py-2.5 px-4.5;
-      font-size: 1rem;
     }
   }
 }
