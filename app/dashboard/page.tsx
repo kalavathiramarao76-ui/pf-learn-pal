@@ -79,88 +79,106 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const machineLearningModel = await fetch('/api/machine-learning-model', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              progress: user.progress,
-              goals: user.goals,
-              learningStyle: user.learningStyle,
-              userFeedback: userFeedback,
-            }),
-          });
-          const personalizedPlanData = await machineLearningModel.json();
-          setPersonalizedPlan(personalizedPlanData);
+          const learningPlanRecommendations = await getLearningPlanRecommendations(user);
+          setLearningPlanRecommendations(learningPlanRecommendations);
 
-          const getLearningPlanRecommendations = async () => {
-            const response = await fetch('/api/learning-plan-recommendations', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                progress: user.progress,
-                goals: user.goals,
-                learningStyle: user.learningStyle,
-                personalizedPlan: personalizedPlanData,
-              }),
-            });
-            const recommendationsData = await response.json();
-            setLearningPlanRecommendations(recommendationsData);
-          };
-          await getLearningPlanRecommendations();
+          const recommendedPlanEngine = await getRecommendedPlanEngine(user);
+          setRecommendedPlanEngine(recommendedPlanEngine);
+
+          const personalizedPlan = await getPersonalizedPlan(user, learningPlanRecommendations, recommendedPlanEngine);
+          setPersonalizedPlan(personalizedPlan);
         };
-        await developPersonalizedPlan();
+
+        developPersonalizedPlan();
       };
+
       getRecommendedPlan();
     }
-  }, [user, userFeedback]);
+  }, [user]);
+
+  const getLearningPlanRecommendations = async (user) => {
+    const response = await fetch('/api/learning-plan-recommendations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        learningStyle: user.learningStyle,
+        knowledgeLevel: user.knowledgeLevel,
+        goals: user.goals,
+      }),
+    });
+    const data = await response.json();
+    return data;
+  };
+
+  const getRecommendedPlanEngine = async (user) => {
+    const response = await fetch('/api/recommended-plan-engine', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        learningStyle: user.learningStyle,
+        knowledgeLevel: user.knowledgeLevel,
+        goals: user.goals,
+      }),
+    });
+    const data = await response.json();
+    return data;
+  };
+
+  const getPersonalizedPlan = async (user, learningPlanRecommendations, recommendedPlanEngine) => {
+    const personalizedPlan = {
+      learningStyle: user.learningStyle,
+      knowledgeLevel: user.knowledgeLevel,
+      goals: user.goals,
+      recommendedPlan: recommendedPlanEngine.recommendedPlan,
+      learningPlanRecommendations: learningPlanRecommendations,
+    };
+    return personalizedPlan;
+  };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard
-                name={recommendedPlan.name}
-                description={recommendedPlan.description}
-                link={recommendedPlan.link}
-              />
-            )}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && (
-              <StudyPlanCard
-                name={personalizedPlan.name}
-                description={personalizedPlan.description}
-                link={personalizedPlan.link}
-              />
-            )}
-            <h2>Learning Plan Recommendations</h2>
-            {learningPlanRecommendations.map((recommendation) => (
-              <StudyPlanCard
-                key={recommendation.id}
-                name={recommendation.name}
-                description={recommendation.description}
-                link={recommendation.link}
-              />
+      <StudyPlanCard
+        studyPlanOptions={studyPlanOptions}
+        selectedStudyPlan={selectedStudyPlan}
+        setSelectedStudyPlan={setSelectedStudyPlan}
+      />
+      <ProgressCard
+        userProgress={userProgress}
+        setUserProgress={setUserProgress}
+      />
+      <CommunityCard />
+      <ResourceCard />
+      {recommendedPlan && (
+        <div>
+          <h2>Recommended Plan</h2>
+          <p>{recommendedPlan.name}</p>
+          <p>{recommendedPlan.description}</p>
+        </div>
+      )}
+      {personalizedPlan && (
+        <div>
+          <h2>Personalized Plan</h2>
+          <p>Learning Style: {personalizedPlan.learningStyle}</p>
+          <p>Knowledge Level: {personalizedPlan.knowledgeLevel}</p>
+          <p>Goals: {personalizedPlan.goals}</p>
+          <p>Recommended Plan: {personalizedPlan.recommendedPlan}</p>
+          <h3>Learning Plan Recommendations</h3>
+          <ul>
+            {personalizedPlan.learningPlanRecommendations.map((recommendation) => (
+              <li key={recommendation.id}>
+                <p>{recommendation.name}</p>
+                <p>{recommendation.description}</p>
+              </li>
             ))}
-          </div>
-        )}
-        <ProgressCard
-          completedLessons={userProgress.completedLessons}
-          totalLessons={userProgress.totalLessons}
-          progressPercentage={userProgress.progressPercentage}
-        />
-        <CommunityCard />
-        <ResourceCard />
-      </div>
+          </ul>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
