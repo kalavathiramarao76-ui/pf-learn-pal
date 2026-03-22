@@ -79,81 +79,105 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const tf = await import('@tensorflow/tfjs');
-          const model = tf.sequential();
-          model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [5] }));
-          model.add(tf.layers.dense({ units: 5, activation: 'softmax' }));
-          model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+          const machineLearningModel = await fetch('/api/machine-learning-model', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              progress: user.progress,
+              goals: user.goals,
+              learningStyle: user.learningStyle,
+              userFeedback: userFeedback,
+            }),
+          });
+          const personalizedPlanData = await machineLearningModel.json();
+          setPersonalizedPlan(personalizedPlanData);
 
-          const trainingData = [
-            { input: [1, 0, 0, 0, 0], output: [1, 0, 0, 0, 0] },
-            { input: [0, 1, 0, 0, 0], output: [0, 1, 0, 0, 0] },
-            { input: [0, 0, 1, 0, 0], output: [0, 0, 1, 0, 0] },
-            { input: [0, 0, 0, 1, 0], output: [0, 0, 0, 1, 0] },
-            { input: [0, 0, 0, 0, 1], output: [0, 0, 0, 0, 1] },
-          ];
-
-          const inputs = trainingData.map((data) => data.input);
-          const outputs = trainingData.map((data) => data.output);
-
-          const xs = tf.tensor2d(inputs, [inputs.length, 5]);
-          const ys = tf.tensor2d(outputs, [outputs.length, 5]);
-
-          await model.fit(xs, ys, { epochs: 100 });
-
-          const userInput = tf.tensor2d([[
-            user.learningStyle === 'visual' ? 1 : 0,
-            user.learningStyle === 'auditory' ? 1 : 0,
-            user.learningStyle === 'kinesthetic' ? 1 : 0,
-            user.knowledgeLevel === 'beginner' ? 1 : 0,
-            user.knowledgeLevel === 'advanced' ? 1 : 0,
-          ]], [1, 5]);
-
-          const prediction = model.predict(userInput);
-          const predictedPlan = await prediction.array();
-          const recommendedPlanIndex = predictedPlan[0].indexOf(Math.max(...predictedPlan[0]));
-          const recommendedPlanName = studyPlanOptions[recommendedPlanIndex].name;
-          setPersonalizedPlan(recommendedPlanName);
+          const getLearningPlanRecommendations = async () => {
+            const response = await fetch('/api/learning-plan-recommendations', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                progress: user.progress,
+                goals: user.goals,
+                learningStyle: user.learningStyle,
+                personalizedPlan: personalizedPlanData,
+              }),
+            });
+            const recommendationsData = await response.json();
+            setLearningPlanRecommendations(recommendationsData);
+          };
+          await getLearningPlanRecommendations();
         };
-
-        developPersonalizedPlan();
+        await developPersonalizedPlan();
       };
-
       getRecommendedPlan();
     }
-  }, [user]);
+  }, [user, userFeedback]);
+
+  const handleUserFeedback = async (feedback) => {
+    const updatedUserFeedback = { ...userFeedback, ratings: [...userFeedback.ratings, feedback.rating], comments: [...userFeedback.comments, feedback.comment] };
+    setUserFeedback(updatedUserFeedback);
+    const response = await fetch('/api/update-user-feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        feedback: updatedUserFeedback,
+      }),
+    });
+    const data = await response.json();
+    console.log(data);
+  };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              plan={recommendedPlan}
-              personalizedPlan={personalizedPlan}
-              customizedPlan={customizedPlan}
-            />
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && <StudyPlanCard plan={personalizedPlan} />}
+            <h2>Learning Plan Recommendations</h2>
+            {learningPlanRecommendations.map((recommendation) => (
+              <StudyPlanCard key={recommendation.id} plan={recommendation} />
+            ))}
+            <h2>Progress</h2>
+            <ProgressCard progress={userProgress} />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
+            <h2>Provide Feedback</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const feedback = {
+                rating: e.target.rating.value,
+                comment: e.target.comment.value,
+              };
+              handleUserFeedback(feedback);
+            }}>
+              <label>
+                Rating:
+                <input type="number" name="rating" />
+              </label>
+              <label>
+                Comment:
+                <textarea name="comment" />
+              </label>
+              <button type="submit">Submit Feedback</button>
+            </form>
           </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Progress"
-              progress={userProgress}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard
-              title="Community"
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard
-              title="Resources"
-            />
-          </div>
-        </div>
+        )}
       </div>
     </DashboardLayout>
   );

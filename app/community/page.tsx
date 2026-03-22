@@ -38,6 +38,7 @@ export default function CommunityPage() {
   const [isEditingLoading, setIsEditingLoading] = useState(false);
   const [isReportingLoading, setIsReportingLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -71,73 +72,67 @@ export default function CommunityPage() {
         setEditSuccess('Post edited successfully!');
         setTimeout(() => setEditSuccess(''), 3000);
       } else {
-        const newPost = {
-          text: editorValue,
-          timestamp: new Date().toISOString(),
-          author: user?.username || 'Anonymous',
-        };
-        setPosts((prevPosts) => [...prevPosts, newPost]);
-        setValue('communityPosts', JSON.stringify([...posts, newPost]));
+        setPosts([...posts, { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' }]);
+        setValue('communityPosts', JSON.stringify([...posts, { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' }]));
         setEditorValue('');
         setCharacterCount(0);
       }
+      setIsEditingLoading(false);
     } else {
-      setEditError('Post exceeds character limit!');
-      setTimeout(() => setEditError(''), 3000);
+      setValidationError('Post exceeds character limit');
+      setTimeout(() => setValidationError(''), 3000);
     }
-    setIsEditingLoading(false);
+  };
+
+  const handlePostEdit = (post: any) => {
+    setEditingPost(post);
+    setEditorValue(post.text);
+    setIsEditing(true);
+  };
+
+  const handlePostReport = (post: any) => {
+    setReportingPost(post);
+    setIsReporting(true);
+    setModalIsOpen(true);
   };
 
   const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (reportReason && reportDescription) {
       setIsReportingLoading(true);
-      const reportedPost = {
-        text: reportingPost.text,
+      // Send report to server
+      axios.post('/api/report', {
+        post: reportingPost,
         reason: reportReason,
         description: reportDescription,
-      };
-      axios.post('/api/report-post', reportedPost)
-        .then((response) => {
-          setReportSuccess('Post reported successfully!');
-          setTimeout(() => setReportSuccess(''), 3000);
-        })
-        .catch((error) => {
-          setReportError('Failed to report post!');
-          setTimeout(() => setReportError(''), 3000);
-        });
-      setIsReportingLoading(false);
+      })
+      .then((response) => {
+        setReportSuccess('Report submitted successfully!');
+        setTimeout(() => setReportSuccess(''), 3000);
+        setModalIsOpen(false);
+        setIsReporting(false);
+      })
+      .catch((error) => {
+        setReportError('Error submitting report');
+        setTimeout(() => setReportError(''), 3000);
+      })
+      .finally(() => {
+        setIsReportingLoading(false);
+      });
     } else {
-      setReportError('Please fill out all fields!');
-      setTimeout(() => setReportError(''), 3000);
+      setValidationError('Please fill out all fields');
+      setTimeout(() => setValidationError(''), 3000);
     }
   };
 
-  const handleEditPost = (post: any) => {
-    setEditingPost(post);
-    setEditorValue(post.text);
-    setIsEditing(true);
-  };
-
-  const handleReportPost = (post: any) => {
-    setReportingPost(post);
-    setIsReporting(true);
-    setModalIsOpen(true);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditingPost(null);
-    setEditorValue('');
-    setCharacterCount(0);
-  };
-
-  const handleCancelReport = () => {
-    setIsReporting(false);
-    setReportingPost(null);
-    setReportReason('');
-    setReportDescription('');
-    setModalIsOpen(false);
+  const handleEditorChange = (value: string) => {
+    setEditorValue(value);
+    setCharacterCount(value.length);
+    if (value.length > characterLimit) {
+      setValidationError('Post exceeds character limit');
+    } else {
+      setValidationError('');
+    }
   };
 
   return (
@@ -147,62 +142,38 @@ export default function CommunityPage() {
         <div>
           <ReactQuill
             value={editorValue}
-            onChange={(value) => {
-              setEditorValue(value);
-              setCharacterCount(value.length);
-            }}
+            onChange={handleEditorChange}
             placeholder="Write a post..."
-            modules={{
-              toolbar: [
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ header: 1 }, { header: 2 }],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                [{ script: 'sub' }, { script: 'super' }],
-                [{ indent: '-1' }, { indent: '+1' }],
-                [{ direction: 'rtl' }],
-                [{ font: [] }],
-                [{ align: [] }],
-                ['clean'],
-              ],
-            }}
           />
           <p>Character count: {characterCount}/{characterLimit}</p>
-          {isEditing ? (
-            <button onClick={handlePostSubmit}>Save Changes</button>
-          ) : (
-            <button onClick={handlePostSubmit}>Post</button>
+          {validationError && <p style={{ color: 'red' }}>{validationError}</p>}
+          <button onClick={handlePostSubmit}>Post</button>
+          {isEditing && (
+            <button onClick={() => setIsEditing(false)}>Cancel</button>
           )}
-          {isEditing ? (
-            <button onClick={handleCancelEdit}>Cancel</button>
-          ) : null}
         </div>
       ) : (
-        <p>Please log in to post.</p>
+        <p>Please log in to post</p>
       )}
-      <h2>Posts</h2>
-      {posts.map((post) => (
-        <div key={post.text}>
-          <p>{post.text}</p>
-          <p>Author: {post.author}</p>
-          <p>Timestamp: {post.timestamp}</p>
-          {isLoggedIn ? (
-            <div>
-              <button onClick={() => handleEditPost(post)}>
-                <FaEdit /> Edit
-              </button>
-              <button onClick={() => handleReportPost(post)}>
-                <FiFlag /> Report
-              </button>
-            </div>
-          ) : null}
-        </div>
-      ))}
-      {isReporting ? (
+      <ul>
+        {posts.map((post, index) => (
+          <li key={index}>
+            <p>{post.text}</p>
+            <p>Author: {post.author}</p>
+            <p>Timestamp: {post.timestamp}</p>
+            <button onClick={() => handlePostEdit(post)}>
+              <FaEdit /> Edit
+            </button>
+            <button onClick={() => handlePostReport(post)}>
+              <FiFlag /> Report
+            </button>
+          </li>
+        ))}
+      </ul>
+      {modalIsOpen && (
         <Modal
           isOpen={modalIsOpen}
-          onRequestClose={handleCancelReport}
-          contentLabel="Report Post"
+          onRequestClose={() => setModalIsOpen(false)}
         >
           <h2>Report Post</h2>
           <form onSubmit={handleReportSubmit}>
@@ -219,17 +190,12 @@ export default function CommunityPage() {
               Description:
               <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
             </label>
-            <button type="submit">Report</button>
-            <button type="button" onClick={handleCancelReport}>
-              Cancel
-            </button>
+            <button type="submit">Submit Report</button>
           </form>
+          {reportError && <p style={{ color: 'red' }}>{reportError}</p>}
+          {reportSuccess && <p style={{ color: 'green' }}>{reportSuccess}</p>}
         </Modal>
-      ) : null}
-      {editError ? <p style={{ color: 'red' }}>{editError}</p> : null}
-      {reportError ? <p style={{ color: 'red' }}>{reportError}</p> : null}
-      {editSuccess ? <p style={{ color: 'green' }}>{editSuccess}</p> : null}
-      {reportSuccess ? <p style={{ color: 'green' }}>{reportSuccess}</p> : null}
+      )}
     </div>
   );
 }

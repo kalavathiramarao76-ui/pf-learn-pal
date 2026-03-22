@@ -154,31 +154,41 @@
     body {
       font-size: 16px;
     }
+
     h1 {
       font-size: 2rem;
     }
+
     h2 {
       font-size: 1.8rem;
     }
+
     h3 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
     }
+
     h4 {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
     }
+
     h5 {
       font-size: 1.2rem;
     }
+
     h6 {
-      font-size: 1rem;
+      font-size: 1.1rem;
     }
+
     button {
       @apply py-2 px-4;
       font-size: 1rem;
+      margin: 0.5rem;
     }
+
     input, textarea, select {
       @apply py-2 px-4;
       font-size: 1rem;
+      margin: 0.5rem;
     }
   }
 
@@ -186,31 +196,41 @@
     body {
       font-size: 14px;
     }
+
     h1 {
       font-size: 1.8rem;
     }
+
     h2 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
     }
+
     h3 {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
     }
+
     h4 {
       font-size: 1.2rem;
     }
+
     h5 {
+      font-size: 1.1rem;
+    }
+
+    h6 {
       font-size: 1rem;
     }
-    h6 {
-      font-size: 0.8rem;
-    }
+
     button {
       @apply py-1 px-3;
       font-size: 0.9rem;
+      margin: 0.3rem;
     }
+
     input, textarea, select {
       @apply py-1 px-3;
       font-size: 0.9rem;
+      margin: 0.3rem;
     }
   }
 }
