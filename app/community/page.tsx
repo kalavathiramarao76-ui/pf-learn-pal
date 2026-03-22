@@ -86,7 +86,6 @@ export default function CommunityPage() {
         const newPost = { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
         setPosts([...posts, newPost]);
         setValue('communityPosts', JSON.stringify([...posts, newPost]));
-        setNewPost('');
         setEditorValue('');
       }
     }
@@ -110,7 +109,7 @@ export default function CommunityPage() {
       setIsReportingLoading(true);
       const reportedPost = { ...reportingPost, reportReason, reportDescription };
       const updatedPosts = posts.map((post) => {
-        if (post.text === reportedPost.text) {
+        if (post.text === reportingPost.text) {
           return reportedPost;
         }
         return post;
@@ -135,12 +134,16 @@ export default function CommunityPage() {
         <div>
           <ReactQuill
             value={editorValue}
-            onChange={(value) => setEditorValue(value)}
+            onChange={(value) => {
+              setEditorValue(value);
+              setCharacterCount(value.length);
+            }}
             placeholder="Write a post..."
           />
+          <p>Character count: {characterCount}</p>
           <button onClick={handlePostSubmit}>Post</button>
-          {editingPost && (
-            <button onClick={() => setEditingPost(null)}>Cancel Edit</button>
+          {isEditing && (
+            <button onClick={() => setIsEditing(false)}>Cancel editing</button>
           )}
         </div>
       ) : (
@@ -167,22 +170,17 @@ export default function CommunityPage() {
       </ul>
       {isEditing && (
         <div>
-          <h2>Editing Post</h2>
-          <ReactQuill
-            value={editorValue}
-            onChange={(value) => setEditorValue(value)}
-            placeholder="Write a post..."
-          />
-          <button onClick={handlePostSubmit}>Save Changes</button>
+          <h2>Editing post</h2>
+          <p>Original post: {editingPost.text}</p>
         </div>
       )}
       {isReporting && (
         <Modal
           isOpen={modalIsOpen}
           onRequestClose={() => setModalIsOpen(false)}
-          contentLabel="Report Post"
+          contentLabel="Report post"
         >
-          <h2>Report Post</h2>
+          <h2>Report post</h2>
           <form onSubmit={handleReportSubmit}>
             <label>Reason for reporting:</label>
             <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
@@ -193,7 +191,7 @@ export default function CommunityPage() {
             </select>
             <label>Description:</label>
             <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
-            <button type="submit">Submit Report</button>
+            <button type="submit">Report</button>
           </form>
         </Modal>
       )}
