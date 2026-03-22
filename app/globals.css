@@ -154,79 +154,87 @@
     aria-checked: true;
   }
 
-  ul, ol {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    role: list;
-  }
-
-  li {
-    role: listitem;
+  input[type="search"] {
+    role: searchbox;
+    aria-label: "Search input field";
   }
 
   table {
-    @apply border-collapse;
-    @apply w-full;
+    border-collapse: collapse;
+    width: 100%;
     role: table;
     aria-label: "Table of data";
   }
 
   th, td {
-    @apply border;
-    @apply p-2;
-    role: cell;
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
   }
 
   th {
-    @apply bg-gray-200 dark:bg-gray-700;
-    @apply text-gray-900 dark:text-gray-100;
     role: columnheader;
+    aria-sort: none;
   }
 
-  td {
-    @apply bg-gray-100 dark:bg-gray-800;
-    @apply text-gray-900 dark:text-gray-100;
+  th[aria-sort="ascending"] {
+    aria-sort: ascending;
+  }
+
+  th[aria-sort="descending"] {
+    aria-sort: descending;
+  }
+
+  ul, ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    role: list;
+    aria-label: "List of items";
+  }
+
+  li {
+    role: listitem;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
   }
 
   figure {
-    margin: 0;
     role: figure;
     aria-label: "Figure with image and caption";
   }
 
   figcaption {
-    @apply text-sm;
-    @apply text-gray-600 dark:text-gray-400;
     role: presentation;
+    aria-label: "Figure caption";
   }
 
   img {
-    @apply w-full;
-    @apply h-auto;
     role: img;
     aria-label: "Image";
   }
 
-  label {
-    @apply text-gray-900 dark:text-gray-100;
-    @apply font-bold;
-    @apply mb-2;
-    role: label;
-  }
-
-  fieldset {
-    @apply border;
-    @apply p-2;
-    @apply rounded;
-    role: group;
-    aria-label: "Group of form fields";
-  }
-
-  legend {
-    @apply text-gray-900 dark:text-gray-100;
-    @apply font-bold;
-    @apply mb-2;
+  iframe {
     role: presentation;
+    aria-label: "Embedded content";
+  }
+
+  [role="dialog"] {
+    role: dialog;
+    aria-label: "Dialog window";
+    aria-modal: true;
+  }
+
+  [role="alert"] {
+    role: alert;
+    aria-label: "Alert message";
+    aria-live: assertive;
+  }
+
+  [role="alertdialog"] {
+    role: alertdialog;
+    aria-label: "Alert dialog window";
+    aria-modal: true;
+    aria-live: assertive;
   }
 }
