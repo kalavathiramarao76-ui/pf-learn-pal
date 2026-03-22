@@ -24,7 +24,7 @@
   main {
     display: block;
     role: main;
-    aria-label: "Main content area of the application";
+    aria-label: "Main content area of the application, providing access to various learning resources and tools";
   }
 
   header, footer, nav, section, article, aside {
@@ -33,27 +33,27 @@
 
   header {
     role: banner;
-    aria-label: "Header section containing site navigation and logo";
+    aria-label: "Header section containing site navigation, logo, and search functionality";
   }
 
   nav {
     role: navigation;
-    aria-label: "Main navigation menu";
+    aria-label: "Main navigation menu, providing links to key sections of the application, such as dashboard, courses, and settings";
   }
 
   section {
     role: region;
-    aria-label: "Section of related content";
+    aria-label: "Section of related content, including headings, paragraphs, and images, providing a clear structure for the page";
   }
 
   article {
     role: article;
-    aria-label: "Independent piece of content";
+    aria-label: "Independent piece of content, such as a blog post or news article, providing valuable information and insights";
   }
 
   aside {
     role: complementary;
-    aria-label: "Supplementary content related to the main content";
+    aria-label: "Supplementary content related to the main content, such as related links, tags, or author information";
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -101,7 +101,7 @@
     text-decoration: none;
     @apply hover:underline;
     @apply transition-all duration-200;
-    aria-label: "Link to external or internal content, providing more information";
+    aria-label: "Link to external or internal content, providing more information, such as a course description or a help article";
     role: link;
   }
 
@@ -121,7 +121,7 @@
     @apply shadow-md;
     @apply active:scale-95;
     role: button;
-    aria-label: "Button to perform a specific action, such as submitting a form or navigating to a new page";
+    aria-label: "Button to perform a specific action, such as submitting a form, navigating to a new page, or toggling a setting";
     aria-pressed: false;
   }
 
@@ -140,39 +140,21 @@
 
   input[type="text"], input[type="email"], input[type="password"], textarea, select {
     role: textbox;
-    aria-label: "Text input field for entering user data, such as name or email address";
-    aria-required: false;
+    aria-label: "Text input field for entering user data, such as name, email address, or password, with clear and concise labeling";
+    aria-required: true;
   }
 
   img {
     @apply max-w-full;
     @apply h-auto;
     @apply mx-auto;
-    @apply my-5;
-    role: img;
-    aria-label: "Image providing visual context or illustration of the content";
+    @apply my-4;
+    aria-label: "Image providing visual context, such as an illustration, diagram, or screenshot, with a clear and descriptive alt text";
   }
 
-  .image-description {
+  svg {
+    @apply fill-current;
     @apply text-gray-600 dark:text-gray-400;
-    @apply text-sm;
-    @apply mt-2;
-    @apply mx-auto;
-    @apply w-full;
-  }
-
-  .visual-hierarchy {
-    @apply flex;
-    @apply flex-col;
-    @apply items-center;
-    @apply justify-center;
-  }
-
-  .visual-hierarchy > * {
-    @apply mb-4;
-  }
-
-  .visual-hierarchy > *:last-child {
-    @apply mb-0;
+    aria-label: "Icon representing a specific concept, such as a navigation icon, a button icon, or a status icon, with a clear and descriptive alt text";
   }
 }

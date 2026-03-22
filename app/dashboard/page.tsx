@@ -79,106 +79,115 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const learningPlanRecommendations = await getLearningPlanRecommendations(user);
-          setLearningPlanRecommendations(learningPlanRecommendations);
-
-          const recommendedPlanEngine = await getRecommendedPlanEngine(user);
-          setRecommendedPlanEngine(recommendedPlanEngine);
-
-          const personalizedPlan = await getPersonalizedPlan(user, learningPlanRecommendations, recommendedPlanEngine);
+          const machineLearningModel = await fetch('/api/machine-learning-model', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              progress: user.progress,
+              goals: user.goals,
+              learningStyle: user.learningStyle,
+            }),
+          });
+          const modelData = await machineLearningModel.json();
+          const personalizedPlan = modelData.predictedPlan;
           setPersonalizedPlan(personalizedPlan);
-        };
 
+          const getCustomizedPlan = async () => {
+            const response = await fetch('/api/customized-plan', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                learningStyle: customizationOptions.learningStyle,
+                knowledgeLevel: customizationOptions.knowledgeLevel,
+                goals: customizationOptions.goals,
+                topics: customizationOptions.topics,
+              }),
+            });
+            const data = await response.json();
+            setCustomizedPlan(data);
+          };
+          getCustomizedPlan();
+        };
         developPersonalizedPlan();
       };
-
       getRecommendedPlan();
     }
-  }, [user]);
+  }, [user, customizationOptions]);
 
-  const getLearningPlanRecommendations = async (user) => {
-    const response = await fetch('/api/learning-plan-recommendations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        learningStyle: user.learningStyle,
-        knowledgeLevel: user.knowledgeLevel,
-        goals: user.goals,
-      }),
-    });
-    const data = await response.json();
-    return data;
+  const handleCustomizationOptionsChange = (event) => {
+    const { name, value } = event.target;
+    setCustomizationOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
   };
 
-  const getRecommendedPlanEngine = async (user) => {
-    const response = await fetch('/api/recommended-plan-engine', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        learningStyle: user.learningStyle,
-        knowledgeLevel: user.knowledgeLevel,
-        goals: user.goals,
-      }),
-    });
-    const data = await response.json();
-    return data;
+  const handleTopicSelection = (topic) => {
+    setCustomizationOptions((prevOptions) => ({ ...prevOptions, topics: [...prevOptions.topics, topic] }));
   };
 
-  const getPersonalizedPlan = async (user, learningPlanRecommendations, recommendedPlanEngine) => {
-    const personalizedPlan = {
-      learningStyle: user.learningStyle,
-      knowledgeLevel: user.knowledgeLevel,
-      goals: user.goals,
-      recommendedPlan: recommendedPlanEngine.recommendedPlan,
-      learningPlanRecommendations: learningPlanRecommendations,
-    };
-    return personalizedPlan;
+  const handleTopicDeselection = (topic) => {
+    setCustomizationOptions((prevOptions) => ({ ...prevOptions, topics: prevOptions.topics.filter((t) => t !== topic) }));
   };
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
-      />
-      <ProgressCard
-        userProgress={userProgress}
-        setUserProgress={setUserProgress}
-      />
-      <CommunityCard />
-      <ResourceCard />
-      {recommendedPlan && (
+      <h1>Personalized Learning Companion</h1>
+      {user && (
         <div>
           <h2>Recommended Plan</h2>
-          <p>{recommendedPlan.name}</p>
-          <p>{recommendedPlan.description}</p>
-        </div>
-      )}
-      {personalizedPlan && (
-        <div>
+          {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
           <h2>Personalized Plan</h2>
-          <p>Learning Style: {personalizedPlan.learningStyle}</p>
-          <p>Knowledge Level: {personalizedPlan.knowledgeLevel}</p>
-          <p>Goals: {personalizedPlan.goals}</p>
-          <p>Recommended Plan: {personalizedPlan.recommendedPlan}</p>
-          <h3>Learning Plan Recommendations</h3>
-          <ul>
-            {personalizedPlan.learningPlanRecommendations.map((recommendation) => (
-              <li key={recommendation.id}>
-                <p>{recommendation.name}</p>
-                <p>{recommendation.description}</p>
-              </li>
-            ))}
-          </ul>
+          {personalizedPlan && <StudyPlanCard plan={personalizedPlan} />}
+          <h2>Customized Plan</h2>
+          {customizedPlan && <StudyPlanCard plan={customizedPlan} />}
+          <h2>Customization Options</h2>
+          <form>
+            <label>
+              Learning Style:
+              <select name="learningStyle" value={customizationOptions.learningStyle} onChange={handleCustomizationOptionsChange}>
+                <option value="">Select a learning style</option>
+                <option value="visual">Visual</option>
+                <option value="auditory">Auditory</option>
+                <option value="kinesthetic">Kinesthetic</option>
+              </select>
+            </label>
+            <label>
+              Knowledge Level:
+              <select name="knowledgeLevel" value={customizationOptions.knowledgeLevel} onChange={handleCustomizationOptionsChange}>
+                <option value="">Select a knowledge level</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </label>
+            <label>
+              Goals:
+              <input type="text" name="goals" value={customizationOptions.goals} onChange={handleCustomizationOptionsChange} />
+            </label>
+            <label>
+              Topics:
+              <ul>
+                {customizationOptions.topics.map((topic) => (
+                  <li key={topic}>
+                    {topic}
+                    <button onClick={() => handleTopicDeselection(topic)}>Remove</button>
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => handleTopicSelection('Topic 1')}>Add Topic 1</button>
+              <button onClick={() => handleTopicSelection('Topic 2')}>Add Topic 2</button>
+              <button onClick={() => handleTopicSelection('Topic 3')}>Add Topic 3</button>
+            </label>
+          </form>
         </div>
       )}
+      <ProgressCard progress={userProgress} />
+      <CommunityCard />
+      <ResourceCard />
     </DashboardLayout>
   );
 }
