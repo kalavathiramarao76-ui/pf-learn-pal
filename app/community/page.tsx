@@ -78,18 +78,31 @@ export default function CommunityPage() {
         });
         setPosts(updatedPosts);
         setValue('communityPosts', JSON.stringify(updatedPosts));
-        setEditSuccess('Post edited successfully');
-        setIsEditingLoading(false);
         setIsEditing(false);
-        setEditingPost(null);
+        setIsEditingLoading(false);
+        setEditSuccess('Post edited successfully');
+        setEditorValue('');
       } else {
         const newPost = { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
         setPosts([...posts, newPost]);
         setValue('communityPosts', JSON.stringify([...posts, newPost]));
-        setPostPreview('');
         setEditorValue('');
-        setCharacterCount(0);
       }
+    }
+  };
+
+  const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (reportReason && reportDescription) {
+      setIsReportingLoading(true);
+      const reportedPost = reportingPost;
+      const report = { reason: reportReason, description: reportDescription, post: reportedPost };
+      // Send report to server or handle it accordingly
+      setIsReporting(false);
+      setIsReportingLoading(false);
+      setReportSuccess('Report submitted successfully');
+      setReportReason('');
+      setReportDescription('');
     }
   };
 
@@ -97,7 +110,6 @@ export default function CommunityPage() {
     setIsEditing(true);
     setEditingPost(post);
     setEditorValue(post.text);
-    setCharacterCount(post.text.length);
   };
 
   const handleReportPost = (post: any) => {
@@ -106,30 +118,10 @@ export default function CommunityPage() {
     setModalIsOpen(true);
   };
 
-  const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (reportReason && reportDescription) {
-      setIsReportingLoading(true);
-      const report = { post: reportingPost, reason: reportReason, description: reportDescription };
-      // Send report to server or handle it accordingly
-      console.log(report);
-      setReportSuccess('Report submitted successfully');
-      setIsReportingLoading(false);
-      setIsReporting(false);
-      setModalIsOpen(false);
-      setReportingPost(null);
-      setReportReason('');
-      setReportDescription('');
-    } else {
-      setReportError('Please fill out all fields');
-    }
-  };
-
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditingPost(null);
     setEditorValue('');
-    setCharacterCount(0);
   };
 
   const handleCancelReport = () => {
@@ -163,8 +155,8 @@ export default function CommunityPage() {
             <button onClick={handleCancelEdit}>Cancel Edit</button>
           )}
           {validationError && <p style={{ color: 'red' }}>{validationError}</p>}
-          {editSuccess && <p style={{ color: 'green' }}>{editSuccess}</p>}
           {editError && <p style={{ color: 'red' }}>{editError}</p>}
+          {editSuccess && <p style={{ color: 'green' }}>{editSuccess}</p>}
         </div>
       ) : (
         <p>Please log in to create a post</p>
@@ -175,16 +167,12 @@ export default function CommunityPage() {
             <p>{post.text}</p>
             <p>Author: {post.author}</p>
             <p>Timestamp: {post.timestamp}</p>
-            {isLoggedIn && (
-              <div>
-                <button onClick={() => handleEditPost(post)}>
-                  <FaEdit /> Edit
-                </button>
-                <button onClick={() => handleReportPost(post)}>
-                  <FiFlag /> Report
-                </button>
-              </div>
-            )}
+            <button onClick={() => handleEditPost(post)}>
+              <FaEdit /> Edit
+            </button>
+            <button onClick={() => handleReportPost(post)}>
+              <FiFlag /> Report
+            </button>
           </li>
         ))}
       </ul>
@@ -195,26 +183,19 @@ export default function CommunityPage() {
       >
         <h2>Report Post</h2>
         <form onSubmit={handleReportSubmit}>
-          <label>
-            Reason:
-            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-              <option value="">Select a reason</option>
-              <option value="spam">Spam</option>
-              <option value="harassment">Harassment</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
-          <label>
-            Description:
-            <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
-          </label>
+          <label>Reason:</label>
+          <input type="text" value={reportReason} onChange={(e) => setReportReason(e.target.value)} />
+          <br />
+          <label>Description:</label>
+          <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
+          <br />
           <button type="submit">Submit Report</button>
           <button type="button" onClick={handleCancelReport}>
             Cancel
           </button>
-          {reportError && <p style={{ color: 'red' }}>{reportError}</p>}
-          {reportSuccess && <p style={{ color: 'green' }}>{reportSuccess}</p>}
         </form>
+        {reportError && <p style={{ color: 'red' }}>{reportError}</p>}
+        {reportSuccess && <p style={{ color: 'green' }}>{reportSuccess}</p>}
       </Modal>
     </div>
   );

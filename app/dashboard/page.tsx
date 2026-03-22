@@ -79,63 +79,46 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
+          const machineLearningModel = await fetch('/api/machine-learning-model', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               userId: user.id,
-              learningStyle: user.learningStyle,
-              knowledgeLevel: user.knowledgeLevel,
+              progress: user.progress,
               goals: user.goals,
-              topics: user.topics,
+              learningStyle: user.learningStyle,
+              userFeedback: userFeedback,
             }),
           });
-          const personalizedPlanData = await personalizedPlanResponse.json();
+          const personalizedPlanData = await machineLearningModel.json();
           setPersonalizedPlan(personalizedPlanData);
+
+          const getLearningPlanRecommendations = async () => {
+            const response = await fetch('/api/learning-plan-recommendations', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                progress: user.progress,
+                goals: user.goals,
+                learningStyle: user.learningStyle,
+                personalizedPlan: personalizedPlanData,
+              }),
+            });
+            const recommendationsData = await response.json();
+            setLearningPlanRecommendations(recommendationsData);
+          };
+          await getLearningPlanRecommendations();
         };
-        developPersonalizedPlan();
+        await developPersonalizedPlan();
       };
       getRecommendedPlan();
     }
-  }, [user]);
-
-  const handleCustomization = async () => {
-    setIsCustomizingPlan(true);
-    const customizedPlanResponse = await fetch('/api/customized-plan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        learningStyle: customizationOptions.learningStyle,
-        knowledgeLevel: customizationOptions.knowledgeLevel,
-        goals: customizationOptions.goals,
-        topics: customizationOptions.topics,
-      }),
-    });
-    const customizedPlanData = await customizedPlanResponse.json();
-    setCustomizedPlan(customizedPlanData);
-    setIsCustomizingPlan(false);
-  };
-
-  const handlePlanRecommendation = async () => {
-    const planRecommendationResponse = await fetch('/api/plan-recommendation', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        algorithm: planRecommendationEngine.algorithm,
-        parameters: planRecommendationEngine.parameters,
-      }),
-    });
-    const planRecommendationData = await planRecommendationResponse.json();
-    setLearningPlanRecommendations(planRecommendationData);
-  };
+  }, [user, userFeedback]);
 
   return (
     <DashboardLayout>
@@ -159,16 +142,6 @@ export default function DashboardPage() {
                 link={personalizedPlan.link}
               />
             )}
-            <h2>Customized Plan</h2>
-            {customizedPlan && (
-              <StudyPlanCard
-                name={customizedPlan.name}
-                description={customizedPlan.description}
-                link={customizedPlan.link}
-              />
-            )}
-            <button onClick={handleCustomization}>Customize Plan</button>
-            <button onClick={handlePlanRecommendation}>Get Plan Recommendations</button>
             <h2>Learning Plan Recommendations</h2>
             {learningPlanRecommendations.map((recommendation) => (
               <StudyPlanCard
@@ -180,24 +153,12 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
-        <h2>Study Plan Options</h2>
-        {studyPlanOptions.map((option) => (
-          <StudyPlanCard
-            key={option.name}
-            name={option.name}
-            description={option.description}
-            link={option.link}
-          />
-        ))}
-        <h2>Progress</h2>
         <ProgressCard
           completedLessons={userProgress.completedLessons}
           totalLessons={userProgress.totalLessons}
           progressPercentage={userProgress.progressPercentage}
         />
-        <h2>Community</h2>
         <CommunityCard />
-        <h2>Resources</h2>
         <ResourceCard />
       </div>
     </DashboardLayout>
