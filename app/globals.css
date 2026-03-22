@@ -128,44 +128,13 @@
   input, textarea, select {
     @apply bg-gray-200 dark:bg-gray-700;
     @apply border-gray-400 dark:border-gray-600;
-    @apply rounded;
+    @apply text-gray-900 dark:text-gray-100;
     @apply py-2 px-3;
+    @apply rounded;
     @apply transition duration-200;
     @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
     font-size: 1rem;
     margin: 0.5rem;
-    @apply text-gray-900 dark:text-gray-100;
-    role: textbox;
-    aria-label: "Input field to enter data, such as a username, password, or search query";
-  }
-
-  input[type="checkbox"], input[type="radio"] {
-    @apply mr-2;
-    @apply accent-blue-800 dark:accent-blue-700;
-  }
-
-  label {
-    @apply text-gray-900 dark:text-gray-100;
-    font-size: 1rem;
-    margin: 0.5rem;
-    @apply block;
-  }
-
-  table {
-    @apply border-collapse;
-    @apply w-full;
-    @apply table-auto;
-  }
-
-  th, td {
-    @apply border;
-    @apply p-2;
-    @apply text-gray-900 dark:text-gray-100;
-  }
-
-  th {
-    @apply bg-gray-200 dark:bg-gray-700;
-    @apply font-bold;
   }
 
   img {
@@ -173,77 +142,20 @@
     @apply h-auto;
     @apply mx-auto;
     @apply my-4;
-    @apply rounded;
-    @apply shadow-md;
     role: img;
-    aria-label: "Image providing visual context or illustration, such as a diagram, graph, or screenshot";
+    aria-label: "Image providing visual context or illustration, such as a diagram, chart, or infographic";
   }
 
-  @media (max-width: 768px) {
-    body {
-      font-size: 16px;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-      font-size: 1.8rem;
-    }
-
-    h1 {
-      font-size: 2.2rem;
-    }
-
-    h2 {
-      font-size: 2rem;
-    }
-
-    h3 {
-      font-size: 1.7rem;
-    }
-
-    h4 {
-      font-size: 1.5rem;
-    }
-
-    h5 {
-      font-size: 1.3rem;
-    }
-
-    h6 {
-      font-size: 1.1rem;
-    }
+  img[alt=""] {
+    aria-label: "Image without description, please provide a descriptive alt text";
   }
 
-  @media (max-width: 480px) {
-    body {
-      font-size: 14px;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-      font-size: 1.6rem;
-    }
-
-    h1 {
-      font-size: 2rem;
-    }
-
-    h2 {
-      font-size: 1.8rem;
-    }
-
-    h3 {
-      font-size: 1.5rem;
-    }
-
-    h4 {
-      font-size: 1.3rem;
-    }
-
-    h5 {
-      font-size: 1.1rem;
-    }
-
-    h6 {
-      font-size: 1rem;
-    }
+  .sr-only {
+    @apply absolute;
+    @apply w-0;
+    @apply h-0;
+    @apply overflow-hidden;
+    @apply p-0;
+    @apply m-0;
   }
 }

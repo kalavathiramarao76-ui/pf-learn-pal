@@ -79,23 +79,18 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const mlModel = await fetch('/api/ml-model', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              progress: user.progress,
-              goals: user.goals,
-              learningStyle: user.learningStyle,
-              userFeedback: userFeedback,
-            }),
-          });
-          const mlData = await mlModel.json();
+          const machineLearningModel = await import('../../models/personalizedLearningModel');
+          const model = machineLearningModel.default;
+          const userInput = {
+            userId: user.id,
+            progress: user.progress,
+            goals: user.goals,
+            learningStyle: user.learningStyle,
+          };
+          const prediction = await model.predict(userInput);
           const personalizedPlan = {
-            plan: mlData.plan,
-            confidence: mlData.confidence,
+            plan: prediction.plan,
+            confidence: prediction.confidence,
           };
           setPersonalizedPlan(personalizedPlan);
         };
@@ -121,36 +116,24 @@ export default function DashboardPage() {
       };
       getRecommendedPlan();
     }
-  }, [user, userFeedback]);
+  }, [user]);
 
   const handleCustomizePlan = async () => {
-    const customizedPlanResponse = await fetch('/api/customized-plan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        customizationOptions: customizationOptions,
-      }),
-    });
-    const customizedPlanData = await customizedPlanResponse.json();
-    setCustomizedPlan(customizedPlanData);
-  };
-
-  const handleUserFeedback = async (feedback) => {
-    const response = await fetch('/api/user-feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        feedback: feedback,
-      }),
-    });
-    const data = await response.json();
-    setUserFeedback(data);
+    const machineLearningModel = await import('../../models/customizedLearningModel');
+    const model = machineLearningModel.default;
+    const userInput = {
+      userId: user.id,
+      learningStyle: customizationOptions.learningStyle,
+      knowledgeLevel: customizationOptions.knowledgeLevel,
+      goals: customizationOptions.goals,
+      topics: customizationOptions.topics,
+    };
+    const prediction = await model.predict(userInput);
+    const customizedPlan = {
+      plan: prediction.plan,
+      confidence: prediction.confidence,
+    };
+    setCustomizedPlan(customizedPlan);
   };
 
   return (
@@ -183,12 +166,10 @@ export default function DashboardPage() {
         <div>
           <h2>Customized Plan</h2>
           <p>{customizedPlan.plan}</p>
+          <p>Confidence: {customizedPlan.confidence}</p>
         </div>
       )}
       <button onClick={handleCustomizePlan}>Customize Plan</button>
-      <button onClick={() => handleUserFeedback({ rating: 5, comment: 'Great plan!' })}>
-        Provide Feedback
-      </button>
     </DashboardLayout>
   );
 }
