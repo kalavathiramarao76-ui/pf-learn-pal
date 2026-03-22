@@ -79,7 +79,7 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const machineLearningModel = await fetch('/api/machine-learning-model', {
+          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -92,92 +92,90 @@ export default function DashboardPage() {
               userFeedback: userFeedback,
             }),
           });
-          const personalizedPlanData = await machineLearningModel.json();
+          const personalizedPlanData = await personalizedPlanResponse.json();
           setPersonalizedPlan(personalizedPlanData);
-
-          const getLearningPlanRecommendations = async () => {
-            const response = await fetch('/api/learning-plan-recommendations', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                progress: user.progress,
-                goals: user.goals,
-                learningStyle: user.learningStyle,
-                personalizedPlan: personalizedPlanData,
-              }),
-            });
-            const recommendationsData = await response.json();
-            setLearningPlanRecommendations(recommendationsData);
-          };
-          await getLearningPlanRecommendations();
         };
-        await developPersonalizedPlan();
+
+        developPersonalizedPlan();
       };
+
       getRecommendedPlan();
     }
   }, [user, userFeedback]);
 
-  const handleUserFeedback = async (feedback) => {
-    const updatedUserFeedback = { ...userFeedback, ratings: [...userFeedback.ratings, feedback.rating], comments: [...userFeedback.comments, feedback.comment] };
-    setUserFeedback(updatedUserFeedback);
-    const response = await fetch('/api/update-user-feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        feedback: updatedUserFeedback,
-      }),
-    });
-    const data = await response.json();
-    console.log(data);
+  const handleUserFeedback = (feedback) => {
+    setUserFeedback((prevFeedback) => ({ ...prevFeedback, ratings: [...prevFeedback.ratings, feedback.rating], comments: [...prevFeedback.comments, feedback.comment] }));
+  };
+
+  const handleCustomizationOptions = (options) => {
+    setCustomizationOptions(options);
+  };
+
+  const handlePlanRecommendationEngine = (engine) => {
+    setPlanRecommendationEngine(engine);
   };
 
   return (
     <DashboardLayout>
       <div className="container">
         <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && <StudyPlanCard plan={personalizedPlan} />}
-            <h2>Learning Plan Recommendations</h2>
-            {learningPlanRecommendations.map((recommendation) => (
-              <StudyPlanCard key={recommendation.id} plan={recommendation} />
-            ))}
-            <h2>Progress</h2>
-            <ProgressCard progress={userProgress} />
-            <h2>Community</h2>
-            <CommunityCard />
-            <h2>Resources</h2>
-            <ResourceCard />
-            <h2>Provide Feedback</h2>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const feedback = {
-                rating: e.target.rating.value,
-                comment: e.target.comment.value,
-              };
-              handleUserFeedback(feedback);
-            }}>
-              <label>
-                Rating:
-                <input type="number" name="rating" />
-              </label>
-              <label>
-                Comment:
-                <textarea name="comment" />
-              </label>
-              <button type="submit">Submit Feedback</button>
-            </form>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+              link={recommendedPlan ? recommendedPlan.link : '#'}
+            />
           </div>
-        )}
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Plan"
+              description={personalizedPlan ? personalizedPlan.description : 'No plan generated'}
+              link={personalizedPlan ? personalizedPlan.link : '#'}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="User Progress"
+              progress={userProgress.progressPercentage}
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <CommunityCard title="Community" description="Join our community to connect with other learners" link="/community" />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard title="Resources" description="Access additional resources to support your learning" link="/resources" />
+          </div>
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Provide Feedback</h5>
+                <form>
+                  <div className="form-group">
+                    <label>Rating</label>
+                    <input type="number" className="form-control" placeholder="Enter rating (1-5)" />
+                  </div>
+                  <div className="form-group">
+                    <label>Comment</label>
+                    <textarea className="form-control" placeholder="Enter comment" />
+                  </div>
+                  <button type="submit" className="btn btn-primary" onClick={(e) => {
+                    e.preventDefault();
+                    const rating = parseInt(document.querySelector('input[type="number"]').value, 10);
+                    const comment = document.querySelector('textarea').value;
+                    handleUserFeedback({ rating, comment });
+                  }}>
+                    Submit
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

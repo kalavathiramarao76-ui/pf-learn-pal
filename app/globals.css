@@ -150,87 +150,83 @@
     aria-checked: false;
   }
 
-  @media (max-width: 768px) {
-    body {
-      font-size: 16px;
-    }
-
-    h1 {
-      font-size: 2rem;
-    }
-
-    h2 {
-      font-size: 1.8rem;
-    }
-
-    h3 {
-      font-size: 1.5rem;
-    }
-
-    h4 {
-      font-size: 1.3rem;
-    }
-
-    h5 {
-      font-size: 1.2rem;
-    }
-
-    h6 {
-      font-size: 1.1rem;
-    }
-
-    button {
-      @apply py-2 px-4;
-      font-size: 1rem;
-      margin: 0.5rem;
-    }
-
-    input, textarea, select {
-      @apply py-2 px-4;
-      font-size: 1rem;
-      margin: 0.5rem;
-    }
+  input[type="checkbox"]:checked, input[type="radio"]:checked {
+    aria-checked: true;
   }
 
-  @media (max-width: 480px) {
-    body {
-      font-size: 14px;
-    }
+  ul, ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    role: list;
+  }
 
-    h1 {
-      font-size: 1.8rem;
-    }
+  li {
+    role: listitem;
+  }
 
-    h2 {
-      font-size: 1.5rem;
-    }
+  table {
+    @apply border-collapse;
+    @apply w-full;
+    role: table;
+    aria-label: "Table of data";
+  }
 
-    h3 {
-      font-size: 1.3rem;
-    }
+  th, td {
+    @apply border;
+    @apply p-2;
+    role: cell;
+  }
 
-    h4 {
-      font-size: 1.2rem;
-    }
+  th {
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply text-gray-900 dark:text-gray-100;
+    role: columnheader;
+  }
 
-    h5 {
-      font-size: 1.1rem;
-    }
+  td {
+    @apply bg-gray-100 dark:bg-gray-800;
+    @apply text-gray-900 dark:text-gray-100;
+  }
 
-    h6 {
-      font-size: 1rem;
-    }
+  figure {
+    margin: 0;
+    role: figure;
+    aria-label: "Figure with image and caption";
+  }
 
-    button {
-      @apply py-1 px-3;
-      font-size: 0.9rem;
-      margin: 0.3rem;
-    }
+  figcaption {
+    @apply text-sm;
+    @apply text-gray-600 dark:text-gray-400;
+    role: presentation;
+  }
 
-    input, textarea, select {
-      @apply py-1 px-3;
-      font-size: 0.9rem;
-      margin: 0.3rem;
-    }
+  img {
+    @apply w-full;
+    @apply h-auto;
+    role: img;
+    aria-label: "Image";
+  }
+
+  label {
+    @apply text-gray-900 dark:text-gray-100;
+    @apply font-bold;
+    @apply mb-2;
+    role: label;
+  }
+
+  fieldset {
+    @apply border;
+    @apply p-2;
+    @apply rounded;
+    role: group;
+    aria-label: "Group of form fields";
+  }
+
+  legend {
+    @apply text-gray-900 dark:text-gray-100;
+    @apply font-bold;
+    @apply mb-2;
+    role: presentation;
   }
 }
