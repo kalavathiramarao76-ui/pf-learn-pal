@@ -150,33 +150,67 @@
     aria-checked: false;
   }
 
-  img {
-    @apply max-w-full;
-    @apply h-auto;
-    @apply mx-auto;
-    @apply my-5;
-    aria-label: "Image for illustration purposes";
+  @media (max-width: 768px) {
+    body {
+      font-size: 16px;
+    }
+    h1 {
+      font-size: 2rem;
+    }
+    h2 {
+      font-size: 1.8rem;
+    }
+    h3 {
+      font-size: 1.6rem;
+    }
+    h4 {
+      font-size: 1.4rem;
+    }
+    h5 {
+      font-size: 1.2rem;
+    }
+    h6 {
+      font-size: 1rem;
+    }
+    button {
+      @apply py-2 px-4;
+      font-size: 1rem;
+    }
+    input, textarea, select {
+      @apply py-2 px-4;
+      font-size: 1rem;
+    }
   }
 
-  .image-description {
-    @apply text-gray-600 dark:text-gray-400;
-    @apply text-sm;
-    @apply italic;
-    @apply mt-2;
-  }
-
-  .visual-hierarchy {
-    @apply flex;
-    @apply flex-col;
-    @apply items-center;
-    @apply justify-center;
-  }
-
-  .visual-hierarchy > * {
-    @apply mb-4;
-  }
-
-  .visual-hierarchy > *:last-child {
-    @apply mb-0;
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px;
+    }
+    h1 {
+      font-size: 1.8rem;
+    }
+    h2 {
+      font-size: 1.6rem;
+    }
+    h3 {
+      font-size: 1.4rem;
+    }
+    h4 {
+      font-size: 1.2rem;
+    }
+    h5 {
+      font-size: 1rem;
+    }
+    h6 {
+      font-size: 0.8rem;
+    }
+    button {
+      @apply py-1 px-3;
+      font-size: 0.9rem;
+    }
+    input, textarea, select {
+      @apply py-1 px-3;
+      font-size: 0.9rem;
+    }
   }
 }

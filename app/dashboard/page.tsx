@@ -79,50 +79,49 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const userProgressData = {
-            completedLessons: userProgress.completedLessons,
-            totalLessons: userProgress.totalLessons,
-            progressPercentage: userProgress.progressPercentage,
-          };
+          const tf = await import('@tensorflow/tfjs');
+          const model = tf.sequential();
+          model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [5] }));
+          model.add(tf.layers.dense({ units: 5, activation: 'softmax' }));
+          model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
 
-          const userGoals = user.goals;
-          const userLearningStyle = user.learningStyle;
+          const trainingData = [
+            { input: [1, 0, 0, 0, 0], output: [1, 0, 0, 0, 0] },
+            { input: [0, 1, 0, 0, 0], output: [0, 1, 0, 0, 0] },
+            { input: [0, 0, 1, 0, 0], output: [0, 0, 1, 0, 0] },
+            { input: [0, 0, 0, 1, 0], output: [0, 0, 0, 1, 0] },
+            { input: [0, 0, 0, 0, 1], output: [0, 0, 0, 0, 1] },
+          ];
 
-          const planRecommendationEngineData = {
-            algorithm: planRecommendationEngine.algorithm,
-            parameters: planRecommendationEngine.parameters,
-          };
+          const inputs = trainingData.map((data) => data.input);
+          const outputs = trainingData.map((data) => data.output);
 
-          const recommendedPlanData = {
-            learningStyle: recommendedPlanEngine.learningStyle,
-            knowledgeLevel: recommendedPlanEngine.knowledgeLevel,
-            goals: recommendedPlanEngine.goals,
-            recommendedPlan: recommendedPlanEngine.recommendedPlan,
-          };
+          const xs = tf.tensor2d(inputs, [inputs.length, 5]);
+          const ys = tf.tensor2d(outputs, [outputs.length, 5]);
 
-          const personalizedPlanData = {
-            userProgress: userProgressData,
-            userGoals: userGoals,
-            userLearningStyle: userLearningStyle,
-            planRecommendationEngine: planRecommendationEngineData,
-            recommendedPlan: recommendedPlanData,
-          };
+          await model.fit(xs, ys, { epochs: 100 });
 
-          const response = await fetch('/api/personalized-plan', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(personalizedPlanData),
-          });
-          const personalizedPlanResponse = await response.json();
-          setPersonalizedPlan(personalizedPlanResponse);
+          const userInput = tf.tensor2d([[
+            user.learningStyle === 'visual' ? 1 : 0,
+            user.learningStyle === 'auditory' ? 1 : 0,
+            user.learningStyle === 'kinesthetic' ? 1 : 0,
+            user.knowledgeLevel === 'beginner' ? 1 : 0,
+            user.knowledgeLevel === 'advanced' ? 1 : 0,
+          ]], [1, 5]);
+
+          const prediction = model.predict(userInput);
+          const predictedPlan = await prediction.array();
+          const recommendedPlanIndex = predictedPlan[0].indexOf(Math.max(...predictedPlan[0]));
+          const recommendedPlanName = studyPlanOptions[recommendedPlanIndex].name;
+          setPersonalizedPlan(recommendedPlanName);
         };
+
         developPersonalizedPlan();
       };
+
       getRecommendedPlan();
     }
-  }, [user, userProgress, planRecommendationEngine, recommendedPlanEngine]);
+  }, [user]);
 
   return (
     <DashboardLayout>
@@ -130,46 +129,29 @@ export default function DashboardPage() {
         <div className="row">
           <div className="col-md-4">
             <StudyPlanCard
-              title="Recommended Study Plan"
-              description="Based on your progress, goals, and learning style"
+              title="Recommended Plan"
               plan={recommendedPlan}
+              personalizedPlan={personalizedPlan}
+              customizedPlan={customizedPlan}
             />
           </div>
           <div className="col-md-4">
             <ProgressCard
-              title="Your Progress"
-              description="Track your progress and stay motivated"
+              title="Progress"
               progress={userProgress}
             />
           </div>
           <div className="col-md-4">
             <CommunityCard
-              title="Join the Community"
-              description="Connect with other learners and get support"
+              title="Community"
             />
           </div>
         </div>
         <div className="row">
           <div className="col-md-4">
             <ResourceCard
-              title="Personalized Learning Plan"
-              description="Get a customized learning plan based on your needs"
-              plan={personalizedPlan}
+              title="Resources"
             />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Customized Study Plan"
-              description="Create a study plan that fits your schedule and goals"
-              plan={customizedPlan}
-            />
-          </div>
-          <div className="col-md-4">
-            <Link href="/study-plans">
-              <a>
-                <button className="btn btn-primary">Explore Study Plans</button>
-              </a>
-            </Link>
           </div>
         </div>
       </div>
