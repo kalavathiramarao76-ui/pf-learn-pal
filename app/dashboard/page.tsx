@@ -86,41 +86,22 @@ export default function DashboardPage() {
             },
             body: JSON.stringify({
               userId: user.id,
-              progress: user.progress,
-              goals: user.goals,
               learningStyle: user.learningStyle,
               knowledgeLevel: user.knowledgeLevel,
+              goals: user.goals,
+              topics: user.topics,
             }),
           });
           const personalizedPlanData = await personalizedPlanResponse.json();
           setPersonalizedPlan(personalizedPlanData);
-
-          const getLearningPlanRecommendations = async () => {
-            const learningPlanRecommendationsResponse = await fetch('/api/learning-plan-recommendations', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                progress: user.progress,
-                goals: user.goals,
-                learningStyle: user.learningStyle,
-                knowledgeLevel: user.knowledgeLevel,
-              }),
-            });
-            const learningPlanRecommendationsData = await learningPlanRecommendationsResponse.json();
-            setLearningPlanRecommendations(learningPlanRecommendationsData);
-          };
-          await getLearningPlanRecommendations();
         };
-        await developPersonalizedPlan();
+        developPersonalizedPlan();
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const handleCustomizePlan = async () => {
+  const handleCustomization = async () => {
     setIsCustomizingPlan(true);
     const customizedPlanResponse = await fetch('/api/customized-plan', {
       method: 'POST',
@@ -140,122 +121,85 @@ export default function DashboardPage() {
     setIsCustomizingPlan(false);
   };
 
+  const handlePlanRecommendation = async () => {
+    const planRecommendationResponse = await fetch('/api/plan-recommendation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        algorithm: planRecommendationEngine.algorithm,
+        parameters: planRecommendationEngine.parameters,
+      }),
+    });
+    const planRecommendationData = await planRecommendationResponse.json();
+    setLearningPlanRecommendations(planRecommendationData);
+  };
+
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      {user && (
-        <div>
-          <h2>Recommended Plan</h2>
-          {recommendedPlan && (
-            <StudyPlanCard
-              name={recommendedPlan.name}
-              description={recommendedPlan.description}
-              link={recommendedPlan.link}
-            />
-          )}
-          <h2>Personalized Plan</h2>
-          {personalizedPlan && (
-            <StudyPlanCard
-              name={personalizedPlan.name}
-              description={personalizedPlan.description}
-              link={personalizedPlan.link}
-            />
-          )}
-          <h2>Customized Plan</h2>
-          {customizedPlan && (
-            <StudyPlanCard
-              name={customizedPlan.name}
-              description={customizedPlan.description}
-              link={customizedPlan.link}
-            />
-          )}
-          <h2>Learning Plan Recommendations</h2>
-          {learningPlanRecommendations.map((recommendation) => (
-            <StudyPlanCard
-              key={recommendation.id}
-              name={recommendation.name}
-              description={recommendation.description}
-              link={recommendation.link}
-            />
-          ))}
-          <h2>Progress</h2>
-          <ProgressCard
-            completedLessons={userProgress.completedLessons}
-            totalLessons={userProgress.totalLessons}
-            progressPercentage={userProgress.progressPercentage}
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard
+                name={recommendedPlan.name}
+                description={recommendedPlan.description}
+                link={recommendedPlan.link}
+              />
+            )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard
+                name={personalizedPlan.name}
+                description={personalizedPlan.description}
+                link={personalizedPlan.link}
+              />
+            )}
+            <h2>Customized Plan</h2>
+            {customizedPlan && (
+              <StudyPlanCard
+                name={customizedPlan.name}
+                description={customizedPlan.description}
+                link={customizedPlan.link}
+              />
+            )}
+            <button onClick={handleCustomization}>Customize Plan</button>
+            <button onClick={handlePlanRecommendation}>Get Plan Recommendations</button>
+            <h2>Learning Plan Recommendations</h2>
+            {learningPlanRecommendations.map((recommendation) => (
+              <StudyPlanCard
+                key={recommendation.id}
+                name={recommendation.name}
+                description={recommendation.description}
+                link={recommendation.link}
+              />
+            ))}
+          </div>
+        )}
+        <h2>Study Plan Options</h2>
+        {studyPlanOptions.map((option) => (
+          <StudyPlanCard
+            key={option.name}
+            name={option.name}
+            description={option.description}
+            link={option.link}
           />
-          <h2>Community</h2>
-          <CommunityCard />
-          <h2>Resources</h2>
-          <ResourceCard />
-          <button onClick={handleCustomizePlan}>Customize Plan</button>
-          {isCustomizingPlan && (
-            <div>
-              <h2>Customization Options</h2>
-              <label>
-                Learning Style:
-                <select
-                  value={customizationOptions.learningStyle}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      learningStyle: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">Select a learning style</option>
-                  <option value="visual">Visual</option>
-                  <option value="auditory">Auditory</option>
-                  <option value="kinesthetic">Kinesthetic</option>
-                </select>
-              </label>
-              <label>
-                Knowledge Level:
-                <select
-                  value={customizationOptions.knowledgeLevel}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      knowledgeLevel: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">Select a knowledge level</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-              </label>
-              <label>
-                Goals:
-                <input
-                  type="text"
-                  value={customizationOptions.goals}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      goals: e.target.value,
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Topics:
-                <input
-                  type="text"
-                  value={customizationOptions.topics.join(', ')}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      topics: e.target.value.split(', '),
-                    })
-                  }
-                />
-              </label>
-            </div>
-          )}
-        </div>
-      )}
+        ))}
+        <h2>Progress</h2>
+        <ProgressCard
+          completedLessons={userProgress.completedLessons}
+          totalLessons={userProgress.totalLessons}
+          progressPercentage={userProgress.progressPercentage}
+        />
+        <h2>Community</h2>
+        <CommunityCard />
+        <h2>Resources</h2>
+        <ResourceCard />
+      </div>
     </DashboardLayout>
   );
 }
