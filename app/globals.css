@@ -128,6 +128,7 @@
   input, textarea, select {
     @apply bg-gray-200 dark:bg-gray-700;
     @apply border-gray-400 dark:border-gray-600;
+    @apply text-gray-900 dark:text-gray-100;
   }
 
   img {
@@ -135,22 +136,42 @@
     @apply h-auto;
     @apply mx-auto;
     @apply my-4;
+    border: 1px solid #ddd;
+    @apply rounded;
+    @apply shadow-sm;
+    aria-label: "Image providing visual context or illustration, such as a diagram, chart, or infographic";
     role: img;
-    aria-label: "Image providing visual context or illustration, such as a diagram, chart, or infographic, with a descriptive text";
   }
 
-  figure {
-    @apply mx-auto;
-    @apply my-4;
-    role: figure;
-    aria-label: "Figure containing an image, diagram, or other visual content, with a caption providing a brief description";
+  img[alt] {
+    aria-label: attr(alt);
   }
 
-  figcaption {
+  .image-description {
     @apply text-gray-600 dark:text-gray-400;
     @apply text-sm;
     @apply mt-2;
-    role: figcaption;
-    aria-label: "Caption for the figure, providing a brief description of the visual content";
+  }
+
+  .high-contrast {
+    @apply bg-gray-200 dark:bg-gray-700;
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .high-contrast a {
+    @apply text-blue-800 dark:text-blue-400;
+  }
+
+  .high-contrast a:hover {
+    @apply text-blue-900 dark:text-blue-600;
+  }
+
+  .high-contrast button {
+    @apply bg-blue-800 dark:bg-blue-700;
+    @apply text-white;
+  }
+
+  .high-contrast button:hover {
+    @apply bg-blue-900 dark:bg-blue-800;
   }
 }

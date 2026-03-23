@@ -78,18 +78,20 @@ export default function CommunityPage() {
         setPosts([...posts, newPost]);
         setValue('communityPosts', JSON.stringify([...posts, newPost]));
         setEditorValue('');
+        setCharacterCount(0);
         setSuccess('Post created successfully');
       }
     }
   };
 
-  const handlePostEdit = (post: any) => {
+  const handleEditPost = (post: any) => {
     setEditingPost(post);
     setEditorValue(post.text);
+    setCharacterCount(post.text.length);
     setIsEditing(true);
   };
 
-  const handlePostReport = (post: any) => {
+  const handleReportPost = (post: any) => {
     setReportingPost(post);
     setIsReporting(true);
     setModalIsOpen(true);
@@ -101,6 +103,8 @@ export default function CommunityPage() {
       setIsReportingLoading(true);
       // Report post logic here
       setReportingPost(null);
+      setReportReason('');
+      setReportDescription('');
       setIsReporting(false);
       setModalIsOpen(false);
       setSuccess('Post reported successfully');
@@ -110,65 +114,48 @@ export default function CommunityPage() {
     }
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const filteredPosts = posts.filter((post) => post.text.toLowerCase().includes(searchQuery.toLowerCase()));
-
   return (
-    <div className="community-page">
+    <div>
       <h1>Community Page</h1>
-      <div className="post-form">
-        <ReactQuill
-          value={editorValue}
-          onChange={(value) => {
-            setEditorValue(value);
-            setCharacterCount(value.length);
-          }}
-          placeholder="Write a post..."
-          modules={{
-            toolbar: [
-              ['bold', 'italic', 'underline', 'strike'],
-              ['blockquote', 'code-block'],
-              [{ header: 1 }, { header: 2 }],
-              [{ list: 'ordered' }, { list: 'bullet' }],
-              [{ script: 'sub' }, { script: 'super' }],
-              [{ indent: '-1' }, { indent: '+1' }],
-              [{ direction: 'rtl' }],
-              [{ font: [] }],
-              [{ align: [] }],
-              ['clean'],
-            ],
-          }}
-        />
-        <p>Character count: {characterCount}/{characterLimit}</p>
-        {isEditing ? (
-          <button onClick={handlePostSubmit} disabled={isEditingLoading}>
-            {isEditingLoading ? 'Editing...' : 'Edit Post'}
-          </button>
-        ) : (
-          <button onClick={handlePostSubmit} disabled={isEditingLoading}>
-            {isEditingLoading ? 'Creating...' : 'Create Post'}
-          </button>
-        )}
-      </div>
-      <div className="post-list">
-        <input type="search" value={searchQuery} onChange={handleSearch} placeholder="Search posts..." />
-        {filteredPosts.map((post) => (
-          <div key={post.text} className="post">
+      {user && (
+        <div>
+          <ReactQuill
+            value={editorValue}
+            onChange={(value) => {
+              setEditorValue(value);
+              setCharacterCount(value.length);
+            }}
+            placeholder="Write a post..."
+          />
+          <p>Character count: {characterCount}/{characterLimit}</p>
+          {isEditing ? (
+            <button onClick={handlePostSubmit} disabled={isEditingLoading}>
+              {isEditingLoading ? 'Editing...' : 'Edit Post'}
+            </button>
+          ) : (
+            <button onClick={handlePostSubmit} disabled={isEditingLoading}>
+              {isEditingLoading ? 'Creating...' : 'Create Post'}
+            </button>
+          )}
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+          {success && <p style={{ color: 'green' }}>{success}</p>}
+        </div>
+      )}
+      <ul>
+        {posts.map((post, index) => (
+          <li key={index}>
             <p>{post.text}</p>
             <p>Author: {post.author}</p>
             <p>Timestamp: {post.timestamp}</p>
-            <button onClick={() => handlePostEdit(post)}>
+            <button onClick={() => handleEditPost(post)}>
               <FaEdit /> Edit
             </button>
-            <button onClick={() => handlePostReport(post)}>
+            <button onClick={() => handleReportPost(post)}>
               <FiFlag /> Report
             </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
@@ -190,12 +177,11 @@ export default function CommunityPage() {
             <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
           </label>
           <button type="submit" disabled={isReportingLoading}>
-            {isReportingLoading ? 'Reporting...' : 'Report Post'}
+            {isReportingLoading ? 'Reporting...' : 'Report'}
           </button>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
         </form>
       </Modal>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
     </div>
   );
 }

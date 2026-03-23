@@ -79,7 +79,7 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
+          const machineLearningModel = await fetch('/api/machine-learning-model', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -92,45 +92,49 @@ export default function DashboardPage() {
               userFeedback: userFeedback,
             }),
           });
-          const personalizedPlanData = await personalizedPlanResponse.json();
+          const personalizedPlanData = await machineLearningModel.json();
           setPersonalizedPlan(personalizedPlanData);
+
+          const getLearningPlanRecommendations = async () => {
+            const response = await fetch('/api/learning-plan-recommendations', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                progress: user.progress,
+                goals: user.goals,
+                learningStyle: user.learningStyle,
+                personalizedPlan: personalizedPlanData,
+              }),
+            });
+            const recommendationsData = await response.json();
+            setLearningPlanRecommendations(recommendationsData);
+          };
+          await getLearningPlanRecommendations();
         };
-
-        developPersonalizedPlan();
-
-        const getLearningPlanRecommendations = async () => {
-          const recommendationsResponse = await fetch('/api/learning-plan-recommendations', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              recommendedPlan: data,
-              userFeedback: userFeedback,
-            }),
-          });
-          const recommendationsData = await recommendationsResponse.json();
-          setLearningPlanRecommendations(recommendationsData);
-        };
-
-        getLearningPlanRecommendations();
+        await developPersonalizedPlan();
       };
-
       getRecommendedPlan();
     }
   }, [user, userFeedback]);
 
-  const handleUserFeedback = (feedback) => {
-    setUserFeedback((prevFeedback) => ({ ...prevFeedback, ratings: [...prevFeedback.ratings, feedback.rating], comments: [...prevFeedback.comments, feedback.comment] }));
-  };
-
-  const handleCustomizationOptions = (options) => {
-    setCustomizationOptions(options);
-  };
-
-  const handlePlanRecommendationEngine = (engine) => {
-    setPlanRecommendationEngine(engine);
+  const handleUserFeedback = async (feedback) => {
+    const updatedUserFeedback = { ...userFeedback, ratings: [...userFeedback.ratings, feedback.rating], comments: [...userFeedback.comments, feedback.comment] };
+    setUserFeedback(updatedUserFeedback);
+    const response = await fetch('/api/update-user-feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        feedback: updatedUserFeedback,
+      }),
+    });
+    const data = await response.json();
+    console.log(data);
   };
 
   return (
@@ -140,76 +144,88 @@ export default function DashboardPage() {
         {user && (
           <div>
             <h2>Recommended Plan</h2>
-            {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
+            {recommendedPlan && (
+              <StudyPlanCard plan={recommendedPlan} />
+            )}
             <h2>Personalized Plan</h2>
-            {personalizedPlan && <StudyPlanCard plan={personalizedPlan} />}
+            {personalizedPlan && (
+              <StudyPlanCard plan={personalizedPlan} />
+            )}
             <h2>Learning Plan Recommendations</h2>
             {learningPlanRecommendations.map((recommendation) => (
               <StudyPlanCard key={recommendation.id} plan={recommendation} />
             ))}
-            <h2>Customization Options</h2>
+            <h2>Customize Your Plan</h2>
+            <button onClick={() => setIsCustomizingPlan(true)}>Customize</button>
+            {isCustomizingPlan && (
+              <div>
+                <h3>Customization Options</h3>
+                <form>
+                  <label>Learning Style:</label>
+                  <select value={customizationOptions.learningStyle} onChange={(e) => setCustomizationOptions({ ...customizationOptions, learningStyle: e.target.value })}>
+                    <option value="">Select a learning style</option>
+                    <option value="visual">Visual</option>
+                    <option value="auditory">Auditory</option>
+                    <option value="kinesthetic">Kinesthetic</option>
+                  </select>
+                  <label>Knowledge Level:</label>
+                  <select value={customizationOptions.knowledgeLevel} onChange={(e) => setCustomizationOptions({ ...customizationOptions, knowledgeLevel: e.target.value })}>
+                    <option value="">Select a knowledge level</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                  <label>Goals:</label>
+                  <input type="text" value={customizationOptions.goals} onChange={(e) => setCustomizationOptions({ ...customizationOptions, goals: e.target.value })} />
+                  <label>Topics:</label>
+                  <input type="text" value={customizationOptions.topics.join(', ')} onChange={(e) => setCustomizationOptions({ ...customizationOptions, topics: e.target.value.split(', ') })} />
+                  <button onClick={async () => {
+                    const response = await fetch('/api/customize-plan', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        userId: user.id,
+                        customizationOptions: customizationOptions,
+                      }),
+                    });
+                    const data = await response.json();
+                    setCustomizedPlan(data);
+                    setIsCustomizingPlan(false);
+                  }}>Save Changes</button>
+                </form>
+              </div>
+            )}
+            <h2>Progress</h2>
+            <ProgressCard progress={userProgress} />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
+            <h2>Provide Feedback</h2>
             <form>
-              <label>
-                Learning Style:
-                <select value={customizationOptions.learningStyle} onChange={(e) => handleCustomizationOptions({ ...customizationOptions, learningStyle: e.target.value })}>
-                  <option value="">Select a learning style</option>
-                  <option value="visual">Visual</option>
-                  <option value="auditory">Auditory</option>
-                  <option value="kinesthetic">Kinesthetic</option>
-                </select>
-              </label>
-              <label>
-                Knowledge Level:
-                <select value={customizationOptions.knowledgeLevel} onChange={(e) => handleCustomizationOptions({ ...customizationOptions, knowledgeLevel: e.target.value })}>
-                  <option value="">Select a knowledge level</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-              </label>
-              <label>
-                Goals:
-                <input type="text" value={customizationOptions.goals} onChange={(e) => handleCustomizationOptions({ ...customizationOptions, goals: e.target.value })} />
-              </label>
-              <label>
-                Topics:
-                <input type="text" value={customizationOptions.topics.join(', ')} onChange={(e) => handleCustomizationOptions({ ...customizationOptions, topics: e.target.value.split(', ') })} />
-              </label>
-            </form>
-            <h2>Plan Recommendation Engine</h2>
-            <form>
-              <label>
-                Algorithm:
-                <select value={planRecommendationEngine.algorithm} onChange={(e) => handlePlanRecommendationEngine({ ...planRecommendationEngine, algorithm: e.target.value })}>
-                  <option value="collaborativeFiltering">Collaborative Filtering</option>
-                  <option value="contentBasedFiltering">Content-Based Filtering</option>
-                </select>
-              </label>
-              <label>
-                Number of Recommendations:
-                <input type="number" value={planRecommendationEngine.parameters.numRecommendations} onChange={(e) => handlePlanRecommendationEngine({ ...planRecommendationEngine, parameters: { ...planRecommendationEngine.parameters, numRecommendations: parseInt(e.target.value) } })} />
-              </label>
-              <label>
-                Similarity Threshold:
-                <input type="number" value={planRecommendationEngine.parameters.similarityThreshold} onChange={(e) => handlePlanRecommendationEngine({ ...planRecommendationEngine, parameters: { ...planRecommendationEngine.parameters, similarityThreshold: parseFloat(e.target.value) } })} />
-              </label>
-            </form>
-            <h2>User Feedback</h2>
-            <form>
-              <label>
-                Rating:
-                <input type="number" value={userFeedback.ratings[userFeedback.ratings.length - 1]} onChange={(e) => handleUserFeedback({ rating: parseInt(e.target.value), comment: '' })} />
-              </label>
-              <label>
-                Comment:
-                <input type="text" value={userFeedback.comments[userFeedback.comments.length - 1]} onChange={(e) => handleUserFeedback({ rating: 0, comment: e.target.value })} />
-              </label>
+              <label>Rating:</label>
+              <select>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+              <label>Comment:</label>
+              <textarea />
+              <button onClick={(e) => {
+                e.preventDefault();
+                const feedback = {
+                  rating: parseInt(e.target.parentNode.querySelector('select').value, 10),
+                  comment: e.target.parentNode.querySelector('textarea').value,
+                };
+                handleUserFeedback(feedback);
+              }}>Submit Feedback</button>
             </form>
           </div>
         )}
-        <ProgressCard progress={userProgress} />
-        <CommunityCard />
-        <ResourceCard />
       </div>
     </DashboardLayout>
   );
