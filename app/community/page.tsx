@@ -80,54 +80,79 @@ export default function CommunityPage() {
         setIsEditingLoading(true);
         const updatedPosts = posts.map((post) => {
           if (post.text === editingPost.text) {
-            return { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
+            return { text: editorValue, timestamp: new Date().toISOString() };
           }
           return post;
         });
         setPosts(updatedPosts);
         setValue('communityPosts', JSON.stringify(updatedPosts));
-        setIsEditing(false);
         setIsEditingLoading(false);
+        setIsEditing(false);
+        setSuccess('Post updated successfully');
       } else {
-        const newPost = { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
-        setPosts([newPost, ...posts]);
-        setValue('communityPosts', JSON.stringify([newPost, ...posts]));
+        const newPost = { text: editorValue, timestamp: new Date().toISOString() };
+        setPosts([...posts, newPost]);
+        setValue('communityPosts', JSON.stringify([...posts, newPost]));
         setEditorValue('');
         setCharacterCount(0);
+        setSuccess('Post created successfully');
       }
     }
   };
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortOrder(e.target.value);
+  const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (validateReport()) {
+      setIsReportingLoading(true);
+      const reportData = {
+        reason: reportReason,
+        description: reportDescription,
+        postId: reportingPost.text,
+      };
+      axios.post('/api/reports', reportData)
+        .then((response) => {
+          setIsReportingLoading(false);
+          setIsReporting(false);
+          setSuccess('Report submitted successfully');
+        })
+        .catch((error) => {
+          setIsReportingLoading(false);
+          setError('Error submitting report');
+        });
+    }
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilterBy(e.target.value);
+  const handleEditPost = (post: any) => {
+    setEditingPost(post);
+    setEditorValue(post.text);
+    setIsEditing(true);
   };
 
-  const handlePageChange = (pageNumber: number) => {
-    setPageNumber(pageNumber);
+  const handleReportPost = (post: any) => {
+    setReportingPost(post);
+    setIsReporting(true);
+    setModalIsOpen(true);
   };
 
-  const filteredPosts = posts.filter((post) => {
-    if (filterBy === 'all') return true;
-    if (filterBy === 'mine' && user) return post.author === user.username;
-    return false;
-  });
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingPost(null);
+    setEditorValue('');
+    setCharacterCount(0);
+  };
 
-  const sortedPosts = filteredPosts.sort((a, b) => {
-    if (sortOrder === 'newest') return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    if (sortOrder === 'oldest') return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
-    return 0;
-  });
-
-  const paginatedPosts = sortedPosts.slice((pageNumber - 1) * postsPerPage, pageNumber * postsPerPage);
+  const handleCancelReport = () => {
+    setIsReporting(false);
+    setReportingPost(null);
+    setReportReason('');
+    setReportDescription('');
+    setModalIsOpen(false);
+  };
 
   return (
     <div>
       <h1>Community Page</h1>
-      <form onSubmit={handlePostSubmit}>
+      <div>
         <ReactQuill
           value={editorValue}
           onChange={(value) => {
@@ -135,59 +160,79 @@ export default function CommunityPage() {
             setCharacterCount(value.length);
           }}
           placeholder="Write a post..."
+          modules={{
+            toolbar: [
+              ['bold', 'italic', 'underline', 'strike'],
+              ['blockquote', 'code-block'],
+              [{ header: 1 }, { header: 2 }],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              [{ script: 'sub' }, { script: 'super' }],
+              [{ indent: '-1' }, { indent: '+1' }],
+              [{ direction: 'rtl' }],
+              [{ font: [] }],
+              [{ align: [] }],
+              ['clean'],
+            ],
+          }}
         />
-        <button type="submit">Post</button>
-      </form>
-      <div>
-        <select value={sortOrder} onChange={handleSortChange}>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-        </select>
-        <select value={filterBy} onChange={handleFilterChange}>
-          <option value="all">All</option>
-          <option value="mine">Mine</option>
-        </select>
+        <p>Character count: {characterCount}/200</p>
+        {isEditing ? (
+          <button onClick={handlePostSubmit}>Update Post</button>
+        ) : (
+          <button onClick={handlePostSubmit}>Create Post</button>
+        )}
+        {isEditing && (
+          <button onClick={handleCancelEdit}>Cancel Edit</button>
+        )}
       </div>
       <div>
-        {paginatedPosts.map((post, index) => (
-          <div key={index}>
+        {posts.map((post) => (
+          <div key={post.text}>
             <p>{post.text}</p>
-            <p>Author: {post.author}</p>
-            <p>Timestamp: {post.timestamp}</p>
+            <p>Posted at: {post.timestamp}</p>
+            <button onClick={() => handleEditPost(post)}>
+              <FaEdit /> Edit
+            </button>
+            <button onClick={() => handleReportPost(post)}>
+              <FiFlag /> Report
+            </button>
           </div>
         ))}
       </div>
-      <div>
-        {Array(Math.ceil(sortedPosts.length / postsPerPage))
-          .fill(null)
-          .map((_, index) => (
-            <button key={index} onClick={() => handlePageChange(index + 1)}>
-              {index + 1}
-            </button>
-          ))}
-      </div>
       <Modal
         isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
-        contentLabel="Example Modal"
+        onRequestClose={handleCancelReport}
+        contentLabel="Report Post"
       >
         <h2>Report Post</h2>
-        <form>
+        <form onSubmit={handleReportSubmit}>
           <label>
             Reason:
-            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+            <select
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+            >
               <option value="">Select a reason</option>
               <option value="spam">Spam</option>
-              <option value="inappropriate">Inappropriate</option>
+              <option value="harassment">Harassment</option>
+              <option value="other">Other</option>
             </select>
           </label>
           <label>
             Description:
-            <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
+            <textarea
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+            />
           </label>
-          <button type="submit">Report</button>
+          <button type="submit">Submit Report</button>
+          <button type="button" onClick={handleCancelReport}>
+            Cancel
+          </button>
         </form>
       </Modal>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {success && <p style={{ color: 'green' }}>{success}</p>}
     </div>
   );
 }

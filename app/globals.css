@@ -131,34 +131,29 @@
     background-color: var(--button-hover-color);
   }
 
-  input, textarea, select {
-    background-color: #f7f7f7;
-    border: 1px solid #ddd;
-    padding: 0.5rem;
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem auto;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
   }
 
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: var(--dark-background-color);
-      color: var(--dark-text-color);
-    }
-    h1, h2, h3, h4, h5, h6 {
-      color: var(--dark-text-color);
-    }
-    a {
-      color: #66d9ef;
-    }
-    a:hover {
-      color: #4db8ff;
-    }
-    button {
-      background-color: #4db8ff;
-    }
-    button:hover {
-      background-color: #66d9ef;
-    }
-    input, textarea, select {
-      background-color: #333;
-      border: 1px solid #444;
-    }
+  img[alt] {
+    aria-label: attr(alt);
   }
+
+  svg {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    fill: currentColor;
+    aria-hidden: true;
+  }
+
+  svg[aria-label] {
+    aria-hidden: false;
+  }
+}
