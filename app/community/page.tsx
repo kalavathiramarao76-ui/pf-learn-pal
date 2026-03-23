@@ -100,11 +100,11 @@ export default function CommunityPage() {
     if (validateReport()) {
       setIsReportingLoading(true);
       const reportData = {
-        postText: reportingPost.text,
         reason: reportReason,
         description: reportDescription,
+        postId: reportingPost?.text,
       };
-      axios.post('/api/report', reportData)
+      axios.post('/api/reports', reportData)
         .then((response) => {
           setSuccess('Report submitted successfully');
           setReportingPost(null);
@@ -121,7 +121,6 @@ export default function CommunityPage() {
   const handleEditPost = (post: any) => {
     setEditingPost(post);
     setEditorValue(post.text);
-    setCharacterCount(post.text.length);
     setIsEditing(true);
   };
 
@@ -151,41 +150,39 @@ export default function CommunityPage() {
       <h1>Community Page</h1>
       {user && (
         <div>
-          <h2>Post something:</h2>
-          <form onSubmit={handlePostSubmit}>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => {
-                setEditorValue(value);
-                setCharacterCount(value.length);
-              }}
-              placeholder="Write something..."
-            />
-            <p>Character count: {characterCount} / {characterLimit}</p>
-            <button type="submit" disabled={isEditingLoading}>
-              {editingPost ? 'Update Post' : 'Post'}
-            </button>
-            {editingPost && (
-              <button type="button" onClick={handleCancelEdit}>
-                Cancel
-              </button>
-            )}
-          </form>
+          <ReactQuill
+            value={editorValue}
+            onChange={(value) => {
+              setEditorValue(value);
+              setCharacterCount(value.length);
+            }}
+            placeholder="Write a post..."
+          />
+          <p>Character count: {characterCount}</p>
+          {isEditing ? (
+            <button onClick={handlePostSubmit}>Update Post</button>
+          ) : (
+            <button onClick={handlePostSubmit}>Create Post</button>
+          )}
+          {isEditingLoading && <p>Updating post...</p>}
         </div>
       )}
-      <h2>Posts:</h2>
       <ul>
         {posts.map((post, index) => (
           <li key={index}>
             <p>{post.text}</p>
             <p>Author: {post.author}</p>
             <p>Timestamp: {post.timestamp}</p>
-            <button onClick={() => handleEditPost(post)}>
-              <FaEdit /> Edit
-            </button>
-            <button onClick={() => handleReportPost(post)}>
-              <FiFlag /> Report
-            </button>
+            {user && (
+              <div>
+                <button onClick={() => handleEditPost(post)}>
+                  <FaEdit /> Edit
+                </button>
+                <button onClick={() => handleReportPost(post)}>
+                  <FiFlag /> Report
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -210,12 +207,8 @@ export default function CommunityPage() {
               Description:
               <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
             </label>
-            <button type="submit" disabled={isReportingLoading}>
-              Submit Report
-            </button>
-            <button type="button" onClick={handleCancelReport}>
-              Cancel
-            </button>
+            <button type="submit">Submit Report</button>
+            {isReportingLoading && <p>Submitting report...</p>}
           </form>
         </Modal>
       )}
