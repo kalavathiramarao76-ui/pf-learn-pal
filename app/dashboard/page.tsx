@@ -94,8 +94,8 @@ export default function DashboardPage() {
           const personalizedPlanData = await personalizedPlanResponse.json();
           setPersonalizedPlan(personalizedPlanData);
 
-          const getCustomizedPlanRecommendations = async () => {
-            const customizedPlanResponse = await fetch('/api/customized-plan-recommendations', {
+          const getLearningPlanRecommendations = async () => {
+            const recommendationsResponse = await fetch('/api/learning-plan-recommendations', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -105,132 +105,159 @@ export default function DashboardPage() {
                 progress: user.progress,
                 goals: user.goals,
                 learningStyle: user.learningStyle,
-                customizationOptions: customizationOptions,
               }),
             });
-            const customizedPlanData = await customizedPlanResponse.json();
-            setLearningPlanRecommendations(customizedPlanData);
+            const recommendationsData = await recommendationsResponse.json();
+            setLearningPlanRecommendations(recommendationsData);
           };
-          await getCustomizedPlanRecommendations();
+          await getLearningPlanRecommendations();
         };
         await developPersonalizedPlan();
       };
       getRecommendedPlan();
     }
-  }, [user, customizationOptions]);
+  }, [user]);
 
-  const handleCustomizationOptionsChange = (event) => {
-    const { name, value } = event.target;
-    setCustomizationOptions((prevCustomizationOptions) => ({
-      ...prevCustomizationOptions,
-      [name]: value,
-    }));
-  };
-
-  const handleTopicSelection = (topic) => {
-    setCustomizationOptions((prevCustomizationOptions) => ({
-      ...prevCustomizationOptions,
-      topics: [...prevCustomizationOptions.topics, topic],
-    }));
-  };
-
-  const handleTopicDeselection = (topic) => {
-    setCustomizationOptions((prevCustomizationOptions) => ({
-      ...prevCustomizationOptions,
-      topics: prevCustomizationOptions.topics.filter((t) => t !== topic),
-    }));
+  const handleCustomizePlan = async () => {
+    setIsCustomizingPlan(true);
+    const customizedPlanResponse = await fetch('/api/customized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        learningStyle: customizationOptions.learningStyle,
+        knowledgeLevel: customizationOptions.knowledgeLevel,
+        goals: customizationOptions.goals,
+        topics: customizationOptions.topics,
+      }),
+    });
+    const customizedPlanData = await customizedPlanResponse.json();
+    setCustomizedPlan(customizedPlanData);
+    setIsCustomizingPlan(false);
   };
 
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      {user && (
-        <div>
-          <h2>Recommended Plan</h2>
-          {recommendedPlan && (
-            <StudyPlanCard
-              name={recommendedPlan.name}
-              description={recommendedPlan.description}
-              link={recommendedPlan.link}
-            />
-          )}
-          <h2>Personalized Plan</h2>
-          {personalizedPlan && (
-            <StudyPlanCard
-              name={personalizedPlan.name}
-              description={personalizedPlan.description}
-              link={personalizedPlan.link}
-            />
-          )}
-          <h2>Customized Plan Recommendations</h2>
-          {learningPlanRecommendations.map((recommendation) => (
-            <StudyPlanCard
-              key={recommendation.id}
-              name={recommendation.name}
-              description={recommendation.description}
-              link={recommendation.link}
-            />
-          ))}
-          <h2>Customization Options</h2>
-          <form>
-            <label>
-              Learning Style:
-              <select
-                name="learningStyle"
-                value={customizationOptions.learningStyle}
-                onChange={handleCustomizationOptionsChange}
-              >
-                <option value="">Select a learning style</option>
-                <option value="visual">Visual</option>
-                <option value="auditory">Auditory</option>
-                <option value="kinesthetic">Kinesthetic</option>
-              </select>
-            </label>
-            <label>
-              Knowledge Level:
-              <select
-                name="knowledgeLevel"
-                value={customizationOptions.knowledgeLevel}
-                onChange={handleCustomizationOptionsChange}
-              >
-                <option value="">Select a knowledge level</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </label>
-            <label>
-              Goals:
-              <input
-                type="text"
-                name="goals"
-                value={customizationOptions.goals}
-                onChange={handleCustomizationOptionsChange}
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard
+                name={recommendedPlan.name}
+                description={recommendedPlan.description}
+                link={recommendedPlan.link}
               />
-            </label>
-            <label>
-              Topics:
-              <ul>
-                {customizationOptions.topics.map((topic) => (
-                  <li key={topic}>
-                    {topic}
-                    <button onClick={() => handleTopicDeselection(topic)}>Remove</button>
-                  </li>
-                ))}
-              </ul>
-              <input
-                type="text"
-                name="topic"
-                placeholder="Add a topic"
-                onChange={(event) => handleTopicSelection(event.target.value)}
+            )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard
+                name={personalizedPlan.name}
+                description={personalizedPlan.description}
+                link={personalizedPlan.link}
               />
-            </label>
-          </form>
-        </div>
-      )}
-      <ProgressCard progress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+            )}
+            <h2>Customized Plan</h2>
+            {customizedPlan && (
+              <StudyPlanCard
+                name={customizedPlan.name}
+                description={customizedPlan.description}
+                link={customizedPlan.link}
+              />
+            )}
+            <h2>Learning Plan Recommendations</h2>
+            {learningPlanRecommendations.map((recommendation) => (
+              <StudyPlanCard
+                key={recommendation.id}
+                name={recommendation.name}
+                description={recommendation.description}
+                link={recommendation.link}
+              />
+            ))}
+            <h2>Progress</h2>
+            <ProgressCard
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
+            <button onClick={handleCustomizePlan}>Customize Plan</button>
+            {isCustomizingPlan && (
+              <div>
+                <h2>Customization Options</h2>
+                <form>
+                  <label>
+                    Learning Style:
+                    <select
+                      value={customizationOptions.learningStyle}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          learningStyle: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select a learning style</option>
+                      <option value="visual">Visual</option>
+                      <option value="auditory">Auditory</option>
+                      <option value="kinesthetic">Kinesthetic</option>
+                    </select>
+                  </label>
+                  <label>
+                    Knowledge Level:
+                    <select
+                      value={customizationOptions.knowledgeLevel}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          knowledgeLevel: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select a knowledge level</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </label>
+                  <label>
+                    Goals:
+                    <input
+                      type="text"
+                      value={customizationOptions.goals}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          goals: e.target.value,
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Topics:
+                    <input
+                      type="text"
+                      value={customizationOptions.topics.join(', ')}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          topics: e.target.value.split(', '),
+                        })
+                      }
+                    />
+                  </label>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </DashboardLayout>
   );
 }

@@ -14,6 +14,12 @@
   --link-hover-color: #2c6f9e;
   --button-color: #3498db;
   --button-hover-color: #2c6f9e;
+  --high-contrast-text-color: #000;
+  --high-contrast-background-color: #fff;
+  --high-contrast-link-color: #00698f;
+  --high-contrast-link-hover-color: #004c6f;
+  --high-contrast-button-color: #00698f;
+  --high-contrast-button-hover-color: #004c6f;
 }
 
 @layer base {
@@ -131,29 +137,60 @@
     background-color: var(--button-hover-color);
   }
 
-  img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 1rem auto;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+  button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px #51a7e8;
   }
 
-  img[alt] {
-    aria-label: attr(alt);
+  a:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px #51a7e8;
   }
 
-  svg {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    vertical-align: middle;
-    fill: currentColor;
-    aria-hidden: true;
+  input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px #51a7e8;
   }
 
-  svg[aria-label] {
-    aria-hidden: false;
+  select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px #51a7e8;
+  }
+
+  textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px #51a7e8;
+  }
+
+  .high-contrast {
+    background-color: var(--high-contrast-background-color);
+    color: var(--high-contrast-text-color);
+  }
+
+  .high-contrast a {
+    color: var(--high-contrast-link-color);
+  }
+
+  .high-contrast a:hover {
+    color: var(--high-contrast-link-hover-color);
+  }
+
+  .high-contrast button {
+    background-color: var(--high-contrast-button-color);
+  }
+
+  .high-contrast button:hover {
+    background-color: var(--high-contrast-button-hover-color);
+  }
+}
+
+@media (prefers-high-contrast: more) {
+  :root {
+    --text-color: var(--high-contrast-text-color);
+    --background-color: var(--high-contrast-background-color);
+    --link-color: var(--high-contrast-link-color);
+    --link-hover-color: var(--high-contrast-link-hover-color);
+    --button-color: var(--high-contrast-button-color);
+    --button-hover-color: var(--high-contrast-button-hover-color);
   }
 }
