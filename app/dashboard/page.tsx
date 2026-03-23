@@ -78,95 +78,100 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
-        setLearningPlanRecommendations(data.learningPlanRecommendations);
+        setRecommendedPlan(data);
+        setLearningPlanRecommendations(data.recommendations);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
   const getPersonalizedPlanRecommendation = async () => {
-    if (user) {
-      const response = await fetch('/api/personalized-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          progress: userProgress,
-          goals: user.goals,
-          learningStyle: user.learningStyle,
-        }),
-      });
-      const data = await response.json();
-      setPersonalizedPlan(data.personalizedPlan);
-    }
+    const response = await fetch('/api/personalized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        progress: userProgress,
+        goals: user.goals,
+        learningStyle: user.learningStyle,
+      }),
+    });
+    const data = await response.json();
+    setPersonalizedPlan(data);
+  };
+
+  const handleGetPersonalizedPlan = () => {
+    getPersonalizedPlanRecommendation();
   };
 
   useEffect(() => {
     if (user) {
-      getPersonalizedPlanRecommendation();
+      const getUserProgress = async () => {
+        const response = await fetch('/api/user-progress', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        setUserProgress(data);
+      };
+      getUserProgress();
     }
-  }, [user, userProgress]);
-
-  const handleCustomizePlan = async () => {
-    if (user) {
-      const response = await fetch('/api/customize-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          learningStyle: customizationOptions.learningStyle,
-          knowledgeLevel: customizationOptions.knowledgeLevel,
-          goals: customizationOptions.goals,
-          topics: customizationOptions.topics,
-        }),
-      });
-      const data = await response.json();
-      setCustomizedPlan(data.customizedPlan);
-      setIsCustomizingPlan(false);
-    }
-  };
-
-  const handlePlanRecommendationEngine = async () => {
-    if (user) {
-      const response = await fetch('/api/plan-recommendation-engine', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          algorithm: planRecommendationEngine.algorithm,
-          parameters: planRecommendationEngine.parameters,
-        }),
-      });
-      const data = await response.json();
-      setLearningPlanRecommendations(data.learningPlanRecommendations);
-    }
-  };
+  }, [user]);
 
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan: {recommendedPlan}</h2>
-            <h2>Personalized Plan: {personalizedPlan}</h2>
-            <h2>Customized Plan: {customizedPlan}</h2>
-            <button onClick={handleCustomizePlan}>Customize Plan</button>
-            <button onClick={handlePlanRecommendationEngine}>Get Plan Recommendations</button>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description="Based on your progress and goals"
+              plan={recommendedPlan}
+              options={studyPlanOptions}
+              selectedPlan={selectedStudyPlan}
+              handleSelectPlan={(plan) => setSelectedStudyPlan(plan)}
+            />
           </div>
-        )}
-        <div className="cards">
-          <StudyPlanCard studyPlanOptions={studyPlanOptions} setSelectedStudyPlan={setSelectedStudyPlan} />
-          <ProgressCard userProgress={userProgress} />
-          <CommunityCard />
-          <ResourceCard />
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              progress={userProgress}
+              handleGetPersonalizedPlan={handleGetPersonalizedPlan}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard title="Join the Community" />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard title="Additional Resources" />
+          </div>
+          <div className="col-md-4">
+            {personalizedPlan && (
+              <StudyPlanCard
+                title="Personalized Plan"
+                description="Based on your progress, goals, and learning style"
+                plan={personalizedPlan}
+              />
+            )}
+          </div>
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Upcoming Lessons</h5>
+                <ul>
+                  {upcomingLessons.map((lesson) => (
+                    <li key={lesson.id}>{lesson.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>

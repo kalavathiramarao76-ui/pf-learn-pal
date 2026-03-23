@@ -5,6 +5,9 @@
 :root {
   --font-family: 'Inter', sans-serif;
   --font-size: 18px;
+  --font-size-small: 16px;
+  --font-size-large: 20px;
+  --font-size-extra-large: 24px;
   --line-height: 1.6;
   --text-color: #333;
   --background-color: #f7f7f7;
@@ -26,6 +29,12 @@
   --low-contrast-link-hover-color: #777;
   --low-contrast-button-color: #888;
   --low-contrast-button-hover-color: #777;
+  --very-high-contrast-text-color: #000;
+  --very-high-contrast-background-color: #fff;
+  --very-high-contrast-link-color: #000;
+  --very-high-contrast-link-hover-color: #000;
+  --very-high-contrast-button-color: #000;
+  --very-high-contrast-button-hover-color: #000;
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
 }
@@ -63,9 +72,38 @@
   }
 }
 
+@media (prefers-contrast: more) {
+  :root {
+    --text-color: var(--very-high-contrast-text-color);
+    --background-color: var(--very-high-contrast-background-color);
+    --link-color: var(--very-high-contrast-link-color);
+    --link-hover-color: var(--very-high-contrast-link-hover-color);
+    --button-color: var(--very-high-contrast-button-color);
+    --button-hover-color: var(--very-high-contrast-button-hover-color);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --transition-duration: 0s;
+  }
+}
+
+@media (prefers-font-size: small) {
+  :root {
+    --font-size: var(--font-size-small);
+  }
+}
+
+@media (prefers-font-size: large) {
+  :root {
+    --font-size: var(--font-size-large);
+  }
+}
+
+@media (prefers-font-size: extra-large) {
+  :root {
+    --font-size: var(--font-size-extra-large);
   }
 }
 
@@ -105,105 +143,6 @@
 
   nav {
     role: navigation;
-    aria-label: "Main navigation menu, providing links to key sections of the application, such as dashboard, courses, and settings";
-  }
-
-  section {
-    role: region;
-    aria-label: "Section of related content, including headings, paragraphs, and images, providing a clear structure for the page";
-  }
-
-  article {
-    role: article;
-    aria-label: "Independent piece of content, such as a blog post or news article, providing valuable information and insights";
-  }
-
-  aside {
-    role: complementary;
-    aria-label: "Supplementary content related to the main content, such as related links, tags, or author information";
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: bold;
-    color: var(--text-color);
-    line-height: var(--line-height);
-    margin-bottom: 1.5rem;
-  }
-
-  h1 {
-    font-size: 2.5rem;
-  }
-
-  h2 {
-    font-size: 2.2rem;
-  }
-
-  h3 {
-    font-size: 1.9rem;
-  }
-
-  h4 {
-    font-size: 1.7rem;
-  }
-
-  h5 {
-    font-size: 1.5rem;
-  }
-
-  h6 {
-    font-size: 1.3rem;
-  }
-
-  a {
-    color: var(--link-color);
-    text-decoration: none;
-  }
-
-  a:hover {
-    color: var(--link-hover-color);
-  }
-
-  button {
-    background-color: var(--button-color);
-    color: var(--text-color);
-    border: none;
-    padding: 0.5rem 1rem;
-    font-size: var(--font-size);
-    cursor: pointer;
-  }
-
-  button:hover {
-    background-color: var(--button-hover-color);
-  }
-
-  p {
-    font-size: var(--font-size);
-    line-height: var(--line-height);
-    margin-bottom: 1.5rem;
-  }
-
-  ul, ol {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  li {
-    font-size: var(--font-size);
-    line-height: var(--line-height);
-    margin-bottom: 0.5rem;
-  }
-
-  input, textarea, select {
-    font-size: var(--font-size);
-    line-height: var(--line-height);
-    padding: 0.5rem;
-    border: 1px solid var(--text-color);
-  }
-
-  input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--focus-color);
-    box-shadow: 0 0 0 0.2rem var(--focus-background-color);
+    aria-label: "Main navigation menu, providing access to various sections of the application";
   }
 }
