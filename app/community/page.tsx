@@ -91,15 +91,15 @@ export default function CommunityPage() {
         setIsEditing(false);
         setEditingPost(null);
       } else {
-        const newPost = {
-          id: Date.now(),
-          content: editorValue,
-          author: user,
-          createdAt: new Date(),
-        };
-        setPosts([newPost, ...posts]);
-        setEditorValue('');
-        setCharacterCount(0);
+        axios.post('/api/posts', { content: editorValue })
+          .then((response) => {
+            setPosts([response.data, ...posts]);
+            setEditorValue('');
+            setCharacterCount(0);
+          })
+          .catch((error) => {
+            setError(error.message);
+          });
       }
     }
   };
@@ -108,42 +108,51 @@ export default function CommunityPage() {
     e.preventDefault();
     if (validateReport()) {
       setIsReportingLoading(true);
-      // Report post logic here
-      setIsReportingLoading(false);
-      setIsReporting(false);
-      setReportingPost(null);
-      setReportReason('');
-      setReportDescription('');
+      axios.post('/api/reports', { postId: reportingPost.id, reason: reportReason, description: reportDescription })
+        .then((response) => {
+          setIsReportingLoading(false);
+          setIsReporting(false);
+          setReportingPost(null);
+          setReportReason('');
+          setReportDescription('');
+        })
+        .catch((error) => {
+          setError(error.message);
+        });
     }
   };
 
-  const handleLoadMorePosts = async () => {
+  const loadMorePosts = () => {
     if (hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      const response = await axios.get('/api/posts', {
+      axios.get('/api/posts', {
         params: {
-          pageNumber: pageNumber + 1,
-          postsPerPage,
-          sortOrder,
-          filterBy,
-          searchQuery,
+          page: pageNumber + 1,
+          limit: postsPerPage,
+          sort: sortOrder,
+          filter: filterBy,
         },
-      });
-      const newPosts = response.data;
-      if (newPosts.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
-      setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
-      setLoadingMorePosts(false);
+      })
+        .then((response) => {
+          if (response.data.length < postsPerPage) {
+            setHasMorePosts(false);
+          }
+          setPosts([...posts, ...response.data]);
+          setPageNumber(pageNumber + 1);
+          setLoadingMorePosts(false);
+        })
+        .catch((error) => {
+          setError(error.message);
+          setLoadingMorePosts(false);
+        });
     }
   };
 
   const handleScroll = () => {
     const scrollPosition = window.scrollY + window.innerHeight;
     const documentHeight = document.body.offsetHeight;
-    if (scrollPosition >= documentHeight * 0.8 && hasMorePosts) {
-      handleLoadMorePosts();
+    if (scrollPosition >= documentHeight * 0.9 && hasMorePosts) {
+      loadMorePosts();
     }
   };
 
@@ -157,7 +166,7 @@ export default function CommunityPage() {
   return (
     <div>
       <h1>Community Page</h1>
-      <form onSubmit={handlePostSubmit}>
+      <div>
         <ReactQuill
           value={editorValue}
           onChange={(value) => {
@@ -167,91 +176,90 @@ export default function CommunityPage() {
           placeholder="Write a post..."
           modules={{
             toolbar: [
-              ['bold', 'italic', 'underline', 'strike'],
-              ['blockquote', 'code-block'],
-              [{ header: 1 }, { header: 2 }],
-              [{ list: 'ordered' }, { list: 'bullet' }],
-              [{ script: 'sub' }, { script: 'super' }],
-              [{ indent: '-1' }, { indent: '+1' }],
-              [{ direction: 'rtl' }],
-              [{ font: [] }],
-              [{ align: [] }],
-              ['clean'],
+              ['bold', 'italic', 'underline'],
+              ['code-block'],
             ],
           }}
         />
         <p>Character count: {characterCount}</p>
-        <button type="submit">Post</button>
-      </form>
-      <ul>
+        <button onClick={handlePostSubmit}>Submit</button>
+      </div>
+      <div>
         {posts.map((post) => (
-          <li key={post.id}>
+          <div key={post.id}>
             <p>{post.content}</p>
-            <p>Author: {post.author}</p>
-            <p>Created at: {post.createdAt}</p>
-            <button onClick={() => setEditingPost(post)}>Edit</button>
-            <button onClick={() => setReportingPost(post)}>Report</button>
-          </li>
+            <button onClick={() => {
+              setEditingPost(post);
+              setIsEditing(true);
+            }}>
+              <FaEdit />
+            </button>
+            <button onClick={() => {
+              setReportingPost(post);
+              setIsReporting(true);
+            }}>
+              <FiFlag />
+            </button>
+          </div>
         ))}
-      </ul>
-      {loadingMorePosts && <p>Loading more posts...</p>}
-      {hasMorePosts && <button onClick={handleLoadMorePosts}>Load more posts</button>}
+      </div>
       {isEditing && (
         <Modal
           isOpen={modalIsOpen}
-          onRequestClose={() => setModalIsOpen(false)}
-          contentLabel="Edit post"
+          onRequestClose={() => {
+            setIsEditing(false);
+            setModalIsOpen(false);
+          }}
         >
-          <form onSubmit={handlePostSubmit}>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => {
-                setEditorValue(value);
-                setCharacterCount(value.length);
-              }}
-              placeholder="Write a post..."
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline', 'strike'],
-                  ['blockquote', 'code-block'],
-                  [{ header: 1 }, { header: 2 }],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  [{ script: 'sub' }, { script: 'super' }],
-                  [{ indent: '-1' }, { indent: '+1' }],
-                  [{ direction: 'rtl' }],
-                  [{ font: [] }],
-                  [{ align: [] }],
-                  ['clean'],
-                ],
-              }}
-            />
-            <p>Character count: {characterCount}</p>
-            <button type="submit">Save changes</button>
-          </form>
+          <h2>Edit Post</h2>
+          <ReactQuill
+            value={editorValue}
+            onChange={(value) => {
+              setEditorValue(value);
+              setCharacterCount(value.length);
+            }}
+            placeholder="Write a post..."
+            modules={{
+              toolbar: [
+                ['bold', 'italic', 'underline'],
+                ['code-block'],
+              ],
+            }}
+          />
+          <p>Character count: {characterCount}</p>
+          <button onClick={handlePostSubmit}>Submit</button>
         </Modal>
       )}
       {isReporting && (
         <Modal
           isOpen={modalIsOpen}
-          onRequestClose={() => setModalIsOpen(false)}
-          contentLabel="Report post"
+          onRequestClose={() => {
+            setIsReporting(false);
+            setModalIsOpen(false);
+          }}
         >
+          <h2>Report Post</h2>
           <form onSubmit={handleReportSubmit}>
-            <select
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-            >
-              <option value="">Select a reason</option>
-              <option value="spam">Spam</option>
-              <option value="harassment">Harassment</option>
-              <option value="other">Other</option>
-            </select>
-            <textarea
-              value={reportDescription}
-              onChange={(e) => setReportDescription(e.target.value)}
-              placeholder="Describe the issue"
-            />
-            <button type="submit">Report</button>
+            <label>
+              Reason:
+              <select
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+              >
+                <option value="">Select a reason</option>
+                <option value="spam">Spam</option>
+                <option value="harassment">Harassment</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              Description:
+              <textarea
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+              />
+            </label>
+            <button type="submit">Submit</button>
           </form>
         </Modal>
       )}
