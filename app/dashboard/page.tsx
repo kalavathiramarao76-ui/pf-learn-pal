@@ -79,107 +79,136 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const machineLearningModel = await trainMachineLearningModel(user);
-          const personalizedPlan = await generatePersonalizedPlan(machineLearningModel, user);
-          setPersonalizedPlan(personalizedPlan);
+          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              learningStyle: user.learningStyle,
+              knowledgeLevel: user.knowledgeLevel,
+              goals: user.goals,
+              progress: user.progress,
+            }),
+          });
+          const personalizedPlanData = await personalizedPlanResponse.json();
+          setPersonalizedPlan(personalizedPlanData);
+
+          const getLearningPlanRecommendations = async () => {
+            const recommendationsResponse = await fetch('/api/learning-plan-recommendations', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                learningStyle: user.learningStyle,
+                knowledgeLevel: user.knowledgeLevel,
+                goals: user.goals,
+                progress: user.progress,
+              }),
+            });
+            const recommendationsData = await recommendationsResponse.json();
+            setLearningPlanRecommendations(recommendationsData);
+          };
+          await getLearningPlanRecommendations();
         };
-
-        developPersonalizedPlan();
+        await developPersonalizedPlan();
       };
-
       getRecommendedPlan();
     }
   }, [user]);
 
-  const trainMachineLearningModel = async (user: any) => {
-    const model = {
-      type: 'neuralNetwork',
-      layers: [
-        {
-          type: 'input',
-          size: 10,
-        },
-        {
-          type: 'hidden',
-          size: 20,
-        },
-        {
-          type: 'output',
-          size: 10,
-        },
-      ],
-    };
-
-    const trainingData = await fetchTrainingData(user);
-    const trainedModel = await trainModel(model, trainingData);
-    return trainedModel;
-  };
-
-  const fetchTrainingData = async (user: any) => {
-    const response = await fetch('/api/training-data', {
+  const handleCustomizePlan = async () => {
+    const customizedPlanResponse = await fetch('/api/customized-plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId: user.id,
+        learningStyle: customizationOptions.learningStyle,
+        knowledgeLevel: customizationOptions.knowledgeLevel,
+        goals: customizationOptions.goals,
+        topics: customizationOptions.topics,
       }),
     });
-    const data = await response.json();
-    return data;
+    const customizedPlanData = await customizedPlanResponse.json();
+    setCustomizedPlan(customizedPlanData);
+    setIsCustomizingPlan(false);
   };
 
-  const trainModel = async (model: any, trainingData: any) => {
-    // Train the model using the training data
-    // This is a simplified example and actual implementation may vary
-    return model;
-  };
-
-  const generatePersonalizedPlan = async (machineLearningModel: any, user: any) => {
-    const input = {
-      userId: user.id,
-      progress: user.progress,
-      goals: user.goals,
-      learningStyle: user.learningStyle,
-    };
-
-    const output = await predict(machineLearningModel, input);
-    return output;
-  };
-
-  const predict = async (machineLearningModel: any, input: any) => {
-    // Use the trained model to make predictions
-    // This is a simplified example and actual implementation may vary
-    return {
-      plan: 'Personalized Plan',
-      description: 'This is a personalized plan based on your progress, goals, and learning style',
-    };
+  const handlePlanRecommendationEngine = async () => {
+    const planRecommendationResponse = await fetch('/api/plan-recommendation-engine', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        algorithm: planRecommendationEngine.algorithm,
+        parameters: planRecommendationEngine.parameters,
+        userId: user.id,
+      }),
+    });
+    const planRecommendationData = await planRecommendationResponse.json();
+    setLearningPlanRecommendations(planRecommendationData);
   };
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
-      />
-      <ProgressCard userProgress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
-      {recommendedPlan && (
-        <div>
-          <h2>Recommended Plan</h2>
-          <p>{recommendedPlan.name}</p>
-          <p>{recommendedPlan.description}</p>
-        </div>
-      )}
-      {personalizedPlan && (
-        <div>
-          <h2>Personalized Plan</h2>
-          <p>{personalizedPlan.plan}</p>
-          <p>{personalizedPlan.description}</p>
-        </div>
-      )}
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard
+                name={recommendedPlan.name}
+                description={recommendedPlan.description}
+                link={recommendedPlan.link}
+              />
+            )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard
+                name={personalizedPlan.name}
+                description={personalizedPlan.description}
+                link={personalizedPlan.link}
+              />
+            )}
+            <h2>Customized Plan</h2>
+            {customizedPlan && (
+              <StudyPlanCard
+                name={customizedPlan.name}
+                description={customizedPlan.description}
+                link={customizedPlan.link}
+              />
+            )}
+            <h2>Learning Plan Recommendations</h2>
+            {learningPlanRecommendations.map((recommendation) => (
+              <StudyPlanCard
+                key={recommendation.id}
+                name={recommendation.name}
+                description={recommendation.description}
+                link={recommendation.link}
+              />
+            ))}
+            <h2>Progress</h2>
+            <ProgressCard
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
+            <button onClick={handleCustomizePlan}>Customize Plan</button>
+            <button onClick={handlePlanRecommendationEngine}>Get Plan Recommendations</button>
+          </div>
+        )}
+      </div>
     </DashboardLayout>
   );
 }
