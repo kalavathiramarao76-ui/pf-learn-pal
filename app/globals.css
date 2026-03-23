@@ -128,13 +128,6 @@
   input, textarea, select {
     @apply bg-gray-200 dark:bg-gray-700;
     @apply border-gray-400 dark:border-gray-600;
-    @apply text-gray-900 dark:text-gray-100;
-    @apply py-2 px-3;
-    @apply rounded;
-    @apply transition duration-200;
-    @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
-    font-size: 1rem;
-    margin: 0.5rem;
   }
 
   img {
@@ -143,19 +136,21 @@
     @apply mx-auto;
     @apply my-4;
     role: img;
-    aria-label: "Image providing visual context or illustration, such as a diagram, chart, or infographic";
+    aria-label: "Image providing visual context or illustration, such as a diagram, chart, or infographic, with a descriptive text";
   }
 
-  img[alt=""] {
-    aria-label: "Image without description, please provide a descriptive alt text";
+  figure {
+    @apply mx-auto;
+    @apply my-4;
+    role: figure;
+    aria-label: "Figure containing an image, diagram, or other visual content, with a caption providing a brief description";
   }
 
-  .sr-only {
-    @apply absolute;
-    @apply w-0;
-    @apply h-0;
-    @apply overflow-hidden;
-    @apply p-0;
-    @apply m-0;
+  figcaption {
+    @apply text-gray-600 dark:text-gray-400;
+    @apply text-sm;
+    @apply mt-2;
+    role: figcaption;
+    aria-label: "Caption for the figure, providing a brief description of the visual content";
   }
 }
