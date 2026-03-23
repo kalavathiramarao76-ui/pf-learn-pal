@@ -22,6 +22,17 @@
   --high-contrast-button-hover-color: #004c6f;
 }
 
+@media (prefers-contrast: high) {
+  :root {
+    --text-color: var(--high-contrast-text-color);
+    --background-color: var(--high-contrast-background-color);
+    --link-color: var(--high-contrast-link-color);
+    --link-hover-color: var(--high-contrast-link-hover-color);
+    --button-color: var(--high-contrast-button-color);
+    --button-hover-color: var(--high-contrast-button-hover-color);
+  }
+}
+
 @layer base {
   @font-face {
     font-family: 'Inter';
@@ -128,55 +139,9 @@
     font-size: 1.1rem;
     margin: 1rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-    outline: none;
   }
 
   button:hover {
     background-color: var(--button-hover-color);
-  }
-
-  button:focus {
-    box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.2);
-  }
-
-  :root {
-    --high-contrast-text-color: #000;
-    --high-contrast-background-color: #fff;
-    --high-contrast-link-color: #00698f;
-    --high-contrast-link-hover-color: #004c6f;
-    --high-contrast-button-color: #00698f;
-    --high-contrast-button-hover-color: #004c6f;
-  }
-
-  .high-contrast {
-    background-color: var(--high-contrast-background-color);
-    color: var(--high-contrast-text-color);
-  }
-
-  .high-contrast a {
-    color: var(--high-contrast-link-color);
-  }
-
-  .high-contrast a:hover {
-    color: var(--high-contrast-link-hover-color);
-  }
-
-  .high-contrast button {
-    background-color: var(--high-contrast-button-color);
-    color: #fff;
-  }
-
-  .high-contrast button:hover {
-    background-color: var(--high-contrast-button-hover-color);
-  }
-}
-
-@layer components {
-  .focusable {
-    outline: none;
-  }
-
-  .focusable:focus {
-    box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.2);
   }
 }

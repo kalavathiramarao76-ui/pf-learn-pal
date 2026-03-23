@@ -79,21 +79,40 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const response = await fetch('/api/personalized-plan', {
+          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               userId: user.id,
+              progress: user.progress,
               goals: user.goals,
               learningStyle: user.learningStyle,
             }),
           });
-          const data = await response.json();
-          setPersonalizedPlan(data);
+          const personalizedPlanData = await personalizedPlanResponse.json();
+          setPersonalizedPlan(personalizedPlanData);
+
+          const getLearningPlanRecommendations = async () => {
+            const recommendationsResponse = await fetch('/api/learning-plan-recommendations', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                progress: user.progress,
+                goals: user.goals,
+                learningStyle: user.learningStyle,
+              }),
+            });
+            const recommendationsData = await recommendationsResponse.json();
+            setLearningPlanRecommendations(recommendationsData);
+          };
+          await getLearningPlanRecommendations();
         };
-        developPersonalizedPlan();
+        await developPersonalizedPlan();
       };
       getRecommendedPlan();
     }
@@ -101,7 +120,7 @@ export default function DashboardPage() {
 
   const handleCustomizePlan = async () => {
     setIsCustomizingPlan(true);
-    const response = await fetch('/api/customized-plan', {
+    const customizedPlanResponse = await fetch('/api/customized-plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,37 +133,9 @@ export default function DashboardPage() {
         topics: customizationOptions.topics,
       }),
     });
-    const data = await response.json();
-    setCustomizedPlan(data);
+    const customizedPlanData = await customizedPlanResponse.json();
+    setCustomizedPlan(customizedPlanData);
     setIsCustomizingPlan(false);
-  };
-
-  const handleLearningStyleChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      learningStyle: event.target.value,
-    });
-  };
-
-  const handleKnowledgeLevelChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      knowledgeLevel: event.target.value,
-    });
-  };
-
-  const handleGoalsChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      goals: event.target.value,
-    });
-  };
-
-  const handleTopicsChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      topics: event.target.value.split(','),
-    });
   };
 
   return (
@@ -169,39 +160,7 @@ export default function DashboardPage() {
                 link={personalizedPlan.link}
               />
             )}
-            <h2>Customize Your Plan</h2>
-            <form>
-              <label>
-                Learning Style:
-                <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
-                  <option value="">Select a learning style</option>
-                  <option value="visual">Visual</option>
-                  <option value="auditory">Auditory</option>
-                  <option value="kinesthetic">Kinesthetic</option>
-                </select>
-              </label>
-              <label>
-                Knowledge Level:
-                <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
-                  <option value="">Select a knowledge level</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-              </label>
-              <label>
-                Goals:
-                <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
-              </label>
-              <label>
-                Topics:
-                <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
-              </label>
-              <button type="button" onClick={handleCustomizePlan}>
-                Customize Plan
-              </button>
-            </form>
-            {isCustomizingPlan && <p>Customizing plan...</p>}
+            <h2>Customized Plan</h2>
             {customizedPlan && (
               <StudyPlanCard
                 name={customizedPlan.name}
@@ -209,11 +168,37 @@ export default function DashboardPage() {
                 link={customizedPlan.link}
               />
             )}
+            <h2>Learning Plan Recommendations</h2>
+            {learningPlanRecommendations.map((recommendation) => (
+              <StudyPlanCard
+                key={recommendation.id}
+                name={recommendation.name}
+                description={recommendation.description}
+                link={recommendation.link}
+              />
+            ))}
+            <h2>Study Plan Options</h2>
+            {studyPlanOptions.map((option) => (
+              <StudyPlanCard
+                key={option.name}
+                name={option.name}
+                description={option.description}
+                link={option.link}
+              />
+            ))}
+            <h2>Progress</h2>
+            <ProgressCard
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+            <h2>Community</h2>
+            <CommunityCard />
+            <h2>Resources</h2>
+            <ResourceCard />
+            <button onClick={handleCustomizePlan}>Customize Plan</button>
           </div>
         )}
-        <ProgressCard progress={userProgress} />
-        <CommunityCard />
-        <ResourceCard />
       </div>
     </DashboardLayout>
   );

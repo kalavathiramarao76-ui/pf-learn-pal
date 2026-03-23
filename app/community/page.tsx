@@ -87,8 +87,9 @@ export default function CommunityPage() {
           return post;
         });
         setPosts(updatedPosts);
-        setIsEditing(false);
         setIsEditingLoading(false);
+        setIsEditing(false);
+        setEditingPost(null);
       } else {
         const newPost = {
           id: Date.now(),
@@ -110,39 +111,38 @@ export default function CommunityPage() {
       // Report post logic here
       setIsReportingLoading(false);
       setIsReporting(false);
+      setReportingPost(null);
+      setReportReason('');
+      setReportDescription('');
     }
   };
 
-  const handleLoadMorePosts = () => {
+  const handleLoadMorePosts = async () => {
     if (hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      axios
-        .get('/api/posts', {
-          params: {
-            page: pageNumber + 1,
-            limit: postsPerPage,
-            sort: sortOrder,
-            filter: filterBy,
-          },
-        })
-        .then((response) => {
-          const newPosts = response.data;
-          setPosts([...posts, ...newPosts]);
-          setPageNumber(pageNumber + 1);
-          setHasMorePosts(newPosts.length === postsPerPage);
-          setLoadingMorePosts(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          setLoadingMorePosts(false);
-        });
+      const response = await axios.get('/api/posts', {
+        params: {
+          pageNumber: pageNumber + 1,
+          postsPerPage,
+          sortOrder,
+          filterBy,
+          searchQuery,
+        },
+      });
+      const newPosts = response.data;
+      if (newPosts.length < postsPerPage) {
+        setHasMorePosts(false);
+      }
+      setPosts([...posts, ...newPosts]);
+      setPageNumber(pageNumber + 1);
+      setLoadingMorePosts(false);
     }
   };
 
   const handleScroll = () => {
     const scrollPosition = window.scrollY + window.innerHeight;
     const documentHeight = document.body.offsetHeight;
-    if (scrollPosition >= documentHeight * 0.9 && hasMorePosts) {
+    if (scrollPosition >= documentHeight * 0.8 && hasMorePosts) {
       handleLoadMorePosts();
     }
   };
@@ -157,7 +157,7 @@ export default function CommunityPage() {
   return (
     <div>
       <h1>Community Page</h1>
-      <div>
+      <form onSubmit={handlePostSubmit}>
         <ReactQuill
           value={editorValue}
           onChange={(value) => {
@@ -165,63 +165,96 @@ export default function CommunityPage() {
             setCharacterCount(value.length);
           }}
           placeholder="Write a post..."
+          modules={{
+            toolbar: [
+              ['bold', 'italic', 'underline', 'strike'],
+              ['blockquote', 'code-block'],
+              [{ header: 1 }, { header: 2 }],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              [{ script: 'sub' }, { script: 'super' }],
+              [{ indent: '-1' }, { indent: '+1' }],
+              [{ direction: 'rtl' }],
+              [{ font: [] }],
+              [{ align: [] }],
+              ['clean'],
+            ],
+          }}
         />
-        <button onClick={handlePostSubmit}>Post</button>
-      </div>
-      <div>
+        <p>Character count: {characterCount}</p>
+        <button type="submit">Post</button>
+      </form>
+      <ul>
         {posts.map((post) => (
-          <div key={post.id}>
+          <li key={post.id}>
             <p>{post.content}</p>
             <p>Author: {post.author}</p>
-            <p>Created At: {post.createdAt}</p>
+            <p>Created at: {post.createdAt}</p>
             <button onClick={() => setEditingPost(post)}>Edit</button>
             <button onClick={() => setReportingPost(post)}>Report</button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
+      {loadingMorePosts && <p>Loading more posts...</p>}
+      {hasMorePosts && <button onClick={handleLoadMorePosts}>Load more posts</button>}
       {isEditing && (
         <Modal
-          isOpen={true}
-          onRequestClose={() => setIsEditing(false)}
+          isOpen={modalIsOpen}
+          onRequestClose={() => setModalIsOpen(false)}
+          contentLabel="Edit post"
         >
-          <h2>Edit Post</h2>
-          <ReactQuill
-            value={editorValue}
-            onChange={(value) => setEditorValue(value)}
-          />
-          <button onClick={handlePostSubmit}>Save Changes</button>
+          <form onSubmit={handlePostSubmit}>
+            <ReactQuill
+              value={editorValue}
+              onChange={(value) => {
+                setEditorValue(value);
+                setCharacterCount(value.length);
+              }}
+              placeholder="Write a post..."
+              modules={{
+                toolbar: [
+                  ['bold', 'italic', 'underline', 'strike'],
+                  ['blockquote', 'code-block'],
+                  [{ header: 1 }, { header: 2 }],
+                  [{ list: 'ordered' }, { list: 'bullet' }],
+                  [{ script: 'sub' }, { script: 'super' }],
+                  [{ indent: '-1' }, { indent: '+1' }],
+                  [{ direction: 'rtl' }],
+                  [{ font: [] }],
+                  [{ align: [] }],
+                  ['clean'],
+                ],
+              }}
+            />
+            <p>Character count: {characterCount}</p>
+            <button type="submit">Save changes</button>
+          </form>
         </Modal>
       )}
       {isReporting && (
         <Modal
-          isOpen={true}
-          onRequestClose={() => setIsReporting(false)}
+          isOpen={modalIsOpen}
+          onRequestClose={() => setModalIsOpen(false)}
+          contentLabel="Report post"
         >
-          <h2>Report Post</h2>
           <form onSubmit={handleReportSubmit}>
-            <label>
-              Reason:
-              <select
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-              >
-                <option value="">Select a reason</option>
-                <option value="spam">Spam</option>
-                <option value="inappropriate">Inappropriate</option>
-              </select>
-            </label>
-            <label>
-              Description:
-              <textarea
-                value={reportDescription}
-                onChange={(e) => setReportDescription(e.target.value)}
-              />
-            </label>
+            <select
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+            >
+              <option value="">Select a reason</option>
+              <option value="spam">Spam</option>
+              <option value="harassment">Harassment</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+              placeholder="Describe the issue"
+            />
             <button type="submit">Report</button>
           </form>
         </Modal>
       )}
-      {loadingMorePosts && <p>Loading more posts...</p>}
     </div>
   );
 }
