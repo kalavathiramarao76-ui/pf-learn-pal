@@ -128,9 +128,8 @@
     font-size: 1.1rem;
     margin: 1rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    aria-label: "Button to perform an action, such as submitting a form or navigating to a new page";
     role: button;
-    aria-label: "Button to perform a specific action, such as submitting a form, navigating to a new page, or toggling a setting";
-    aria-pressed: false;
   }
 
   button:hover {
@@ -139,58 +138,58 @@
 
   button:focus {
     outline: none;
-    box-shadow: 0 0 0 3px #51a7e8;
+    box-shadow: 0 0 0 0.2rem var(--button-color);
   }
 
-  a:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px #51a7e8;
+  input[type="text"], input[type="email"], input[type="password"] {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    font-size: 1.1rem;
+    margin: 1rem;
+    aria-label: "Input field to enter text, such as a username or password";
+    role: textbox;
   }
 
-  input:focus {
+  input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
     outline: none;
-    box-shadow: 0 0 0 3px #51a7e8;
+    box-shadow: 0 0 0 0.2rem var(--link-color);
+  }
+
+  label {
+    font-size: 1.1rem;
+    margin: 1rem;
+    aria-label: "Label for a form input, providing a description of the input field";
+    role: presentation;
+  }
+
+  select {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    font-size: 1.1rem;
+    margin: 1rem;
+    aria-label: "Select menu to choose an option, such as a course or a language";
+    role: listbox;
   }
 
   select:focus {
     outline: none;
-    box-shadow: 0 0 0 3px #51a7e8;
+    box-shadow: 0 0 0 0.2rem var(--link-color);
+  }
+
+  textarea {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    font-size: 1.1rem;
+    margin: 1rem;
+    aria-label: "Text area to enter a large amount of text, such as a course description or a feedback comment";
+    role: textbox;
   }
 
   textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 3px #51a7e8;
-  }
-
-  .high-contrast {
-    background-color: var(--high-contrast-background-color);
-    color: var(--high-contrast-text-color);
-  }
-
-  .high-contrast a {
-    color: var(--high-contrast-link-color);
-  }
-
-  .high-contrast a:hover {
-    color: var(--high-contrast-link-hover-color);
-  }
-
-  .high-contrast button {
-    background-color: var(--high-contrast-button-color);
-  }
-
-  .high-contrast button:hover {
-    background-color: var(--high-contrast-button-hover-color);
-  }
-}
-
-@media (prefers-high-contrast: more) {
-  :root {
-    --text-color: var(--high-contrast-text-color);
-    --background-color: var(--high-contrast-background-color);
-    --link-color: var(--high-contrast-link-color);
-    --link-hover-color: var(--high-contrast-link-hover-color);
-    --button-color: var(--high-contrast-button-color);
-    --button-hover-color: var(--high-contrast-button-hover-color);
+    box-shadow: 0 0 0 0.2rem var(--link-color);
   }
 }
