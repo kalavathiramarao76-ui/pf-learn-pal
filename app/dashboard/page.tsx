@@ -52,6 +52,8 @@ export default function DashboardPage() {
     ratings: [],
     comments: [],
   });
+  const [upcomingLessons, setUpcomingLessons] = useState([]);
+  const [reminders, setReminders] = useState([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -79,7 +81,7 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
+          const response = await fetch('/api/personalized-plan', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -91,154 +93,88 @@ export default function DashboardPage() {
               learningStyle: user.learningStyle,
             }),
           });
-          const personalizedPlanData = await personalizedPlanResponse.json();
-          setPersonalizedPlan(personalizedPlanData);
-
-          const getCustomizedPlan = async () => {
-            const customizedPlanResponse = await fetch('/api/customized-plan', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                progress: user.progress,
-                goals: user.goals,
-                learningStyle: user.learningStyle,
-                topics: customizationOptions.topics,
-              }),
-            });
-            const customizedPlanData = await customizedPlanResponse.json();
-            setCustomizedPlan(customizedPlanData);
-          };
-          getCustomizedPlan();
+          const data = await response.json();
+          setPersonalizedPlan(data);
         };
         developPersonalizedPlan();
       };
       getRecommendedPlan();
-    }
-  }, [user, customizationOptions.topics]);
 
-  const handleCustomization = async () => {
-    setIsCustomizingPlan(true);
-    const getCustomizedPlan = async () => {
-      const customizedPlanResponse = await fetch('/api/customized-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          progress: user.progress,
-          goals: user.goals,
-          learningStyle: user.learningStyle,
-          topics: customizationOptions.topics,
-        }),
-      });
-      const customizedPlanData = await customizedPlanResponse.json();
-      setCustomizedPlan(customizedPlanData);
-    };
-    getCustomizedPlan();
+      const getUpcomingLessons = async () => {
+        const response = await fetch('/api/upcoming-lessons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+          }),
+        });
+        const data = await response.json();
+        setUpcomingLessons(data);
+      };
+      getUpcomingLessons();
+    }
+  }, [user]);
+
+  const handleSetReminder = async (lessonId: string, reminderDate: string) => {
+    const response = await fetch('/api/set-reminder', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        lessonId: lessonId,
+        reminderDate: reminderDate,
+      }),
+    });
+    const data = await response.json();
+    setReminders([...reminders, data]);
   };
 
-  const handlePlanSelection = (plan) => {
-    setSelectedStudyPlan(plan);
+  const handleTrackProgress = async (lessonId: string, isCompleted: boolean) => {
+    const response = await fetch('/api/track-progress', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        lessonId: lessonId,
+        isCompleted: isCompleted,
+      }),
+    });
+    const data = await response.json();
+    setUserProgress(data);
   };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard plan={recommendedPlan} />
-            )}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && (
-              <StudyPlanCard plan={personalizedPlan} />
-            )}
-            <h2>Customized Plan</h2>
-            {customizedPlan && (
-              <StudyPlanCard plan={customizedPlan} />
-            )}
-            <button onClick={handleCustomization}>Customize Plan</button>
-            {isCustomizingPlan && (
-              <div>
-                <h2>Customization Options</h2>
-                <form>
-                  <label>Learning Style:</label>
-                  <select
-                    value={customizationOptions.learningStyle}
-                    onChange={(e) =>
-                      setCustomizationOptions({
-                        ...customizationOptions,
-                        learningStyle: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Select Learning Style</option>
-                    <option value="visual">Visual</option>
-                    <option value="auditory">Auditory</option>
-                    <option value="kinesthetic">Kinesthetic</option>
-                  </select>
-                  <br />
-                  <label>Knowledge Level:</label>
-                  <select
-                    value={customizationOptions.knowledgeLevel}
-                    onChange={(e) =>
-                      setCustomizationOptions({
-                        ...customizationOptions,
-                        knowledgeLevel: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Select Knowledge Level</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                  <br />
-                  <label>Goals:</label>
-                  <input
-                    type="text"
-                    value={customizationOptions.goals}
-                    onChange={(e) =>
-                      setCustomizationOptions({
-                        ...customizationOptions,
-                        goals: e.target.value,
-                      })
-                    }
-                  />
-                  <br />
-                  <label>Topics:</label>
-                  <input
-                    type="text"
-                    value={customizationOptions.topics.join(', ')}
-                    onChange={(e) =>
-                      setCustomizationOptions({
-                        ...customizationOptions,
-                        topics: e.target.value.split(', '),
-                      })
-                    }
-                  />
-                </form>
-              </div>
-            )}
-            <h2>Study Plan Options</h2>
-            {studyPlanOptions.map((plan) => (
-              <StudyPlanCard key={plan.name} plan={plan} onClick={() => handlePlanSelection(plan)} />
-            ))}
-            <h2>Progress</h2>
-            <ProgressCard progress={userProgress} />
-            <h2>Community</h2>
-            <CommunityCard />
-            <h2>Resources</h2>
-            <ResourceCard />
-          </div>
-        )}
-      </div>
+      <StudyPlanCard
+        studyPlanOptions={studyPlanOptions}
+        selectedStudyPlan={selectedStudyPlan}
+        setSelectedStudyPlan={setSelectedStudyPlan}
+      />
+      <ProgressCard
+        userProgress={userProgress}
+        handleTrackProgress={handleTrackProgress}
+      />
+      <CommunityCard />
+      <ResourceCard />
+      {upcomingLessons.map((lesson) => (
+        <div key={lesson.id}>
+          <h2>{lesson.name}</h2>
+          <p>{lesson.description}</p>
+          <button onClick={() => handleSetReminder(lesson.id, lesson.date)}>Set Reminder</button>
+        </div>
+      ))}
+      {reminders.map((reminder) => (
+        <div key={reminder.id}>
+          <h2>{reminder.lessonName}</h2>
+          <p>Reminder set for: {reminder.reminderDate}</p>
+        </div>
+      ))}
     </DashboardLayout>
   );
 }

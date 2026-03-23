@@ -91,15 +91,13 @@ export default function CommunityPage() {
         setIsEditing(false);
         setEditingPost(null);
       } else {
-        axios.post('/api/posts', { content: editorValue })
-          .then((response) => {
-            setPosts([response.data, ...posts]);
-            setEditorValue('');
-            setCharacterCount(0);
-          })
-          .catch((error) => {
-            setError(error.message);
-          });
+        const newPost = {
+          id: Date.now(),
+          content: editorValue,
+          user: user,
+        };
+        setPosts((prevPosts) => [newPost, ...prevPosts]);
+        setEditorValue('');
       }
     }
   };
@@ -108,43 +106,34 @@ export default function CommunityPage() {
     e.preventDefault();
     if (validateReport()) {
       setIsReportingLoading(true);
-      axios.post('/api/reports', { postId: reportingPost.id, reason: reportReason, description: reportDescription })
-        .then((response) => {
-          setIsReportingLoading(false);
-          setIsReporting(false);
-          setReportingPost(null);
-          setReportReason('');
-          setReportDescription('');
-        })
-        .catch((error) => {
-          setError(error.message);
-        });
+      // Report post logic here
+      setIsReportingLoading(false);
+      setIsReporting(false);
+      setReportingPost(null);
     }
   };
 
-  const loadMorePosts = () => {
+  const handleLoadMorePosts = async () => {
     if (hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      axios.get('/api/posts', {
-        params: {
-          page: pageNumber + 1,
-          limit: postsPerPage,
-          sort: sortOrder,
-          filter: filterBy,
-        },
-      })
-        .then((response) => {
-          if (response.data.length < postsPerPage) {
-            setHasMorePosts(false);
-          }
-          setPosts([...posts, ...response.data]);
-          setPageNumber(pageNumber + 1);
-          setLoadingMorePosts(false);
-        })
-        .catch((error) => {
-          setError(error.message);
-          setLoadingMorePosts(false);
+      try {
+        const response = await axios.get('/api/posts', {
+          params: {
+            pageNumber: pageNumber + 1,
+            postsPerPage: postsPerPage,
+          },
         });
+        const newPosts = response.data;
+        setPosts((prevPosts) => [...prevPosts, ...newPosts]);
+        setPageNumber((prevPageNumber) => prevPageNumber + 1);
+        if (newPosts.length < postsPerPage) {
+          setHasMorePosts(false);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingMorePosts(false);
+      }
     }
   };
 
@@ -152,7 +141,7 @@ export default function CommunityPage() {
     const scrollPosition = window.scrollY + window.innerHeight;
     const documentHeight = document.body.offsetHeight;
     if (scrollPosition >= documentHeight * 0.9 && hasMorePosts) {
-      loadMorePosts();
+      handleLoadMorePosts();
     }
   };
 
@@ -166,100 +155,63 @@ export default function CommunityPage() {
   return (
     <div>
       <h1>Community Page</h1>
-      <div>
+      <form onSubmit={handlePostSubmit}>
         <ReactQuill
           value={editorValue}
-          onChange={(value) => {
-            setEditorValue(value);
-            setCharacterCount(value.length);
-          }}
+          onChange={setEditorValue}
           placeholder="Write a post..."
-          modules={{
-            toolbar: [
-              ['bold', 'italic', 'underline'],
-              ['code-block'],
-            ],
-          }}
         />
-        <p>Character count: {characterCount}</p>
-        <button onClick={handlePostSubmit}>Submit</button>
-      </div>
-      <div>
+        <button type="submit">Post</button>
+      </form>
+      <ul>
         {posts.map((post) => (
-          <div key={post.id}>
+          <li key={post.id}>
             <p>{post.content}</p>
-            <button onClick={() => {
-              setEditingPost(post);
-              setIsEditing(true);
-            }}>
-              <FaEdit />
-            </button>
-            <button onClick={() => {
-              setReportingPost(post);
-              setIsReporting(true);
-            }}>
-              <FiFlag />
-            </button>
-          </div>
+            <button onClick={() => setEditingPost(post)}>Edit</button>
+            <button onClick={() => setReportingPost(post)}>Report</button>
+          </li>
         ))}
-      </div>
-      {isEditing && (
+      </ul>
+      {loadingMorePosts && <p>Loading more posts...</p>}
+      {hasMorePosts && <button onClick={handleLoadMorePosts}>Load more posts</button>}
+      {editingPost && (
         <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={() => {
-            setIsEditing(false);
-            setModalIsOpen(false);
-          }}
+          isOpen={true}
+          onRequestClose={() => setEditingPost(null)}
         >
-          <h2>Edit Post</h2>
-          <ReactQuill
-            value={editorValue}
-            onChange={(value) => {
-              setEditorValue(value);
-              setCharacterCount(value.length);
-            }}
-            placeholder="Write a post..."
-            modules={{
-              toolbar: [
-                ['bold', 'italic', 'underline'],
-                ['code-block'],
-              ],
-            }}
-          />
-          <p>Character count: {characterCount}</p>
-          <button onClick={handlePostSubmit}>Submit</button>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handlePostSubmit(e);
+          }}>
+            <ReactQuill
+              value={editorValue}
+              onChange={setEditorValue}
+              placeholder="Edit post..."
+            />
+            <button type="submit">Save changes</button>
+          </form>
         </Modal>
       )}
-      {isReporting && (
+      {reportingPost && (
         <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={() => {
-            setIsReporting(false);
-            setModalIsOpen(false);
-          }}
+          isOpen={true}
+          onRequestClose={() => setReportingPost(null)}
         >
-          <h2>Report Post</h2>
           <form onSubmit={handleReportSubmit}>
-            <label>
-              Reason:
-              <select
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-              >
-                <option value="">Select a reason</option>
-                <option value="spam">Spam</option>
-                <option value="harassment">Harassment</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-            <label>
-              Description:
-              <textarea
-                value={reportDescription}
-                onChange={(e) => setReportDescription(e.target.value)}
-              />
-            </label>
-            <button type="submit">Submit</button>
+            <select
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+            >
+              <option value="">Select a reason</option>
+              <option value="spam">Spam</option>
+              <option value="inappropriate">Inappropriate</option>
+            </select>
+            <textarea
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+              placeholder="Describe the issue..."
+            />
+            <button type="submit">Report post</button>
           </form>
         </Modal>
       )}
