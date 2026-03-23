@@ -31,6 +31,10 @@ export default function CommunityPage() {
   const [isEditingLoading, setIsEditingLoading] = useState(false);
   const [isReportingLoading, setIsReportingLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [filterBy, setFilterBy] = useState('all');
+  const [pageNumber, setPageNumber] = useState(1);
+  const [postsPerPage, setPostsPerPage] = useState(10);
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -82,138 +86,108 @@ export default function CommunityPage() {
         });
         setPosts(updatedPosts);
         setValue('communityPosts', JSON.stringify(updatedPosts));
-        setEditingPost(null);
         setIsEditing(false);
         setIsEditingLoading(false);
       } else {
         const newPost = { text: editorValue, timestamp: new Date().toISOString(), author: user?.username || 'Anonymous' };
-        setPosts([...posts, newPost]);
-        setValue('communityPosts', JSON.stringify([...posts, newPost]));
+        setPosts([newPost, ...posts]);
+        setValue('communityPosts', JSON.stringify([newPost, ...posts]));
         setEditorValue('');
         setCharacterCount(0);
       }
     }
   };
 
-  const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateReport()) {
-      setIsReportingLoading(true);
-      const reportData = {
-        reason: reportReason,
-        description: reportDescription,
-        postId: reportingPost?.text,
-      };
-      axios.post('/api/reports', reportData)
-        .then((response) => {
-          setSuccess('Report submitted successfully');
-          setReportingPost(null);
-          setIsReporting(false);
-          setIsReportingLoading(false);
-        })
-        .catch((error) => {
-          setError('Error submitting report');
-          setIsReportingLoading(false);
-        });
-    }
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOrder(e.target.value);
   };
 
-  const handleEditPost = (post: any) => {
-    setEditingPost(post);
-    setEditorValue(post.text);
-    setIsEditing(true);
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilterBy(e.target.value);
   };
 
-  const handleReportPost = (post: any) => {
-    setReportingPost(post);
-    setIsReporting(true);
-    setModalIsOpen(true);
+  const handlePageChange = (pageNumber: number) => {
+    setPageNumber(pageNumber);
   };
 
-  const handleCancelEdit = () => {
-    setEditingPost(null);
-    setIsEditing(false);
-    setEditorValue('');
-    setCharacterCount(0);
-  };
+  const filteredPosts = posts.filter((post) => {
+    if (filterBy === 'all') return true;
+    if (filterBy === 'mine' && user) return post.author === user.username;
+    return false;
+  });
 
-  const handleCancelReport = () => {
-    setReportingPost(null);
-    setIsReporting(false);
-    setReportReason('');
-    setReportDescription('');
-    setModalIsOpen(false);
-  };
+  const sortedPosts = filteredPosts.sort((a, b) => {
+    if (sortOrder === 'newest') return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    if (sortOrder === 'oldest') return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    return 0;
+  });
+
+  const paginatedPosts = sortedPosts.slice((pageNumber - 1) * postsPerPage, pageNumber * postsPerPage);
 
   return (
     <div>
       <h1>Community Page</h1>
-      {user && (
-        <div>
-          <ReactQuill
-            value={editorValue}
-            onChange={(value) => {
-              setEditorValue(value);
-              setCharacterCount(value.length);
-            }}
-            placeholder="Write a post..."
-          />
-          <p>Character count: {characterCount}</p>
-          {isEditing ? (
-            <button onClick={handlePostSubmit}>Update Post</button>
-          ) : (
-            <button onClick={handlePostSubmit}>Create Post</button>
-          )}
-          {isEditingLoading && <p>Updating post...</p>}
-        </div>
-      )}
-      <ul>
-        {posts.map((post, index) => (
-          <li key={index}>
+      <form onSubmit={handlePostSubmit}>
+        <ReactQuill
+          value={editorValue}
+          onChange={(value) => {
+            setEditorValue(value);
+            setCharacterCount(value.length);
+          }}
+          placeholder="Write a post..."
+        />
+        <button type="submit">Post</button>
+      </form>
+      <div>
+        <select value={sortOrder} onChange={handleSortChange}>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+        </select>
+        <select value={filterBy} onChange={handleFilterChange}>
+          <option value="all">All</option>
+          <option value="mine">Mine</option>
+        </select>
+      </div>
+      <div>
+        {paginatedPosts.map((post, index) => (
+          <div key={index}>
             <p>{post.text}</p>
             <p>Author: {post.author}</p>
             <p>Timestamp: {post.timestamp}</p>
-            {user && (
-              <div>
-                <button onClick={() => handleEditPost(post)}>
-                  <FaEdit /> Edit
-                </button>
-                <button onClick={() => handleReportPost(post)}>
-                  <FiFlag /> Report
-                </button>
-              </div>
-            )}
-          </li>
+          </div>
         ))}
-      </ul>
-      {isReporting && (
-        <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={handleCancelReport}
-          contentLabel="Report Post"
-        >
-          <h2>Report Post</h2>
-          <form onSubmit={handleReportSubmit}>
-            <label>
-              Reason:
-              <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
-                <option value="">Select a reason</option>
-                <option value="spam">Spam</option>
-                <option value="harassment">Harassment</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-            <label>
-              Description:
-              <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
-            </label>
-            <button type="submit">Submit Report</button>
-            {isReportingLoading && <p>Submitting report...</p>}
-          </form>
-        </Modal>
-      )}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
+      </div>
+      <div>
+        {Array(Math.ceil(sortedPosts.length / postsPerPage))
+          .fill(null)
+          .map((_, index) => (
+            <button key={index} onClick={() => handlePageChange(index + 1)}>
+              {index + 1}
+            </button>
+          ))}
+      </div>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        contentLabel="Example Modal"
+      >
+        <h2>Report Post</h2>
+        <form>
+          <label>
+            Reason:
+            <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+              <option value="">Select a reason</option>
+              <option value="spam">Spam</option>
+              <option value="inappropriate">Inappropriate</option>
+            </select>
+          </label>
+          <label>
+            Description:
+            <textarea value={reportDescription} onChange={(e) => setReportDescription(e.target.value)} />
+          </label>
+          <button type="submit">Report</button>
+        </form>
+      </Modal>
     </div>
   );
 }
