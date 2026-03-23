@@ -78,103 +78,97 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data);
-
-        const developPersonalizedPlan = async () => {
-          const response = await fetch('/api/personalized-plan', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              progress: user.progress,
-              goals: user.goals,
-              learningStyle: user.learningStyle,
-            }),
-          });
-          const data = await response.json();
-          setPersonalizedPlan(data);
-        };
-        developPersonalizedPlan();
+        setRecommendedPlan(data.recommendedPlan);
+        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
-
-      const getUpcomingLessons = async () => {
-        const response = await fetch('/api/upcoming-lessons', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-          }),
-        });
-        const data = await response.json();
-        setUpcomingLessons(data);
-      };
-      getUpcomingLessons();
     }
   }, [user]);
 
-  const handleSetReminder = async (lessonId: string, reminderDate: string) => {
-    const response = await fetch('/api/set-reminder', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        lessonId: lessonId,
-        reminderDate: reminderDate,
-      }),
-    });
-    const data = await response.json();
-    setReminders([...reminders, data]);
+  const getPersonalizedPlanRecommendation = async () => {
+    if (user) {
+      const response = await fetch('/api/personalized-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          progress: userProgress,
+          goals: user.goals,
+          learningStyle: user.learningStyle,
+        }),
+      });
+      const data = await response.json();
+      setPersonalizedPlan(data.personalizedPlan);
+    }
   };
 
-  const handleTrackProgress = async (lessonId: string, isCompleted: boolean) => {
-    const response = await fetch('/api/track-progress', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        lessonId: lessonId,
-        isCompleted: isCompleted,
-      }),
-    });
-    const data = await response.json();
-    setUserProgress(data);
+  useEffect(() => {
+    if (user) {
+      getPersonalizedPlanRecommendation();
+    }
+  }, [user, userProgress]);
+
+  const handleCustomizePlan = async () => {
+    if (user) {
+      const response = await fetch('/api/customize-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          learningStyle: customizationOptions.learningStyle,
+          knowledgeLevel: customizationOptions.knowledgeLevel,
+          goals: customizationOptions.goals,
+          topics: customizationOptions.topics,
+        }),
+      });
+      const data = await response.json();
+      setCustomizedPlan(data.customizedPlan);
+      setIsCustomizingPlan(false);
+    }
+  };
+
+  const handlePlanRecommendationEngine = async () => {
+    if (user) {
+      const response = await fetch('/api/plan-recommendation-engine', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          algorithm: planRecommendationEngine.algorithm,
+          parameters: planRecommendationEngine.parameters,
+        }),
+      });
+      const data = await response.json();
+      setLearningPlanRecommendations(data.learningPlanRecommendations);
+    }
   };
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
-      />
-      <ProgressCard
-        userProgress={userProgress}
-        handleTrackProgress={handleTrackProgress}
-      />
-      <CommunityCard />
-      <ResourceCard />
-      {upcomingLessons.map((lesson) => (
-        <div key={lesson.id}>
-          <h2>{lesson.name}</h2>
-          <p>{lesson.description}</p>
-          <button onClick={() => handleSetReminder(lesson.id, lesson.date)}>Set Reminder</button>
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan: {recommendedPlan}</h2>
+            <h2>Personalized Plan: {personalizedPlan}</h2>
+            <h2>Customized Plan: {customizedPlan}</h2>
+            <button onClick={handleCustomizePlan}>Customize Plan</button>
+            <button onClick={handlePlanRecommendationEngine}>Get Plan Recommendations</button>
+          </div>
+        )}
+        <div className="cards">
+          <StudyPlanCard studyPlanOptions={studyPlanOptions} setSelectedStudyPlan={setSelectedStudyPlan} />
+          <ProgressCard userProgress={userProgress} />
+          <CommunityCard />
+          <ResourceCard />
         </div>
-      ))}
-      {reminders.map((reminder) => (
-        <div key={reminder.id}>
-          <h2>{reminder.lessonName}</h2>
-          <p>Reminder set for: {reminder.reminderDate}</p>
-        </div>
-      ))}
+      </div>
     </DashboardLayout>
   );
 }

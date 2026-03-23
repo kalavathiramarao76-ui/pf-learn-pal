@@ -20,6 +20,12 @@
   --high-contrast-link-hover-color: #004c6f;
   --high-contrast-button-color: #00698f;
   --high-contrast-button-hover-color: #004c6f;
+  --low-contrast-text-color: #666;
+  --low-contrast-background-color: #ccc;
+  --low-contrast-link-color: #888;
+  --low-contrast-link-hover-color: #777;
+  --low-contrast-button-color: #888;
+  --low-contrast-button-hover-color: #777;
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
 }
@@ -32,6 +38,28 @@
     --link-hover-color: var(--high-contrast-link-hover-color);
     --button-color: var(--high-contrast-button-color);
     --button-hover-color: var(--high-contrast-button-hover-color);
+  }
+}
+
+@media (prefers-contrast: low) {
+  :root {
+    --text-color: var(--low-contrast-text-color);
+    --background-color: var(--low-contrast-background-color);
+    --link-color: var(--low-contrast-link-color);
+    --link-hover-color: var(--low-contrast-link-hover-color);
+    --button-color: var(--low-contrast-button-color);
+    --button-hover-color: var(--low-contrast-button-hover-color);
+  }
+}
+
+@media (prefers-contrast: no-preference) {
+  :root {
+    --text-color: var(--text-color);
+    --background-color: var(--background-color);
+    --link-color: var(--link-color);
+    --link-hover-color: var(--link-hover-color);
+    --button-color: var(--button-color);
+    --button-hover-color: var(--button-hover-color);
   }
 }
 
@@ -137,7 +165,7 @@
 
   button {
     background-color: var(--button-color);
-    color: var(--background-color);
+    color: var(--text-color);
     border: none;
     padding: 0.5rem 1rem;
     font-size: var(--font-size);
@@ -148,48 +176,34 @@
     background-color: var(--button-hover-color);
   }
 
-  button:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--focus-color), 0 0 0 4px var(--focus-background-color);
-  }
-
-  input[type="text"], input[type="email"], input[type="password"] {
-    width: 100%;
-    padding: 0.5rem;
+  p {
     font-size: var(--font-size);
-    border: 1px solid var(--text-color);
+    line-height: var(--line-height);
+    margin-bottom: 1.5rem;
   }
 
-  input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--focus-color), 0 0 0 4px var(--focus-background-color);
+  ul, ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
 
-  label {
-    display: block;
+  li {
+    font-size: var(--font-size);
+    line-height: var(--line-height);
     margin-bottom: 0.5rem;
   }
 
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  input, textarea, select {
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    padding: 0.5rem;
+    border: 1px solid var(--text-color);
   }
 
-  .sr-only:focus {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: 0.5rem;
-    margin: 0;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--focus-color);
+    box-shadow: 0 0 0 0.2rem var(--focus-background-color);
   }
 }
