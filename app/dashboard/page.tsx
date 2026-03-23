@@ -79,100 +79,136 @@ export default function DashboardPage() {
         });
         const data = await response.json();
         setRecommendedPlan(data);
-        setLearningPlanRecommendations(data.recommendations);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const getPersonalizedPlanRecommendation = async () => {
-    const response = await fetch('/api/personalized-plan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        progress: userProgress,
-        goals: user.goals,
-        learningStyle: user.learningStyle,
-      }),
-    });
-    const data = await response.json();
-    setPersonalizedPlan(data);
-  };
-
-  const handleGetPersonalizedPlan = () => {
-    getPersonalizedPlanRecommendation();
-  };
-
   useEffect(() => {
     if (user) {
-      const getUserProgress = async () => {
-        const response = await fetch('/api/user-progress', {
-          method: 'GET',
+      const getPersonalizedPlan = async () => {
+        const response = await fetch('/api/personalized-plan', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            userId: user.id,
+            progress: userProgress,
+            goals: user.goals,
+            learningStyle: user.learningStyle,
+          }),
         });
         const data = await response.json();
-        setUserProgress(data);
+        setPersonalizedPlan(data);
       };
-      getUserProgress();
+      getPersonalizedPlan();
     }
-  }, [user]);
+  }, [user, userProgress]);
+
+  const generatePersonalizedPlanRecommendation = async () => {
+    if (user) {
+      const response = await fetch('/api/personalized-plan-recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          progress: userProgress,
+          goals: user.goals,
+          learningStyle: user.learningStyle,
+        }),
+      });
+      const data = await response.json();
+      setLearningPlanRecommendations(data);
+    }
+  };
+
+  const handleCustomizePlan = async () => {
+    if (user) {
+      const response = await fetch('/api/customize-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          learningStyle: customizationOptions.learningStyle,
+          knowledgeLevel: customizationOptions.knowledgeLevel,
+          goals: customizationOptions.goals,
+          topics: customizationOptions.topics,
+        }),
+      });
+      const data = await response.json();
+      setCustomizedPlan(data);
+    }
+  };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description="Based on your progress and goals"
-              plan={recommendedPlan}
-              options={studyPlanOptions}
-              selectedPlan={selectedStudyPlan}
-              handleSelectPlan={(plan) => setSelectedStudyPlan(plan)}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              progress={userProgress}
-              handleGetPersonalizedPlan={handleGetPersonalizedPlan}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard title="Join the Community" />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard title="Additional Resources" />
-          </div>
-          <div className="col-md-4">
-            {personalizedPlan && (
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
               <StudyPlanCard
-                title="Personalized Plan"
-                description="Based on your progress, goals, and learning style"
-                plan={personalizedPlan}
+                name={recommendedPlan.name}
+                description={recommendedPlan.description}
+                link={recommendedPlan.link}
               />
             )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard
+                name={personalizedPlan.name}
+                description={personalizedPlan.description}
+                link={personalizedPlan.link}
+              />
+            )}
+            <h2>Customized Plan</h2>
+            {customizedPlan && (
+              <StudyPlanCard
+                name={customizedPlan.name}
+                description={customizedPlan.description}
+                link={customizedPlan.link}
+              />
+            )}
+            <button onClick={generatePersonalizedPlanRecommendation}>
+              Generate Personalized Plan Recommendation
+            </button>
+            <button onClick={handleCustomizePlan}>Customize Plan</button>
+            <h2>Learning Plan Recommendations</h2>
+            {learningPlanRecommendations.map((recommendation) => (
+              <StudyPlanCard
+                key={recommendation.id}
+                name={recommendation.name}
+                description={recommendation.description}
+                link={recommendation.link}
+              />
+            ))}
           </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Upcoming Lessons</h5>
-                <ul>
-                  {upcomingLessons.map((lesson) => (
-                    <li key={lesson.id}>{lesson.name}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
+        <h2>Study Plan Options</h2>
+        {studyPlanOptions.map((option) => (
+          <StudyPlanCard
+            key={option.name}
+            name={option.name}
+            description={option.description}
+            link={option.link}
+          />
+        ))}
+        <h2>Progress</h2>
+        <ProgressCard
+          completedLessons={userProgress.completedLessons}
+          totalLessons={userProgress.totalLessons}
+          progressPercentage={userProgress.progressPercentage}
+        />
+        <h2>Community</h2>
+        <CommunityCard />
+        <h2>Resources</h2>
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );

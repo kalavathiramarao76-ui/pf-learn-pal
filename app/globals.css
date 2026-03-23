@@ -37,6 +37,8 @@
   --very-high-contrast-button-hover-color: #000;
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
+  --focus-box-shadow: 0 0 0 2px #3498db;
+  --focus-box-shadow-large: 0 0 0 4px #3498db;
 }
 
 @media (prefers-contrast: high) {
@@ -47,6 +49,10 @@
     --link-hover-color: var(--high-contrast-link-hover-color);
     --button-color: var(--high-contrast-button-color);
     --button-hover-color: var(--high-contrast-button-hover-color);
+    --focus-color: #00698f;
+    --focus-background-color: #fff;
+    --focus-box-shadow: 0 0 0 2px #00698f;
+    --focus-box-shadow-large: 0 0 0 4px #00698f;
   }
 }
 
@@ -58,6 +64,10 @@
     --link-hover-color: var(--low-contrast-link-hover-color);
     --button-color: var(--low-contrast-button-color);
     --button-hover-color: var(--low-contrast-button-hover-color);
+    --focus-color: #888;
+    --focus-background-color: #ccc;
+    --focus-box-shadow: 0 0 0 2px #888;
+    --focus-box-shadow-large: 0 0 0 4px #888;
   }
 }
 
@@ -80,6 +90,10 @@
     --link-hover-color: var(--very-high-contrast-link-hover-color);
     --button-color: var(--very-high-contrast-button-color);
     --button-hover-color: var(--very-high-contrast-button-hover-color);
+    --focus-color: #000;
+    --focus-background-color: #fff;
+    --focus-box-shadow: 0 0 0 2px #000;
+    --focus-box-shadow-large: 0 0 0 4px #000;
   }
 }
 
@@ -95,54 +109,39 @@
   }
 }
 
-@media (prefers-font-size: large) {
-  :root {
-    --font-size: var(--font-size-large);
-  }
+* {
+  outline: none;
 }
 
-@media (prefers-font-size: extra-large) {
-  :root {
-    --font-size: var(--font-size-extra-large);
-  }
+*:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
 }
 
-@layer base {
-  @font-face {
-    font-family: 'Inter';
-    src: url('/fonts/Inter-Variant.woff2') format('woff2');
-    font-weight: 100 900;
-    font-style: normal;
-    font-display: swap;
-  }
+*:focus:hover {
+  box-shadow: var(--focus-box-shadow-large);
+}
 
-  body {
-    font-family: var(--font-family);
-    margin: 0;
-    padding: 0;
-    font-size: var(--font-size);
-    line-height: var(--line-height);
-    background-color: var(--background-color);
-    color: var(--text-color);
-  }
+button:focus {
+  background-color: var(--focus-background-color);
+  color: var(--focus-color);
+}
 
-  main {
-    display: block;
-    role: main;
-    aria-label: "Main content area of the application, providing access to various learning resources and tools";
-  }
+a:focus {
+  color: var(--focus-color);
+}
 
-  header, footer, nav, section, article, aside {
-    display: block;
-  }
+input:focus {
+  border-color: var(--focus-color);
+  box-shadow: var(--focus-box-shadow);
+}
 
-  header {
-    role: banner;
-    aria-label: "Header section containing site navigation, logo, and search functionality";
-  }
+textarea:focus {
+  border-color: var(--focus-color);
+  box-shadow: var(--focus-box-shadow);
+}
 
-  nav {
-    role: navigation;
-    aria-label: "Main navigation menu, providing access to various sections of the application";
-  }
+select:focus {
+  border-color: var(--focus-color);
+  box-shadow: var(--focus-box-shadow);
 }
