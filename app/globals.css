@@ -128,50 +128,71 @@
   input, textarea, select {
     @apply bg-gray-200 dark:bg-gray-700;
     @apply border-gray-400 dark:border-gray-600;
-    @apply text-gray-900 dark:text-gray-100;
-  }
-
-  img {
-    @apply max-w-full;
-    @apply h-auto;
-    @apply mx-auto;
-    @apply my-4;
-    border: 1px solid #ddd;
+    @apply py-2 px-3;
     @apply rounded;
-    @apply shadow-sm;
-    aria-label: "Image providing visual context or illustration, such as a diagram, chart, or infographic";
-    role: img;
+    @apply transition duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+    font-size: 1rem;
+    margin: 0.5rem;
   }
 
-  img[alt] {
-    aria-label: attr(alt);
+  @media (max-width: 768px) {
+    body {
+      font-size: 16px;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    h4 {
+      font-size: 1.3rem;
+    }
+
+    h5 {
+      font-size: 1.2rem;
+    }
+
+    h6 {
+      font-size: 1rem;
+    }
   }
 
-  .image-description {
-    @apply text-gray-600 dark:text-gray-400;
-    @apply text-sm;
-    @apply mt-2;
-  }
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px;
+    }
 
-  .high-contrast {
-    @apply bg-gray-200 dark:bg-gray-700;
-    @apply text-gray-900 dark:text-gray-100;
-  }
+    h1 {
+      font-size: 1.8rem;
+    }
 
-  .high-contrast a {
-    @apply text-blue-800 dark:text-blue-400;
-  }
+    h2 {
+      font-size: 1.5rem;
+    }
 
-  .high-contrast a:hover {
-    @apply text-blue-900 dark:text-blue-600;
-  }
+    h3 {
+      font-size: 1.3rem;
+    }
 
-  .high-contrast button {
-    @apply bg-blue-800 dark:bg-blue-700;
-    @apply text-white;
-  }
+    h4 {
+      font-size: 1.2rem;
+    }
 
-  .high-contrast button:hover {
-    @apply bg-blue-900 dark:bg-blue-800;
+    h5 {
+      font-size: 1.1rem;
+    }
+
+    h6 {
+      font-size: 1rem;
+    }
   }
 }

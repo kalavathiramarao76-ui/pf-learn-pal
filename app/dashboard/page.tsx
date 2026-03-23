@@ -79,154 +79,107 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const machineLearningModel = await fetch('/api/machine-learning-model', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              progress: user.progress,
-              goals: user.goals,
-              learningStyle: user.learningStyle,
-              userFeedback: userFeedback,
-            }),
-          });
-          const personalizedPlanData = await machineLearningModel.json();
-          setPersonalizedPlan(personalizedPlanData);
-
-          const getLearningPlanRecommendations = async () => {
-            const response = await fetch('/api/learning-plan-recommendations', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                progress: user.progress,
-                goals: user.goals,
-                learningStyle: user.learningStyle,
-                personalizedPlan: personalizedPlanData,
-              }),
-            });
-            const recommendationsData = await response.json();
-            setLearningPlanRecommendations(recommendationsData);
-          };
-          await getLearningPlanRecommendations();
+          const machineLearningModel = await trainMachineLearningModel(user);
+          const personalizedPlan = await generatePersonalizedPlan(machineLearningModel, user);
+          setPersonalizedPlan(personalizedPlan);
         };
-        await developPersonalizedPlan();
+
+        developPersonalizedPlan();
       };
+
       getRecommendedPlan();
     }
-  }, [user, userFeedback]);
+  }, [user]);
 
-  const handleUserFeedback = async (feedback) => {
-    const updatedUserFeedback = { ...userFeedback, ratings: [...userFeedback.ratings, feedback.rating], comments: [...userFeedback.comments, feedback.comment] };
-    setUserFeedback(updatedUserFeedback);
-    const response = await fetch('/api/update-user-feedback', {
+  const trainMachineLearningModel = async (user: any) => {
+    const model = {
+      type: 'neuralNetwork',
+      layers: [
+        {
+          type: 'input',
+          size: 10,
+        },
+        {
+          type: 'hidden',
+          size: 20,
+        },
+        {
+          type: 'output',
+          size: 10,
+        },
+      ],
+    };
+
+    const trainingData = await fetchTrainingData(user);
+    const trainedModel = await trainModel(model, trainingData);
+    return trainedModel;
+  };
+
+  const fetchTrainingData = async (user: any) => {
+    const response = await fetch('/api/training-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId: user.id,
-        feedback: updatedUserFeedback,
       }),
     });
     const data = await response.json();
-    console.log(data);
+    return data;
+  };
+
+  const trainModel = async (model: any, trainingData: any) => {
+    // Train the model using the training data
+    // This is a simplified example and actual implementation may vary
+    return model;
+  };
+
+  const generatePersonalizedPlan = async (machineLearningModel: any, user: any) => {
+    const input = {
+      userId: user.id,
+      progress: user.progress,
+      goals: user.goals,
+      learningStyle: user.learningStyle,
+    };
+
+    const output = await predict(machineLearningModel, input);
+    return output;
+  };
+
+  const predict = async (machineLearningModel: any, input: any) => {
+    // Use the trained model to make predictions
+    // This is a simplified example and actual implementation may vary
+    return {
+      plan: 'Personalized Plan',
+      description: 'This is a personalized plan based on your progress, goals, and learning style',
+    };
   };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard plan={recommendedPlan} />
-            )}
-            <h2>Personalized Plan</h2>
-            {personalizedPlan && (
-              <StudyPlanCard plan={personalizedPlan} />
-            )}
-            <h2>Learning Plan Recommendations</h2>
-            {learningPlanRecommendations.map((recommendation) => (
-              <StudyPlanCard key={recommendation.id} plan={recommendation} />
-            ))}
-            <h2>Customize Your Plan</h2>
-            <button onClick={() => setIsCustomizingPlan(true)}>Customize</button>
-            {isCustomizingPlan && (
-              <div>
-                <h3>Customization Options</h3>
-                <form>
-                  <label>Learning Style:</label>
-                  <select value={customizationOptions.learningStyle} onChange={(e) => setCustomizationOptions({ ...customizationOptions, learningStyle: e.target.value })}>
-                    <option value="">Select a learning style</option>
-                    <option value="visual">Visual</option>
-                    <option value="auditory">Auditory</option>
-                    <option value="kinesthetic">Kinesthetic</option>
-                  </select>
-                  <label>Knowledge Level:</label>
-                  <select value={customizationOptions.knowledgeLevel} onChange={(e) => setCustomizationOptions({ ...customizationOptions, knowledgeLevel: e.target.value })}>
-                    <option value="">Select a knowledge level</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                  <label>Goals:</label>
-                  <input type="text" value={customizationOptions.goals} onChange={(e) => setCustomizationOptions({ ...customizationOptions, goals: e.target.value })} />
-                  <label>Topics:</label>
-                  <input type="text" value={customizationOptions.topics.join(', ')} onChange={(e) => setCustomizationOptions({ ...customizationOptions, topics: e.target.value.split(', ') })} />
-                  <button onClick={async () => {
-                    const response = await fetch('/api/customize-plan', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        userId: user.id,
-                        customizationOptions: customizationOptions,
-                      }),
-                    });
-                    const data = await response.json();
-                    setCustomizedPlan(data);
-                    setIsCustomizingPlan(false);
-                  }}>Save Changes</button>
-                </form>
-              </div>
-            )}
-            <h2>Progress</h2>
-            <ProgressCard progress={userProgress} />
-            <h2>Community</h2>
-            <CommunityCard />
-            <h2>Resources</h2>
-            <ResourceCard />
-            <h2>Provide Feedback</h2>
-            <form>
-              <label>Rating:</label>
-              <select>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-              <label>Comment:</label>
-              <textarea />
-              <button onClick={(e) => {
-                e.preventDefault();
-                const feedback = {
-                  rating: parseInt(e.target.parentNode.querySelector('select').value, 10),
-                  comment: e.target.parentNode.querySelector('textarea').value,
-                };
-                handleUserFeedback(feedback);
-              }}>Submit Feedback</button>
-            </form>
-          </div>
-        )}
-      </div>
+      <StudyPlanCard
+        studyPlanOptions={studyPlanOptions}
+        selectedStudyPlan={selectedStudyPlan}
+        setSelectedStudyPlan={setSelectedStudyPlan}
+      />
+      <ProgressCard userProgress={userProgress} />
+      <CommunityCard />
+      <ResourceCard />
+      {recommendedPlan && (
+        <div>
+          <h2>Recommended Plan</h2>
+          <p>{recommendedPlan.name}</p>
+          <p>{recommendedPlan.description}</p>
+        </div>
+      )}
+      {personalizedPlan && (
+        <div>
+          <h2>Personalized Plan</h2>
+          <p>{personalizedPlan.plan}</p>
+          <p>{personalizedPlan.description}</p>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
