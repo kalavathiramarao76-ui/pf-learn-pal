@@ -79,140 +79,142 @@ export default function DashboardPage() {
         setRecommendedPlan(data);
 
         const developPersonalizedPlan = async () => {
-          const personalizedPlanResponse = await fetch('/api/personalized-plan', {
+          const response = await fetch('/api/personalized-plan', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               userId: user.id,
-              progress: user.progress,
               goals: user.goals,
               learningStyle: user.learningStyle,
             }),
           });
-          const personalizedPlanData = await personalizedPlanResponse.json();
-          setPersonalizedPlan(personalizedPlanData);
-
-          const getCustomizedPlan = async () => {
-            const customizedPlanResponse = await fetch('/api/customized-plan', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                progress: user.progress,
-                goals: user.goals,
-                learningStyle: user.learningStyle,
-                topics: customizationOptions.topics,
-              }),
-            });
-            const customizedPlanData = await customizedPlanResponse.json();
-            setCustomizedPlan(customizedPlanData);
-          };
-          getCustomizedPlan();
+          const data = await response.json();
+          setPersonalizedPlan(data);
         };
         developPersonalizedPlan();
       };
       getRecommendedPlan();
     }
-  }, [user, customizationOptions.topics]);
+  }, [user]);
 
-  const handleCustomizationOptionsChange = (event) => {
-    const { name, value } = event.target;
-    setCustomizationOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
+  const handleCustomizePlan = async () => {
+    setIsCustomizingPlan(true);
+    const response = await fetch('/api/customized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        learningStyle: customizationOptions.learningStyle,
+        knowledgeLevel: customizationOptions.knowledgeLevel,
+        goals: customizationOptions.goals,
+        topics: customizationOptions.topics,
+      }),
+    });
+    const data = await response.json();
+    setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
   };
 
-  const handleTopicSelection = (topic) => {
-    setCustomizationOptions((prevOptions) => ({ ...prevOptions, topics: [...prevOptions.topics, topic] }));
+  const handleLearningStyleChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      learningStyle: event.target.value,
+    });
   };
 
-  const handleTopicRemoval = (topic) => {
-    setCustomizationOptions((prevOptions) => ({ ...prevOptions, topics: prevOptions.topics.filter((t) => t !== topic) }));
+  const handleKnowledgeLevelChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      knowledgeLevel: event.target.value,
+    });
+  };
+
+  const handleGoalsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      goals: event.target.value,
+    });
+  };
+
+  const handleTopicsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      topics: event.target.value.split(','),
+    });
   };
 
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      {user && (
-        <div>
-          <h2>Recommended Plan</h2>
-          {recommendedPlan && (
-            <StudyPlanCard
-              name={recommendedPlan.name}
-              description={recommendedPlan.description}
-              link={recommendedPlan.link}
-            />
-          )}
-          <h2>Personalized Plan</h2>
-          {personalizedPlan && (
-            <StudyPlanCard
-              name={personalizedPlan.name}
-              description={personalizedPlan.description}
-              link={personalizedPlan.link}
-            />
-          )}
-          <h2>Customized Plan</h2>
-          {customizedPlan && (
-            <StudyPlanCard
-              name={customizedPlan.name}
-              description={customizedPlan.description}
-              link={customizedPlan.link}
-            />
-          )}
-          <h2>Study Plan Options</h2>
-          {studyPlanOptions.map((option) => (
-            <StudyPlanCard
-              key={option.name}
-              name={option.name}
-              description={option.description}
-              link={option.link}
-            />
-          ))}
-          <h2>Customization Options</h2>
-          <form>
-            <label>
-              Learning Style:
-              <select name="learningStyle" value={customizationOptions.learningStyle} onChange={handleCustomizationOptionsChange}>
-                <option value="">Select a learning style</option>
-                <option value="visual">Visual</option>
-                <option value="auditory">Auditory</option>
-                <option value="kinesthetic">Kinesthetic</option>
-              </select>
-            </label>
-            <label>
-              Knowledge Level:
-              <select name="knowledgeLevel" value={customizationOptions.knowledgeLevel} onChange={handleCustomizationOptionsChange}>
-                <option value="">Select a knowledge level</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </label>
-            <label>
-              Goals:
-              <input type="text" name="goals" value={customizationOptions.goals} onChange={handleCustomizationOptionsChange} />
-            </label>
-            <label>
-              Topics:
-              <ul>
-                {customizationOptions.topics.map((topic) => (
-                  <li key={topic}>
-                    {topic}
-                    <button onClick={() => handleTopicRemoval(topic)}>Remove</button>
-                  </li>
-                ))}
-              </ul>
-              <input type="text" placeholder="Add a topic" />
-              <button onClick={() => handleTopicSelection('New Topic')}>Add</button>
-            </label>
-          </form>
-        </div>
-      )}
-      <ProgressCard progress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard
+                name={recommendedPlan.name}
+                description={recommendedPlan.description}
+                link={recommendedPlan.link}
+              />
+            )}
+            <h2>Personalized Plan</h2>
+            {personalizedPlan && (
+              <StudyPlanCard
+                name={personalizedPlan.name}
+                description={personalizedPlan.description}
+                link={personalizedPlan.link}
+              />
+            )}
+            <h2>Customize Your Plan</h2>
+            <form>
+              <label>
+                Learning Style:
+                <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
+                  <option value="">Select a learning style</option>
+                  <option value="visual">Visual</option>
+                  <option value="auditory">Auditory</option>
+                  <option value="kinesthetic">Kinesthetic</option>
+                </select>
+              </label>
+              <label>
+                Knowledge Level:
+                <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
+                  <option value="">Select a knowledge level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </label>
+              <label>
+                Goals:
+                <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
+              </label>
+              <label>
+                Topics:
+                <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
+              </label>
+              <button type="button" onClick={handleCustomizePlan}>
+                Customize Plan
+              </button>
+            </form>
+            {isCustomizingPlan && <p>Customizing plan...</p>}
+            {customizedPlan && (
+              <StudyPlanCard
+                name={customizedPlan.name}
+                description={customizedPlan.description}
+                link={customizedPlan.link}
+              />
+            )}
+          </div>
+        )}
+        <ProgressCard progress={userProgress} />
+        <CommunityCard />
+        <ResourceCard />
+      </div>
     </DashboardLayout>
   );
 }
