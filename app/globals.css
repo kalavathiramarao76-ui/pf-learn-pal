@@ -84,68 +84,16 @@
     --focus-background-color: #eee;
     --focus-box-shadow: 0 0 0 2px #005c99;
     --focus-box-shadow-large: 0 0 0 4px #005c99;
-    --font-weight-normal: 450;
-    --font-weight-bold: 800;
+    --font-weight-normal: 600;
+    --font-weight-bold: 1000;
     --dark-text-color: #111;
-    --dark-background-color: #2f2f2f;
+    --dark-background-color: #111;
     --dark-link-color: #66d9ef;
     --dark-link-hover-color: #4dd2ff;
     --dark-button-color: #66d9ef;
     --dark-button-hover-color: #4dd2ff;
     --dark-focus-color: #66d9ef;
-    --dark-focus-background-color: #2f2f2f;
-    --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
-    --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
-  }
-}
-
-@media (prefers-contrast: low) {
-  :root {
-    --text-color: #666;
-    --background-color: #ccc;
-    --link-color: #6699cc;
-    --link-hover-color: #4477bb;
-    --button-color: #6699cc;
-    --button-hover-color: #4477bb;
-    --focus-color: #6699cc;
-    --focus-background-color: #ccc;
-    --focus-box-shadow: 0 0 0 2px #6699cc;
-    --focus-box-shadow-large: 0 0 0 4px #6699cc;
-    --font-weight-normal: 350;
-    --font-weight-bold: 600;
-    --dark-text-color: #666;
-    --dark-background-color: #2f2f2f;
-    --dark-link-color: #66d9ef;
-    --dark-link-hover-color: #4dd2ff;
-    --dark-button-color: #66d9ef;
-    --dark-button-hover-color: #4dd2ff;
-    --dark-focus-color: #66d9ef;
-    --dark-focus-background-color: #2f2f2f;
-    --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
-    --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
-  }
-}
-
-@media (prefers-contrast: no-preference) {
-  :root {
-    --text-color: #333;
-    --background-color: #f7f7f7;
-    --link-color: #3498db;
-    --link-hover-color: #2c6f9e;
-    --button-color: #3498db;
-    --button-hover-color: #2c6f9e;
-    --focus-color: #3498db;
-    --focus-background-color: #f2f2f2;
-    --focus-box-shadow: 0 0 0 2px #3498db;
-    --focus-box-shadow-large: 0 0 0 4px #3498db;
-    --dark-text-color: #fff;
-    --dark-background-color: #2f2f2f;
-    --dark-link-color: #66d9ef;
-    --dark-link-hover-color: #4dd2ff;
-    --dark-button-color: #66d9ef;
-    --dark-button-hover-color: #4dd2ff;
-    --dark-focus-color: #66d9ef;
-    --dark-focus-background-color: #2f2f2f;
+    --dark-focus-background-color: #111;
     --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
     --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
   }
@@ -164,4 +112,52 @@
     --focus-box-shadow: var(--dark-focus-box-shadow);
     --focus-box-shadow-large: var(--dark-focus-box-shadow-large);
   }
+}
+
+.font-size-small {
+  font-size: var(--font-size-small);
+}
+
+.font-size-large {
+  font-size: var(--font-size-large);
+}
+
+.font-size-extra-large {
+  font-size: var(--font-size-extra-large);
+}
+
+.font-size-extra-extra-large {
+  font-size: var(--font-size-extra-extra-large);
+}
+
+.font-size-very-small {
+  font-size: var(--font-size-very-small);
+}
+
+.font-size-huge {
+  font-size: var(--font-size-huge);
+}
+
+.font-size-gigantic {
+  font-size: var(--font-size-gigantic);
+}
+
+.font-size-option-1 {
+  font-size: var(--font-size-option-1);
+}
+
+.font-size-option-2 {
+  font-size: var(--font-size-option-2);
+}
+
+.font-size-option-3 {
+  font-size: var(--font-size-option-3);
+}
+
+.font-size-option-4 {
+  font-size: var(--font-size-option-4);
+}
+
+.font-size-option-5 {
+  font-size: var(--font-size-option-5);
 }

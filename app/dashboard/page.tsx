@@ -87,56 +87,216 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
-    if (user && user.progress && user.goals) {
-      const trainAiModel = async () => {
-        const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [3] }));
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'meanSquaredError' });
-        const trainingData = [
-          [user.progress.completedLessons, user.progress.totalLessons, user.progress.progressPercentage],
-          [user.goals.learningStyle, user.goals.knowledgeLevel, user.goals.goals],
-        ];
-        const labels = [1, 0];
-        const tensorData = tf.tensor2d(trainingData, [trainingData.length, 3]);
-        const tensorLabels = tf.tensor1d(labels);
-        await model.fit(tensorData, tensorLabels, { epochs: 100 });
-        setAiModel(model);
+    if (recommendedPlan) {
+      const getPersonalizedPlan = async () => {
+        const response = await fetch('/api/personalized-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            recommendedPlan: recommendedPlan,
+            userProgress: userProgress,
+            userFeedback: userFeedback,
+          }),
+        });
+        const data = await response.json();
+        setPersonalizedPlan(data.personalizedPlan);
       };
-      trainAiModel();
+      getPersonalizedPlan();
+    }
+  }, [recommendedPlan, userProgress, userFeedback]);
+
+  useEffect(() => {
+    if (personalizedPlan) {
+      const getCustomizedPlan = async () => {
+        const response = await fetch('/api/customized-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            personalizedPlan: personalizedPlan,
+            customizationOptions: customizationOptions,
+          }),
+        });
+        const data = await response.json();
+        setCustomizedPlan(data.customizedPlan);
+      };
+      getCustomizedPlan();
+    }
+  }, [personalizedPlan, customizationOptions]);
+
+  useEffect(() => {
+    if (user) {
+      const getUserProgress = async () => {
+        const response = await fetch('/api/user-progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+          }),
+        });
+        const data = await response.json();
+        setUserProgress(data.userProgress);
+      };
+      getUserProgress();
     }
   }, [user]);
 
   useEffect(() => {
-    if (aiModel) {
-      const predictLearningPlan = async () => {
-        const inputData = tf.tensor2d([[user.progress.completedLessons, user.progress.totalLessons, user.progress.progressPercentage]]);
-        const prediction = aiModel.predict(inputData);
-        const predictedPlan = await prediction.data();
-        setPersonalizedPlan(predictedPlan);
+    if (user) {
+      const getUserFeedback = async () => {
+        const response = await fetch('/api/user-feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+          }),
+        });
+        const data = await response.json();
+        setUserFeedback(data.userFeedback);
       };
-      predictLearningPlan();
+      getUserFeedback();
     }
-  }, [aiModel, user]);
+  }, [user]);
+
+  const handleCustomization = async () => {
+    setIsCustomizingPlan(true);
+    const response = await fetch('/api/customization-options', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+      }),
+    });
+    const data = await response.json();
+    setCustomizationOptions(data.customizationOptions);
+  };
+
+  const handlePlanSelection = async (plan) => {
+    setSelectedStudyPlan(plan);
+    const response = await fetch('/api/selected-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        selectedPlan: plan,
+      }),
+    });
+    const data = await response.json();
+    setRecommendedPlan(data.recommendedPlan);
+  };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan: {recommendedPlan}</h2>
-            <h2>Personalized Plan: {personalizedPlan}</h2>
+        <div className="row">
+          <div className="col-md-4">
             <StudyPlanCard
               studyPlanOptions={studyPlanOptions}
               selectedStudyPlan={selectedStudyPlan}
-              setSelectedStudyPlan={setSelectedStudyPlan}
+              handlePlanSelection={handlePlanSelection}
             />
+          </div>
+          <div className="col-md-4">
             <ProgressCard userProgress={userProgress} />
+          </div>
+          <div className="col-md-4">
             <CommunityCard />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
             <ResourceCard />
           </div>
-        )}
+          <div className="col-md-4">
+            {isCustomizingPlan && (
+              <div>
+                <h2>Customization Options</h2>
+                <form>
+                  <div className="form-group">
+                    <label>Learning Style</label>
+                    <select
+                      className="form-control"
+                      value={customizationOptions.learningStyle}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          learningStyle: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select Learning Style</option>
+                      <option value="visual">Visual</option>
+                      <option value="auditory">Auditory</option>
+                      <option value="kinesthetic">Kinesthetic</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Knowledge Level</label>
+                    <select
+                      className="form-control"
+                      value={customizationOptions.knowledgeLevel}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          knowledgeLevel: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select Knowledge Level</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Goals</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={customizationOptions.goals}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          goals: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Topics</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={customizationOptions.topics.join(', ')}
+                      onChange={(e) =>
+                        setCustomizationOptions({
+                          ...customizationOptions,
+                          topics: e.target.value.split(', '),
+                        })
+                      }
+                    />
+                  </div>
+                  <button className="btn btn-primary" onClick={handleCustomization}>
+                    Save Customization
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
