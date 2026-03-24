@@ -9,6 +9,9 @@
   --font-size-large: 20px;
   --font-size-extra-large: 24px;
   --font-size-extra-extra-large: 30px;
+  --font-size-very-small: 12px;
+  --font-size-huge: 36px;
+  --font-size-gigantic: 48px;
   --line-height: 1.6;
   --text-color: #333;
   --background-color: #f7f7f7;
@@ -36,12 +39,16 @@
   --very-high-contrast-link-hover-color: #000;
   --very-high-contrast-button-color: #000;
   --very-high-contrast-button-hover-color: #000;
+  --super-high-contrast-text-color: #000;
+  --super-high-contrast-background-color: #fff;
+  --super-high-contrast-link-color: #000;
+  --super-high-contrast-link-hover-color: #000;
+  --super-high-contrast-button-color: #000;
+  --super-high-contrast-button-hover-color: #000;
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
   --focus-box-shadow: 0 0 0 2px #3498db;
   --focus-box-shadow-large: 0 0 0 4px #3498db;
-  --font-size-very-small: 12px;
-  --font-size-huge: 36px;
 }
 
 @media (prefers-contrast: high) {
@@ -89,77 +96,63 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-contrast: super-high) {
   :root {
-    --text-color: var(--dark-text-color);
-    --background-color: var(--dark-background-color);
+    --text-color: var(--super-high-contrast-text-color);
+    --background-color: var(--super-high-contrast-background-color);
+    --link-color: var(--super-high-contrast-link-color);
+    --link-hover-color: var(--super-high-contrast-link-hover-color);
+    --button-color: var(--super-high-contrast-button-color);
+    --button-hover-color: var(--super-high-contrast-button-hover-color);
+    --focus-color: #000;
+    --focus-background-color: #fff;
+    --focus-box-shadow: 0 0 0 2px #000;
+    --focus-box-shadow-large: 0 0 0 4px #000;
   }
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-font-size: small) {
   :root {
-    --text-color: #333;
-    --background-color: #f7f7f7;
+    --font-size: var(--font-size-small);
+    --font-size-large: var(--font-size);
+    --font-size-extra-large: var(--font-size-large);
+    --font-size-extra-extra-large: var(--font-size-extra-large);
   }
 }
 
-body {
-  font-family: var(--font-family);
-  font-size: var(--font-size);
-  line-height: var(--line-height);
-  color: var(--text-color);
-  background-color: var(--background-color);
+@media (prefers-font-size: large) {
+  :root {
+    --font-size: var(--font-size-large);
+    --font-size-small: var(--font-size);
+    --font-size-extra-large: var(--font-size-large);
+    --font-size-extra-extra-large: var(--font-size-extra-large);
+  }
 }
 
-a {
-  color: var(--link-color);
+@media (prefers-font-size: extra-large) {
+  :root {
+    --font-size: var(--font-size-extra-large);
+    --font-size-small: var(--font-size);
+    --font-size-large: var(--font-size-extra-large);
+    --font-size-extra-extra-large: var(--font-size-huge);
+  }
 }
 
-a:hover {
-  color: var(--link-hover-color);
+@media (prefers-font-size: extra-extra-large) {
+  :root {
+    --font-size: var(--font-size-extra-extra-large);
+    --font-size-small: var(--font-size);
+    --font-size-large: var(--font-size-extra-large);
+    --font-size-extra-large: var(--font-size-huge);
+  }
 }
 
-button {
-  background-color: var(--button-color);
-  color: var(--text-color);
-}
-
-button:hover {
-  background-color: var(--button-hover-color);
-}
-
-:focus {
-  outline: var(--focus-box-shadow);
-  box-shadow: var(--focus-box-shadow);
-  background-color: var(--focus-background-color);
-  color: var(--focus-color);
-}
-
-:focus-large {
-  outline: var(--focus-box-shadow-large);
-  box-shadow: var(--focus-box-shadow-large);
-}
-
-.small-text {
-  font-size: var(--font-size-small);
-}
-
-.large-text {
-  font-size: var(--font-size-large);
-}
-
-.extra-large-text {
-  font-size: var(--font-size-extra-large);
-}
-
-.extra-extra-large-text {
-  font-size: var(--font-size-extra-extra-large);
-}
-
-.very-small-text {
-  font-size: var(--font-size-very-small);
-}
-
-.huge-text {
-  font-size: var(--font-size-huge);
+@media (prefers-font-size: gigantic) {
+  :root {
+    --font-size: var(--font-size-gigantic);
+    --font-size-small: var(--font-size);
+    --font-size-large: var(--font-size-extra-large);
+    --font-size-extra-large: var(--font-size-huge);
+    --font-size-extra-extra-large: var(--font-size-gigantic);
+  }
 }

@@ -87,30 +87,52 @@ export default function CommunityPage() {
     const documentHeight = document.body.offsetHeight;
     if (scrollPosition >= documentHeight * 0.8 && !loadingMorePosts && hasMorePosts) {
       setLoadingMorePosts(true);
-      axios.get(`/api/posts?page=${pageNumber + 1}&limit=${postsPerPage}`)
-        .then(response => {
-          setPosts([...posts, ...response.data]);
-          setPageNumber(pageNumber + 1);
-          setLoadingMorePosts(false);
-          if (response.data.length < postsPerPage) {
-            setHasMorePosts(false);
-          }
-        })
-        .catch(error => {
-          console.error(error);
-          setLoadingMorePosts(false);
-        });
+      setPageNumber(pageNumber + 1);
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadingMorePosts, hasMorePosts, pageNumber, postsPerPage]);
+  }, [loadingMorePosts, hasMorePosts, pageNumber]);
 
-  return (
-    <div>
-      {/* existing JSX code */}
-    </div>
-  );
+  useEffect(() => {
+    if (loadingMorePosts) {
+      const filtered = posts.filter((post) => {
+        const query = searchQuery.toLowerCase();
+        const title = post.title.toLowerCase();
+        const content = post.content.toLowerCase();
+        return (
+          title.includes(query) ||
+          content.includes(query) ||
+          query === ''
+        );
+      });
+      const sorted = filtered.sort((a, b) => {
+        if (sortOrder === 'newest') {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        } else if (sortOrder === 'oldest') {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        } else {
+          return 0;
+        }
+      });
+      const filteredBy = sorted.filter((post) => {
+        if (filterBy === 'all') {
+          return true;
+        } else if (filterBy === 'mine') {
+          return post.author.id === user?.id;
+        } else {
+          return false;
+        }
+      });
+      if (filteredBy.length < pageNumber * postsPerPage) {
+        setHasMorePosts(false);
+      }
+      setFilteredPosts(filteredBy.slice(0, pageNumber * postsPerPage));
+      setLoadingMorePosts(false);
+    }
+  }, [loadingMorePosts, posts, searchQuery, sortOrder, filterBy, pageNumber, postsPerPage, user]);
+
+  // ... rest of the code remains the same
 }

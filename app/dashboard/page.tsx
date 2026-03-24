@@ -78,102 +78,120 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
-        setLearningPlanRecommendations(data.learningPlanRecommendations);
+        setRecommendedPlan(data);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const getPersonalizedPlanRecommendation = async () => {
-    const response = await fetch('/api/personalized-plan', {
+  const handleCustomizePlan = () => {
+    setIsCustomizingPlan(true);
+  };
+
+  const handleSaveCustomizedPlan = async () => {
+    const response = await fetch('/api/customized-plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId: user.id,
-        progress: userProgress,
-        goals: user.goals,
-        learningStyle: user.learningStyle,
+        learningStyle: customizationOptions.learningStyle,
+        knowledgeLevel: customizationOptions.knowledgeLevel,
+        goals: customizationOptions.goals,
+        topics: customizationOptions.topics,
       }),
     });
     const data = await response.json();
-    setPersonalizedPlan(data.personalizedPlan);
+    setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
   };
 
-  useEffect(() => {
-    if (user && userProgress) {
-      getPersonalizedPlanRecommendation();
-    }
-  }, [user, userProgress]);
-
-  const updatePlanRecommendationEngine = async () => {
-    const response = await fetch('/api/update-plan-recommendation-engine', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        algorithm: planRecommendationEngine.algorithm,
-        parameters: planRecommendationEngine.parameters,
-      }),
+  const handleLearningStyleChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      learningStyle: event.target.value,
     });
-    const data = await response.json();
-    setPlanRecommendationEngine(data.planRecommendationEngine);
   };
 
-  useEffect(() => {
-    if (user) {
-      updatePlanRecommendationEngine();
-    }
-  }, [user, planRecommendationEngine]);
+  const handleKnowledgeLevelChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      knowledgeLevel: event.target.value,
+    });
+  };
+
+  const handleGoalsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      goals: event.target.value,
+    });
+  };
+
+  const handleTopicsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      topics: event.target.value.split(','),
+    });
+  };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
-              link={recommendedPlan ? recommendedPlan.link : '#'}
-            />
+        <h1>Personalized Learning Companion</h1>
+        {isCustomizingPlan ? (
+          <div>
+            <h2>Customize Your Learning Plan</h2>
+            <form>
+              <label>
+                Learning Style:
+                <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
+                  <option value="">Select a learning style</option>
+                  <option value="visual">Visual</option>
+                  <option value="auditory">Auditory</option>
+                  <option value="kinesthetic">Kinesthetic</option>
+                </select>
+              </label>
+              <label>
+                Knowledge Level:
+                <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
+                  <option value="">Select a knowledge level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </label>
+              <label>
+                Goals:
+                <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
+              </label>
+              <label>
+                Topics:
+                <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
+              </label>
+              <button type="button" onClick={handleSaveCustomizedPlan}>
+                Save Customized Plan
+              </button>
+            </form>
           </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Personalized Plan"
-              description={personalizedPlan ? personalizedPlan.description : 'No plan generated'}
-              link={personalizedPlan ? personalizedPlan.link : '#'}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="User Progress"
-              progressPercentage={userProgress.progressPercentage}
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <CommunityCard title="Community" />
-          </div>
-          <div className="col-md-4">
-            <ResourceCard title="Resources" />
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Plan Recommendation Engine</h5>
-                <p className="card-text">Algorithm: {planRecommendationEngine.algorithm}</p>
-                <p className="card-text">Parameters: {JSON.stringify(planRecommendationEngine.parameters)}</p>
+        ) : (
+          <div>
+            <h2>Recommended Learning Plan</h2>
+            {recommendedPlan && (
+              <div>
+                <p>Recommended Plan: {recommendedPlan.name}</p>
+                <p>Description: {recommendedPlan.description}</p>
               </div>
-            </div>
+            )}
+            <button type="button" onClick={handleCustomizePlan}>
+              Customize Your Learning Plan
+            </button>
           </div>
-        </div>
+        )}
+        <StudyPlanCard studyPlanOptions={studyPlanOptions} setSelectedStudyPlan={setSelectedStudyPlan} />
+        <ProgressCard userProgress={userProgress} />
+        <CommunityCard />
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );
