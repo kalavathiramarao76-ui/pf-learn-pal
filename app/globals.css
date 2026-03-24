@@ -14,6 +14,7 @@
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
   --focus-box-shadow: 0 0 0 2px #3498db;
+  --focus-box-shadow-large: 0 0 0 4px #3498db;
   --font-size-small: calc(var(--font-size-base) * 0.8);
   --font-size-large: calc(var(--font-size-base) * var(--font-size-ratio));
   --font-size-extra-large: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio));
@@ -23,7 +24,11 @@
   --font-size-gigantic: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio));
   --link-hover-color: #2c6f9e;
   --button-hover-color: #2c6f9e;
-  --focus-box-shadow-large: 0 0 0 4px #3498db;
+  --font-size-option-1: 16px;
+  --font-size-option-2: 18px;
+  --font-size-option-3: 20px;
+  --font-size-option-4: 22px;
+  --font-size-option-5: 24px;
 }
 
 @media (prefers-contrast: high) {
@@ -101,44 +106,34 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-color: #fff;
-    --background-color: #000;
-    --link-color: #66d9ef;
-    --link-hover-color: #44c9e3;
-    --button-color: #66d9ef;
-    --button-hover-color: #44c9e3;
-    --focus-color: #66d9ef;
-    --focus-background-color: #000;
-    --focus-box-shadow: 0 0 0 2px #66d9ef;
-    --focus-box-shadow-large: 0 0 0 4px #66d9ef;
-  }
+.font-size-option-1 {
+  font-size: var(--font-size-option-1);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --text-color: #333;
-    --background-color: #f7f7f7;
-    --link-color: #3498db;
-    --link-hover-color: #2c6f9e;
-    --button-color: #3498db;
-    --button-hover-color: #2c6f9e;
-    --focus-color: #3498db;
-    --focus-background-color: #f2f2f2;
-    --focus-box-shadow: 0 0 0 2px #3498db;
-    --focus-box-shadow-large: 0 0 0 4px #3498db;
-  }
+.font-size-option-2 {
+  font-size: var(--font-size-option-2);
 }
 
-@media (min-width: 640px) {
-  :root {
-    --font-size-base: 20px;
-  }
+.font-size-option-3 {
+  font-size: var(--font-size-option-3);
 }
 
-@media (min-width: 1280px) {
-  :root {
-    --font-size-base: 22px;
-  }
+.font-size-option-4 {
+  font-size: var(--font-size-option-4);
+}
+
+.font-size-option-5 {
+  font-size: var(--font-size-option-5);
+}
+
+.high-contrast {
+  filter: invert(100%);
+}
+
+.low-contrast {
+  filter: invert(50%);
+}
+
+.normal-contrast {
+  filter: invert(0);
 }
