@@ -84,107 +84,46 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  return (
-    <DashboardLayout>
-      <div className="flex flex-col md:flex-row justify-center items-center md:items-start md:justify-start w-full h-full p-4">
-        <div className="w-full md:w-1/3 xl:w-1/4 p-4 mb-4 md:mb-0">
-          <h2 className="text-2xl font-bold mb-4">Your Progress</h2>
-          <ProgressCard userProgress={userProgress} />
-          <h2 className="text-2xl font-bold mt-4 mb-4">Upcoming Lessons</h2>
+  const handleRecommendedPlan = () => {
+    if (recommendedPlan) {
+      return (
+        <div className="recommended-plan-section">
+          <h2>Recommended Plan</h2>
+          <p>Based on your progress and goals, we recommend the following plan:</p>
           <ul>
-            {upcomingLessons.map((lesson, index) => (
-              <li key={index} className="bg-gray-100 p-4 mb-2 rounded">
-                {lesson.name}
-              </li>
+            {recommendedPlan.map((plan, index) => (
+              <li key={index}>{plan.name}</li>
             ))}
           </ul>
         </div>
-        <div className="w-full md:w-1/3 xl:w-1/4 p-4 mb-4 md:mb-0">
-          <h2 className="text-2xl font-bold mb-4">Recommended Study Plan</h2>
-          {recommendedPlan && (
-            <StudyPlanCard
-              plan={recommendedPlan}
-              setSelectedStudyPlan={setSelectedStudyPlan}
-            />
-          )}
-          <h2 className="text-2xl font-bold mt-4 mb-4">Customize Your Plan</h2>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => setIsCustomizingPlan(true)}
-          >
-            Customize
-          </button>
-          {isCustomizingPlan && (
-            <div>
-              <h2 className="text-2xl font-bold mt-4 mb-4">Customization Options</h2>
-              <form>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Learning Style:
-                </label>
-                <select
-                  className="block w-full p-2 mb-4 border border-gray-400 rounded"
-                  value={customizationOptions.learningStyle}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      learningStyle: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">Select a learning style</option>
-                  <option value="visual">Visual</option>
-                  <option value="auditory">Auditory</option>
-                  <option value="kinesthetic">Kinesthetic</option>
-                </select>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Knowledge Level:
-                </label>
-                <select
-                  className="block w-full p-2 mb-4 border border-gray-400 rounded"
-                  value={customizationOptions.knowledgeLevel}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      knowledgeLevel: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">Select a knowledge level</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Goals:
-                </label>
-                <textarea
-                  className="block w-full p-2 mb-4 border border-gray-400 rounded"
-                  value={customizationOptions.goals}
-                  onChange={(e) =>
-                    setCustomizationOptions({
-                      ...customizationOptions,
-                      goals: e.target.value,
-                    })
-                  }
-                />
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    // Save customization options
-                  }}
-                >
-                  Save
-                </button>
-              </form>
-            </div>
-          )}
+      );
+    } else {
+      return null;
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="dashboard-page">
+        <div className="study-plan-section">
+          <h2>Study Plan Options</h2>
+          {studyPlanOptions.map((option, index) => (
+            <StudyPlanCard key={index} option={option} />
+          ))}
         </div>
-        <div className="w-full md:w-1/3 xl:w-1/4 p-4 mb-4 md:mb-0">
-          <h2 className="text-2xl font-bold mb-4">Community and Resources</h2>
+        <div className="progress-section">
+          <h2>Progress</h2>
+          <ProgressCard progress={userProgress} />
+        </div>
+        <div className="community-section">
+          <h2>Community</h2>
           <CommunityCard />
+        </div>
+        <div className="resource-section">
+          <h2>Resources</h2>
           <ResourceCard />
         </div>
+        {handleRecommendedPlan()}
       </div>
     </DashboardLayout>
   );

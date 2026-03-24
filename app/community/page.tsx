@@ -42,6 +42,7 @@ export default function CommunityPage() {
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [lastPostId, setLastPostId] = useState(null);
   const [autocompleteOptions, setAutocompleteOptions] = useState([]);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -70,51 +71,46 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
-      } else {
-        return 0;
       }
     });
-    const filteredBy = sorted.filter((post) => {
-      if (filterBy === 'all') {
-        return true;
-      } else if (filterBy === 'title') {
-        return post.title.toLowerCase().includes(searchQuery.toLowerCase());
-      } else if (filterBy === 'content') {
-        return post.content.toLowerCase().includes(searchQuery.toLowerCase());
-      } else {
-        return false;
-      }
-    });
-    setFilteredPosts(filteredBy);
-    const autocompleteOptions = posts.map((post) => {
-      return {
-        label: post.title,
-        value: post.title,
-      };
-    });
-    setAutocompleteOptions(autocompleteOptions);
-  }, [posts, searchQuery, sortOrder, filterBy]);
+    setFilteredPosts(sorted);
+  }, [posts, searchQuery, sortOrder]);
 
-  const handleSearch = (event, value) => {
-    setSearchQuery(value);
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.body.offsetHeight;
+      if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
+        loadMorePosts();
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMorePosts, loadingMorePosts]);
+
+  const loadMorePosts = async () => {
+    setLoadingMorePosts(true);
+    try {
+      const response = await axios.get('/api/posts', {
+        params: {
+          pageNumber: pageNumber + 1,
+          postsPerPage,
+          lastPostId,
+        },
+      });
+      const newPosts = response.data;
+      setPosts([...posts, ...newPosts]);
+      setLastPostId(newPosts[newPosts.length - 1].id);
+      setPageNumber(pageNumber + 1);
+      setHasMorePosts(newPosts.length === postsPerPage);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingMorePosts(false);
+    }
   };
 
   return (
-    <div>
-      <Autocomplete
-        options={autocompleteOptions}
-        value={searchQuery}
-        onChange={handleSearch}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Search"
-            variant="outlined"
-            fullWidth
-          />
-        )}
-      />
-      {/* rest of your code remains the same */}
-    </div>
+    // your JSX code here
   );
 }

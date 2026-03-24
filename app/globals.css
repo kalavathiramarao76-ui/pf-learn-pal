@@ -41,12 +41,70 @@
   }
 }
 
+@media (prefers-contrast: more) {
+  :root {
+    --text-color: #111;
+    --background-color: #eee;
+    --link-color: #005c99;
+    --link-hover-color: #003d66;
+    --button-color: #005c99;
+    --button-hover-color: #003d66;
+    --focus-color: #005c99;
+    --focus-background-color: #eee;
+    --focus-box-shadow: 0 0 0 2px #005c99;
+    --focus-box-shadow-large: 0 0 0 4px #005c99;
+  }
+}
+
+@media (prefers-contrast: low) {
+  :root {
+    --text-color: #666;
+    --background-color: #ccc;
+    --link-color: #6699cc;
+    --link-hover-color: #4477bb;
+    --button-color: #6699cc;
+    --button-hover-color: #4477bb;
+    --focus-color: #6699cc;
+    --focus-background-color: #ccc;
+    --focus-box-shadow: 0 0 0 2px #6699cc;
+    --focus-box-shadow-large: 0 0 0 4px #6699cc;
+  }
+}
+
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   line-height: var(--line-height);
   color: var(--text-color);
   background-color: var(--background-color);
+}
+
+body.font-size-small {
+  font-size: var(--font-size-small);
+}
+
+body.font-size-large {
+  font-size: var(--font-size-large);
+}
+
+body.font-size-extra-large {
+  font-size: var(--font-size-extra-large);
+}
+
+body.font-size-extra-extra-large {
+  font-size: var(--font-size-extra-extra-large);
+}
+
+body.font-size-very-small {
+  font-size: var(--font-size-very-small);
+}
+
+body.font-size-huge {
+  font-size: var(--font-size-huge);
+}
+
+body.font-size-gigantic {
+  font-size: var(--font-size-gigantic);
 }
 
 a, a:link, a:visited {
