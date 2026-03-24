@@ -10,6 +10,8 @@ import 'react-quill/dist/quill.snow.css';
 import Modal from 'react-modal';
 import { FaEdit } from 'react-icons/fa';
 import { FiFlag } from 'react-icons/fi';
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
 
 export default function CommunityPage() {
   const pathname = usePathname();
@@ -39,6 +41,7 @@ export default function CommunityPage() {
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [lastPostId, setLastPostId] = useState(null);
+  const [autocompleteOptions, setAutocompleteOptions] = useState([]);
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -74,65 +77,44 @@ export default function CommunityPage() {
     const filteredBy = sorted.filter((post) => {
       if (filterBy === 'all') {
         return true;
-      } else if (filterBy === 'mine') {
-        return post.author.id === user?.id;
+      } else if (filterBy === 'title') {
+        return post.title.toLowerCase().includes(searchQuery.toLowerCase());
+      } else if (filterBy === 'content') {
+        return post.content.toLowerCase().includes(searchQuery.toLowerCase());
       } else {
-        return post.category === filterBy;
+        return false;
       }
     });
-    setFilteredPosts(filteredBy.slice(0, pageNumber * postsPerPage));
-  }, [posts, searchQuery, sortOrder, filterBy, pageNumber, postsPerPage]);
+    setFilteredPosts(filteredBy);
+    const autocompleteOptions = posts.map((post) => {
+      return {
+        label: post.title,
+        value: post.title,
+      };
+    });
+    setAutocompleteOptions(autocompleteOptions);
+  }, [posts, searchQuery, sortOrder, filterBy]);
 
-  const handleScroll = () => {
-    const scrollPosition = window.scrollY + window.innerHeight;
-    const documentHeight = document.body.offsetHeight;
-    if (scrollPosition >= documentHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-      setLoadingMorePosts(true);
-      setPageNumber(pageNumber + 1);
-    }
+  const handleSearch = (event, value) => {
+    setSearchQuery(value);
   };
 
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, pageNumber]);
-
-  useEffect(() => {
-    if (pageNumber > 1) {
-      const filtered = posts.filter((post) => {
-        const query = searchQuery.toLowerCase();
-        const title = post.title.toLowerCase();
-        const content = post.content.toLowerCase();
-        return (
-          title.includes(query) ||
-          content.includes(query) ||
-          query === ''
-        );
-      });
-      const sorted = filtered.sort((a, b) => {
-        if (sortOrder === 'newest') {
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        } else if (sortOrder === 'oldest') {
-          return new Date(a.createdAt) - new Date(b.createdAt);
-        } else {
-          return 0;
-        }
-      });
-      const filteredBy = sorted.filter((post) => {
-        if (filterBy === 'all') {
-          return true;
-        } else if (filterBy === 'mine') {
-          return post.author.id === user?.id;
-        } else {
-          return post.category === filterBy;
-        }
-      });
-      setFilteredPosts([...filteredPosts, ...filteredBy.slice((pageNumber - 1) * postsPerPage, pageNumber * postsPerPage)]);
-      setLoadingMorePosts(false);
-    }
-  }, [pageNumber, postsPerPage, filteredPosts, hasMorePosts, loadingMorePosts]);
-
   return (
-    // existing JSX code
+    <div>
+      <Autocomplete
+        options={autocompleteOptions}
+        value={searchQuery}
+        onChange={handleSearch}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Search"
+            variant="outlined"
+            fullWidth
+          />
+        )}
+      />
+      {/* rest of your code remains the same */}
+    </div>
   );
 }

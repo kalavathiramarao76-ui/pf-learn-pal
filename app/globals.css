@@ -41,22 +41,6 @@
   }
 }
 
-@media (prefers-contrast: low) {
-  :root {
-    --text-color: #666;
-    --background-color: #ccc;
-    --link-color: #888;
-    --link-hover-color: #777;
-    --button-color: #888;
-    --button-hover-color: #777;
-    --focus-color: #888;
-    --focus-background-color: #ccc;
-    --focus-box-shadow: 0 0 0 2px #888;
-    --focus-box-shadow-large: 0 0 0 4px #888;
-  }
-}
-
-/* Optimizations for better page load times and search engine ranking */
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
@@ -65,16 +49,16 @@ body {
   background-color: var(--background-color);
 }
 
-a {
+a, a:link, a:visited {
   color: var(--link-color);
   text-decoration: none;
 }
 
-a:hover {
+a:hover, a:active {
   color: var(--link-hover-color);
 }
 
-button {
+button, input[type="button"], input[type="submit"] {
   background-color: var(--button-color);
   color: var(--text-color);
   border: none;
@@ -83,18 +67,15 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+button:hover, input[type="button"]:hover, input[type="submit"]:hover {
   background-color: var(--button-hover-color);
 }
 
-button:focus {
+button:focus, input[type="button"]:focus, input[type="submit"]:focus {
   outline: none;
   box-shadow: var(--focus-box-shadow);
 }
 
-button:focus:hover {
+button:focus:hover, input[type="button"]:focus:hover, input[type="submit"]:focus:hover {
   box-shadow: var(--focus-box-shadow-large);
 }
-
-/* Minify and compress CSS to reduce file size */
-/* Use a preprocessor like PostCSS to optimize CSS for production */
