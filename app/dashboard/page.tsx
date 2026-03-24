@@ -79,132 +79,109 @@ export default function DashboardPage() {
         });
         const data = await response.json();
         setRecommendedPlan(data);
-        const learningPlanRecommendations = await getLearningPlanRecommendations(user);
-        setLearningPlanRecommendations(learningPlanRecommendations);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const getLearningPlanRecommendations = async (user: any) => {
-    const response = await fetch('/api/learning-plan-recommendations', {
+  const handleCustomizePlan = () => {
+    setIsCustomizingPlan(true);
+  };
+
+  const handleSaveCustomizedPlan = async () => {
+    const response = await fetch('/api/customize-plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId: user.id,
-        learningStyle: user.learningStyle,
-        knowledgeLevel: user.knowledgeLevel,
-        goals: user.goals,
-      }),
-    });
-    const data = await response.json();
-    return data;
-  };
-
-  const handlePlanRecommendationEngine = async () => {
-    const response = await fetch('/api/plan-recommendation-engine', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        algorithm: planRecommendationEngine.algorithm,
-        parameters: planRecommendationEngine.parameters,
-        userId: user.id,
-      }),
-    });
-    const data = await response.json();
-    setPersonalizedPlan(data);
-  };
-
-  const handleCustomizationOptions = async () => {
-    const response = await fetch('/api/customization-options', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
         learningStyle: customizationOptions.learningStyle,
         knowledgeLevel: customizationOptions.knowledgeLevel,
         goals: customizationOptions.goals,
         topics: customizationOptions.topics,
-        userId: user.id,
       }),
     });
     const data = await response.json();
     setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
+  };
+
+  const handleLearningStyleChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      learningStyle: event.target.value,
+    });
+  };
+
+  const handleKnowledgeLevelChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      knowledgeLevel: event.target.value,
+    });
+  };
+
+  const handleGoalsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      goals: event.target.value,
+    });
+  };
+
+  const handleTopicsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      topics: event.target.value.split(','),
+    });
   };
 
   return (
     <DashboardLayout>
       <div className="container">
         <h1>Personalized Learning Companion</h1>
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              studyPlanOptions={studyPlanOptions}
-              selectedStudyPlan={selectedStudyPlan}
-              setSelectedStudyPlan={setSelectedStudyPlan}
-            />
+        {isCustomizingPlan ? (
+          <div>
+            <h2>Customize Your Study Plan</h2>
+            <form>
+              <label>Learning Style:</label>
+              <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
+                <option value="">Select a learning style</option>
+                <option value="visual">Visual</option>
+                <option value="auditory">Auditory</option>
+                <option value="kinesthetic">Kinesthetic</option>
+              </select>
+              <br />
+              <label>Knowledge Level:</label>
+              <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
+                <option value="">Select a knowledge level</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+              <br />
+              <label>Goals:</label>
+              <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
+              <br />
+              <label>Topics:</label>
+              <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
+              <br />
+              <button type="button" onClick={handleSaveCustomizedPlan}>
+                Save Customized Plan
+              </button>
+            </form>
           </div>
-          <div className="col-md-4">
-            <ProgressCard userProgress={userProgress} />
+        ) : (
+          <div>
+            <h2>Recommended Study Plan</h2>
+            {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
+            <button type="button" onClick={handleCustomizePlan}>
+              Customize Your Study Plan
+            </button>
           </div>
-          <div className="col-md-4">
-            <CommunityCard />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard />
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Recommended Plan</h5>
-                <p className="card-text">{recommendedPlan && recommendedPlan.name}</p>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Personalized Plan</h5>
-                <p className="card-text">{personalizedPlan && personalizedPlan.name}</p>
-                <button className="btn btn-primary" onClick={handlePlanRecommendationEngine}>
-                  Get Personalized Plan
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Customized Plan</h5>
-                <p className="card-text">{customizedPlan && customizedPlan.name}</p>
-                <button className="btn btn-primary" onClick={handleCustomizationOptions}>
-                  Get Customized Plan
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Learning Plan Recommendations</h5>
-                <ul>
-                  {learningPlanRecommendations.map((recommendation, index) => (
-                    <li key={index}>{recommendation.name}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
+        <ProgressCard progress={userProgress} />
+        <CommunityCard />
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );

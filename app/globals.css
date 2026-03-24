@@ -51,6 +51,10 @@
   --focus-box-shadow-large: 0 0 0 4px #3498db;
   --font-size-increase: 1.2;
   --font-size-decrease: 0.8;
+  --font-size-increase-large: 1.5;
+  --font-size-decrease-small: 0.6;
+  --font-size-increase-extra-large: 2;
+  --font-size-decrease-extra-small: 0.4;
 }
 
 @media (prefers-contrast: high) {
@@ -91,42 +95,91 @@
     --link-hover-color: var(--very-high-contrast-link-hover-color);
     --button-color: var(--very-high-contrast-button-color);
     --button-hover-color: var(--very-high-contrast-button-hover-color);
+    --focus-color: #000;
+    --focus-background-color: #fff;
+    --focus-box-shadow: 0 0 0 2px #000;
+    --focus-box-shadow-large: 0 0 0 4px #000;
   }
 }
 
 @media (prefers-contrast: less) {
   :root {
-    --text-color: var(--super-high-contrast-text-color);
-    --background-color: var(--super-high-contrast-background-color);
-    --link-color: var(--super-high-contrast-link-color);
-    --link-hover-color: var(--super-high-contrast-link-hover-color);
-    --button-color: var(--super-high-contrast-button-color);
-    --button-hover-color: var(--super-high-contrast-button-hover-color);
+    --text-color: var(--low-contrast-text-color);
+    --background-color: var(--low-contrast-background-color);
+    --link-color: var(--low-contrast-link-color);
+    --link-hover-color: var(--low-contrast-link-hover-color);
+    --button-color: var(--low-contrast-button-color);
+    --button-hover-color: var(--low-contrast-button-hover-color);
+    --focus-color: #888;
+    --focus-background-color: #ccc;
+    --focus-box-shadow: 0 0 0 2px #888;
+    --focus-box-shadow-large: 0 0 0 4px #888;
   }
 }
 
-@media (prefers-font-size: large) {
+@media (prefers-color-scheme: dark) {
   :root {
-    --font-size: calc(var(--font-size) * var(--font-size-increase));
-    --font-size-small: calc(var(--font-size-small) * var(--font-size-increase));
-    --font-size-large: calc(var(--font-size-large) * var(--font-size-increase));
-    --font-size-extra-large: calc(var(--font-size-extra-large) * var(--font-size-increase));
-    --font-size-extra-extra-large: calc(var(--font-size-extra-extra-large) * var(--font-size-increase));
-    --font-size-very-small: calc(var(--font-size-very-small) * var(--font-size-increase));
-    --font-size-huge: calc(var(--font-size-huge) * var(--font-size-increase));
-    --font-size-gigantic: calc(var(--font-size-gigantic) * var(--font-size-increase));
+    --text-color: var(--dark-text-color);
+    --background-color: var(--dark-background-color);
+    --link-color: #66d9ef;
+    --link-hover-color: #44a0e6;
+    --button-color: #66d9ef;
+    --button-hover-color: #44a0e6;
+    --focus-color: #66d9ef;
+    --focus-background-color: #333;
+    --focus-box-shadow: 0 0 0 2px #66d9ef;
+    --focus-box-shadow-large: 0 0 0 4px #66d9ef;
   }
 }
 
-@media (prefers-font-size: small) {
-  :root {
-    --font-size: calc(var(--font-size) * var(--font-size-decrease));
-    --font-size-small: calc(var(--font-size-small) * var(--font-size-decrease));
-    --font-size-large: calc(var(--font-size-large) * var(--font-size-decrease));
-    --font-size-extra-large: calc(var(--font-size-extra-large) * var(--font-size-decrease));
-    --font-size-extra-extra-large: calc(var(--font-size-extra-extra-large) * var(--font-size-decrease));
-    --font-size-very-small: calc(var(--font-size-very-small) * var(--font-size-decrease));
-    --font-size-huge: calc(var(--font-size-huge) * var(--font-size-decrease));
-    --font-size-gigantic: calc(var(--font-size-gigantic) * var(--font-size-decrease));
-  }
+.font-size-small {
+  font-size: var(--font-size-small);
+}
+
+.font-size-large {
+  font-size: var(--font-size-large);
+}
+
+.font-size-extra-large {
+  font-size: var(--font-size-extra-large);
+}
+
+.font-size-extra-extra-large {
+  font-size: var(--font-size-extra-extra-large);
+}
+
+.font-size-very-small {
+  font-size: var(--font-size-very-small);
+}
+
+.font-size-huge {
+  font-size: var(--font-size-huge);
+}
+
+.font-size-gigantic {
+  font-size: var(--font-size-gigantic);
+}
+
+.font-size-increase {
+  font-size: calc(1em * var(--font-size-increase));
+}
+
+.font-size-decrease {
+  font-size: calc(1em * var(--font-size-decrease));
+}
+
+.font-size-increase-large {
+  font-size: calc(1em * var(--font-size-increase-large));
+}
+
+.font-size-decrease-small {
+  font-size: calc(1em * var(--font-size-decrease-small));
+}
+
+.font-size-increase-extra-large {
+  font-size: calc(1em * var(--font-size-increase-extra-large));
+}
+
+.font-size-decrease-extra-small {
+  font-size: calc(1em * var(--font-size-decrease-extra-small));
 }
