@@ -14,9 +14,6 @@
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
   --focus-box-shadow: 0 0 0 2px #3498db;
-}
-
-:root {
   --font-size-small: calc(var(--font-size-base) * 0.8);
   --font-size-large: calc(var(--font-size-base) * var(--font-size-ratio));
   --font-size-extra-large: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio));
@@ -58,3 +55,46 @@
     --focus-box-shadow-large: 0 0 0 4px #888;
   }
 }
+
+/* Optimizations for better page load times and search engine ranking */
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--link-hover-color);
+}
+
+button {
+  background-color: var(--button-color);
+  color: var(--text-color);
+  border: none;
+  padding: 10px 20px;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--button-hover-color);
+}
+
+button:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
+}
+
+button:focus:hover {
+  box-shadow: var(--focus-box-shadow-large);
+}
+
+/* Minify and compress CSS to reduce file size */
+/* Use a preprocessor like PostCSS to optimize CSS for production */

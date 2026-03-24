@@ -77,50 +77,62 @@ export default function CommunityPage() {
       } else if (filterBy === 'mine') {
         return post.author.id === user?.id;
       } else {
-        return false;
+        return post.category === filterBy;
       }
     });
-    setFilteredPosts(filteredBy);
-  }, [posts, searchQuery, sortOrder, filterBy, user]);
+    setFilteredPosts(filteredBy.slice(0, pageNumber * postsPerPage));
+  }, [posts, searchQuery, sortOrder, filterBy, pageNumber, postsPerPage]);
 
   const handleScroll = () => {
     const scrollPosition = window.scrollY + window.innerHeight;
-    const height = document.body.offsetHeight;
-    if (scrollPosition >= height * 0.9 && hasMorePosts && !loadingMorePosts) {
-      loadMorePosts();
-    }
-  };
-
-  const loadMorePosts = async () => {
-    setLoadingMorePosts(true);
-    try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          pageNumber: pageNumber + 1,
-          postsPerPage,
-          lastPostId,
-        },
-      });
-      const newPosts = response.data;
-      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
-      setLastPostId(newPosts[newPosts.length - 1].id);
-      setPageNumber((prevPageNumber) => prevPageNumber + 1);
-      if (newPosts.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
+    const documentHeight = document.body.offsetHeight;
+    if (scrollPosition >= documentHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+      setLoadingMorePosts(true);
+      setPageNumber(pageNumber + 1);
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts]);
+  }, [hasMorePosts, loadingMorePosts, pageNumber]);
+
+  useEffect(() => {
+    if (pageNumber > 1) {
+      const filtered = posts.filter((post) => {
+        const query = searchQuery.toLowerCase();
+        const title = post.title.toLowerCase();
+        const content = post.content.toLowerCase();
+        return (
+          title.includes(query) ||
+          content.includes(query) ||
+          query === ''
+        );
+      });
+      const sorted = filtered.sort((a, b) => {
+        if (sortOrder === 'newest') {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        } else if (sortOrder === 'oldest') {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        } else {
+          return 0;
+        }
+      });
+      const filteredBy = sorted.filter((post) => {
+        if (filterBy === 'all') {
+          return true;
+        } else if (filterBy === 'mine') {
+          return post.author.id === user?.id;
+        } else {
+          return post.category === filterBy;
+        }
+      });
+      setFilteredPosts([...filteredPosts, ...filteredBy.slice((pageNumber - 1) * postsPerPage, pageNumber * postsPerPage)]);
+      setLoadingMorePosts(false);
+    }
+  }, [pageNumber, postsPerPage, filteredPosts, hasMorePosts, loadingMorePosts]);
 
   return (
-    // your JSX code here
+    // existing JSX code
   );
 }
