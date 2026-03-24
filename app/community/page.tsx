@@ -77,38 +77,31 @@ export default function CommunityPage() {
     setFilteredPosts(sorted);
   }, [posts, searchQuery, sortOrder]);
 
-  const handleScroll = () => {
-    const scrollHeight = document.documentElement.scrollHeight;
-    const clientHeight = document.documentElement.clientHeight;
-    const scrollTop = document.documentElement.scrollTop;
-    if (scrollHeight - clientHeight - scrollTop < 100 && hasMorePosts && !loadingMorePosts) {
-      loadMorePosts();
-    }
-  };
-
-  const loadMorePosts = async () => {
-    setLoadingMorePosts(true);
-    try {
-      const response = await axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`);
-      const newPosts = response.data;
-      if (newPosts.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
-      setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
-    }
-  };
-
   useEffect(() => {
+    const handleScroll = () => {
+      const scrollHeight = document.body.scrollHeight;
+      const scrollTop = document.body.scrollTop;
+      const clientHeight = document.body.clientHeight;
+      if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+        setLoadingMorePosts(true);
+        axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
+          .then(response => {
+            const newPosts = response.data;
+            setPosts([...posts, ...newPosts]);
+            setHasMorePosts(newPosts.length === postsPerPage);
+            setLoadingMorePosts(false);
+          })
+          .catch(error => {
+            console.error(error);
+            setLoadingMorePosts(false);
+          });
+      }
+    };
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [hasMorePosts, loadingMorePosts]);
+  }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
 
   return (
     // your JSX code here

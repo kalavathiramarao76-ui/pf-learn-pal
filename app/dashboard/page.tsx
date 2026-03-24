@@ -76,45 +76,48 @@ export default function DashboardPage() {
             userId: user.id,
             progress: user.progress,
             goals: user.goals,
-            learningStyle: user.learningStyle,
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data);
+        setRecommendedPlan(data.recommendedPlan);
+        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
   useEffect(() => {
-    if (user) {
-      const loadAiModel = async () => {
-        const model = await tf.loadLayersModel('https://example.com/ai-model.json');
+    if (user && user.progress && user.goals) {
+      const trainAiModel = async () => {
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [3] }));
+        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+        model.compile({ optimizer: tf.optimizers.adam(), loss: 'meanSquaredError' });
+        const trainingData = [
+          [user.progress.completedLessons, user.progress.totalLessons, user.progress.progressPercentage],
+          [user.goals.learningStyle, user.goals.knowledgeLevel, user.goals.goals],
+        ];
+        const labels = [1, 0];
+        const tensorData = tf.tensor2d(trainingData, [trainingData.length, 3]);
+        const tensorLabels = tf.tensor1d(labels);
+        await model.fit(tensorData, tensorLabels, { epochs: 100 });
         setAiModel(model);
       };
-      loadAiModel();
+      trainAiModel();
     }
   }, [user]);
 
   useEffect(() => {
     if (aiModel) {
-      const getAiRecommendations = async () => {
-        const input = tf.tensor2d([user.progress, user.goals, user.learningStyle], [1, 3]);
-        const output = aiModel.predict(input);
-        const recommendations = await output.data();
-        setLearningPlanRecommendations(recommendations);
+      const predictLearningPlan = async () => {
+        const inputData = tf.tensor2d([[user.progress.completedLessons, user.progress.totalLessons, user.progress.progressPercentage]]);
+        const prediction = aiModel.predict(inputData);
+        const predictedPlan = await prediction.data();
+        setPersonalizedPlan(predictedPlan);
       };
-      getAiRecommendations();
+      predictLearningPlan();
     }
   }, [aiModel, user]);
-
-  const handleCustomizePlan = () => {
-    setIsCustomizingPlan(true);
-  };
-
-  const handleSaveCustomizedPlan = () => {
-    setIsCustomizingPlan(false);
-  };
 
   return (
     <DashboardLayout>
@@ -122,107 +125,18 @@ export default function DashboardPage() {
         <h1>Personalized Learning Companion</h1>
         {user && (
           <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && (
-              <StudyPlanCard
-                name={recommendedPlan.name}
-                description={recommendedPlan.description}
-                link={recommendedPlan.link}
-              />
-            )}
-            <h2>AI-Powered Recommendations</h2>
-            {learningPlanRecommendations.length > 0 && (
-              <ul>
-                {learningPlanRecommendations.map((recommendation, index) => (
-                  <li key={index}>{recommendation}</li>
-                ))}
-              </ul>
-            )}
-            <h2>Study Plan Options</h2>
-            <ul>
-              {studyPlanOptions.map((option, index) => (
-                <li key={index}>
-                  <Link href={option.link}>
-                    <a>{option.name}</a>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <h2>Customize Your Plan</h2>
-            <button onClick={handleCustomizePlan}>Customize Plan</button>
-            {isCustomizingPlan && (
-              <div>
-                <h3>Customization Options</h3>
-                <form>
-                  <label>
-                    Learning Style:
-                    <select
-                      value={customizationOptions.learningStyle}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          learningStyle: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Select a learning style</option>
-                      <option value="visual">Visual</option>
-                      <option value="auditory">Auditory</option>
-                      <option value="kinesthetic">Kinesthetic</option>
-                    </select>
-                  </label>
-                  <label>
-                    Knowledge Level:
-                    <select
-                      value={customizationOptions.knowledgeLevel}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          knowledgeLevel: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Select a knowledge level</option>
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </select>
-                  </label>
-                  <label>
-                    Goals:
-                    <input
-                      type="text"
-                      value={customizationOptions.goals}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          goals: e.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Topics:
-                    <input
-                      type="text"
-                      value={customizationOptions.topics.join(', ')}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          topics: e.target.value.split(', '),
-                        })
-                      }
-                    />
-                  </label>
-                  <button onClick={handleSaveCustomizedPlan}>Save Customized Plan</button>
-                </form>
-              </div>
-            )}
+            <h2>Recommended Plan: {recommendedPlan}</h2>
+            <h2>Personalized Plan: {personalizedPlan}</h2>
+            <StudyPlanCard
+              studyPlanOptions={studyPlanOptions}
+              selectedStudyPlan={selectedStudyPlan}
+              setSelectedStudyPlan={setSelectedStudyPlan}
+            />
+            <ProgressCard userProgress={userProgress} />
+            <CommunityCard />
+            <ResourceCard />
           </div>
         )}
-        <ProgressCard progress={userProgress} />
-        <CommunityCard />
-        <ResourceCard />
       </div>
     </DashboardLayout>
   );
