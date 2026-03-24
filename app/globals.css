@@ -49,6 +49,8 @@
   --focus-background-color: #f2f2f2;
   --focus-box-shadow: 0 0 0 2px #3498db;
   --focus-box-shadow-large: 0 0 0 4px #3498db;
+  --font-size-increase: 1.2;
+  --font-size-decrease: 0.8;
 }
 
 @media (prefers-contrast: high) {
@@ -89,14 +91,10 @@
     --link-hover-color: var(--very-high-contrast-link-hover-color);
     --button-color: var(--very-high-contrast-button-color);
     --button-hover-color: var(--very-high-contrast-button-hover-color);
-    --focus-color: #000;
-    --focus-background-color: #fff;
-    --focus-box-shadow: 0 0 0 2px #000;
-    --focus-box-shadow-large: 0 0 0 4px #000;
   }
 }
 
-@media (prefers-contrast: super-high) {
+@media (prefers-contrast: less) {
   :root {
     --text-color: var(--super-high-contrast-text-color);
     --background-color: var(--super-high-contrast-background-color);
@@ -104,55 +102,31 @@
     --link-hover-color: var(--super-high-contrast-link-hover-color);
     --button-color: var(--super-high-contrast-button-color);
     --button-hover-color: var(--super-high-contrast-button-hover-color);
-    --focus-color: #000;
-    --focus-background-color: #fff;
-    --focus-box-shadow: 0 0 0 2px #000;
-    --focus-box-shadow-large: 0 0 0 4px #000;
-  }
-}
-
-@media (prefers-font-size: small) {
-  :root {
-    --font-size: var(--font-size-small);
-    --font-size-large: var(--font-size);
-    --font-size-extra-large: var(--font-size-large);
-    --font-size-extra-extra-large: var(--font-size-extra-large);
   }
 }
 
 @media (prefers-font-size: large) {
   :root {
-    --font-size: var(--font-size-large);
-    --font-size-small: var(--font-size);
-    --font-size-extra-large: var(--font-size-large);
-    --font-size-extra-extra-large: var(--font-size-extra-large);
+    --font-size: calc(var(--font-size) * var(--font-size-increase));
+    --font-size-small: calc(var(--font-size-small) * var(--font-size-increase));
+    --font-size-large: calc(var(--font-size-large) * var(--font-size-increase));
+    --font-size-extra-large: calc(var(--font-size-extra-large) * var(--font-size-increase));
+    --font-size-extra-extra-large: calc(var(--font-size-extra-extra-large) * var(--font-size-increase));
+    --font-size-very-small: calc(var(--font-size-very-small) * var(--font-size-increase));
+    --font-size-huge: calc(var(--font-size-huge) * var(--font-size-increase));
+    --font-size-gigantic: calc(var(--font-size-gigantic) * var(--font-size-increase));
   }
 }
 
-@media (prefers-font-size: extra-large) {
+@media (prefers-font-size: small) {
   :root {
-    --font-size: var(--font-size-extra-large);
-    --font-size-small: var(--font-size);
-    --font-size-large: var(--font-size-extra-large);
-    --font-size-extra-extra-large: var(--font-size-huge);
-  }
-}
-
-@media (prefers-font-size: extra-extra-large) {
-  :root {
-    --font-size: var(--font-size-extra-extra-large);
-    --font-size-small: var(--font-size);
-    --font-size-large: var(--font-size-extra-large);
-    --font-size-extra-large: var(--font-size-huge);
-  }
-}
-
-@media (prefers-font-size: gigantic) {
-  :root {
-    --font-size: var(--font-size-gigantic);
-    --font-size-small: var(--font-size);
-    --font-size-large: var(--font-size-extra-large);
-    --font-size-extra-large: var(--font-size-huge);
-    --font-size-extra-extra-large: var(--font-size-gigantic);
+    --font-size: calc(var(--font-size) * var(--font-size-decrease));
+    --font-size-small: calc(var(--font-size-small) * var(--font-size-decrease));
+    --font-size-large: calc(var(--font-size-large) * var(--font-size-decrease));
+    --font-size-extra-large: calc(var(--font-size-extra-large) * var(--font-size-decrease));
+    --font-size-extra-extra-large: calc(var(--font-size-extra-extra-large) * var(--font-size-decrease));
+    --font-size-very-small: calc(var(--font-size-very-small) * var(--font-size-decrease));
+    --font-size-huge: calc(var(--font-size-huge) * var(--font-size-decrease));
+    --font-size-gigantic: calc(var(--font-size-gigantic) * var(--font-size-decrease));
   }
 }
