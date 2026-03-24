@@ -71,17 +71,6 @@
   }
 }
 
-@media (prefers-contrast: no-preference) {
-  :root {
-    --text-color: var(--text-color);
-    --background-color: var(--background-color);
-    --link-color: var(--link-color);
-    --link-hover-color: var(--link-hover-color);
-    --button-color: var(--button-color);
-    --button-hover-color: var(--button-hover-color);
-  }
-}
-
 @media (prefers-contrast: more) {
   :root {
     --text-color: var(--very-high-contrast-text-color);
@@ -97,51 +86,20 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (min-width: 640px) {
   :root {
-    --transition-duration: 0s;
+    --font-size: 20px;
+    --font-size-small: 18px;
+    --font-size-large: 24px;
+    --font-size-extra-large: 28px;
   }
 }
 
-@media (prefers-font-size: small) {
+@media (min-width: 1280px) {
   :root {
-    --font-size: var(--font-size-small);
+    --font-size: 22px;
+    --font-size-small: 20px;
+    --font-size-large: 26px;
+    --font-size-extra-large: 30px;
   }
-}
-
-* {
-  outline: none;
-}
-
-*:focus {
-  outline: none;
-  box-shadow: var(--focus-box-shadow);
-}
-
-*:focus:hover {
-  box-shadow: var(--focus-box-shadow-large);
-}
-
-button:focus {
-  background-color: var(--focus-background-color);
-  color: var(--focus-color);
-}
-
-a:focus {
-  color: var(--focus-color);
-}
-
-input:focus {
-  border-color: var(--focus-color);
-  box-shadow: var(--focus-box-shadow);
-}
-
-textarea:focus {
-  border-color: var(--focus-color);
-  box-shadow: var(--focus-box-shadow);
-}
-
-select:focus {
-  border-color: var(--focus-color);
-  box-shadow: var(--focus-box-shadow);
 }

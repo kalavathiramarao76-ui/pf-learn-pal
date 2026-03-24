@@ -37,6 +37,7 @@ export default function CommunityPage() {
   const [postsPerPage, setPostsPerPage] = useState(10);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
+  const [filteredPosts, setFilteredPosts] = useState([]);
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -48,6 +49,38 @@ export default function CommunityPage() {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  useEffect(() => {
+    const filtered = posts.filter((post) => {
+      const query = searchQuery.toLowerCase();
+      const title = post.title.toLowerCase();
+      const content = post.content.toLowerCase();
+      return (
+        title.includes(query) ||
+        content.includes(query) ||
+        query === ''
+      );
+    });
+    const sorted = filtered.sort((a, b) => {
+      if (sortOrder === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (sortOrder === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
+      }
+    });
+    const filteredBy = sorted.filter((post) => {
+      if (filterBy === 'all') {
+        return true;
+      } else if (filterBy === 'mine') {
+        return post.author.id === user?.id;
+      } else {
+        return post.category === filterBy;
+      }
+    });
+    setFilteredPosts(filteredBy);
+  }, [posts, searchQuery, sortOrder, filterBy]);
 
   const validatePost = (post: string) => {
     if (post.length > characterLimit) {
@@ -89,167 +122,81 @@ export default function CommunityPage() {
         setPosts(updatedPosts);
         setIsEditingLoading(false);
         setIsEditing(false);
-        setSuccess('Post updated successfully');
       } else {
         const newPost = {
-          id: Date.now(),
+          id: Math.random().toString(36).substr(2, 9),
+          title: '',
           content: editorValue,
           author: user,
+          createdAt: new Date(),
         };
-        setPosts([newPost, ...posts]);
+        setPosts((prevPosts) => [...prevPosts, newPost]);
         setEditorValue('');
-        setCharacterCount(0);
-        setSuccess('Post created successfully');
       }
     }
   };
 
-  const handleReportSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateReport()) {
-      setIsReportingLoading(true);
-      const reportData = {
-        postId: reportingPost.id,
-        reason: reportReason,
-        description: reportDescription,
-      };
-      axios.post('/api/reports', reportData)
-        .then((response) => {
-          setIsReportingLoading(false);
-          setIsReporting(false);
-          setSuccess('Report submitted successfully');
-        })
-        .catch((error) => {
-          setIsReportingLoading(false);
-          setError('Error submitting report');
-        });
-    }
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
-  const handleEditPost = (post: any) => {
-    setEditingPost(post);
-    setEditorValue(post.content);
-    setIsEditing(true);
+  const handleSort = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOrder(e.target.value);
   };
 
-  const handleReportPost = (post: any) => {
-    setReportingPost(post);
-    setIsReporting(true);
+  const handleFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilterBy(e.target.value);
   };
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditingPost(null);
-    setEditorValue('');
-  };
-
-  const handleCancelReport = () => {
-    setIsReporting(false);
-    setReportingPost(null);
-    setReportReason('');
-    setReportDescription('');
+  const handleLoadMore = () => {
+    setLoadingMorePosts(true);
+    setPageNumber((prevPage) => prevPage + 1);
+    setLoadingMorePosts(false);
   };
 
   return (
     <div>
       <h1>Community Page</h1>
-      {user && (
+      <input
+        type="search"
+        value={searchQuery}
+        onChange={handleSearch}
+        placeholder="Search posts"
+      />
+      <select value={sortOrder} onChange={handleSort}>
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+      </select>
+      <select value={filterBy} onChange={handleFilter}>
+        <option value="all">All</option>
+        <option value="mine">My posts</option>
+        <option value="category1">Category 1</option>
+        <option value="category2">Category 2</option>
+      </select>
+      <button onClick={handleLoadMore}>Load more</button>
+      {filteredPosts.map((post) => (
+        <div key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.content}</p>
+          <p>Author: {post.author.name}</p>
+          <p>Created at: {post.createdAt}</p>
+        </div>
+      ))}
+      {loadingMorePosts && <p>Loading more posts...</p>}
+      {hasMorePosts && <p>No more posts to load.</p>}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+      >
         <form onSubmit={handlePostSubmit}>
           <ReactQuill
             value={editorValue}
-            onChange={(value) => {
-              setEditorValue(value);
-              setCharacterCount(value.length);
-            }}
-            placeholder="Write a post..."
+            onChange={setEditorValue}
+            placeholder="Write a post"
           />
-          <p>Character count: {characterCount} / {characterLimit}</p>
-          <button type="submit" disabled={isEditingLoading}>
-            {isEditingLoading ? 'Posting...' : 'Post'}
-          </button>
-          {isEditing && (
-            <button type="button" onClick={handleCancelEdit}>
-              Cancel
-            </button>
-          )}
+          <button type="submit">Submit</button>
         </form>
-      )}
-      {posts.map((post) => (
-        <div key={post.id}>
-          <p>{post.content}</p>
-          <p>Author: {post.author}</p>
-          <button onClick={() => handleEditPost(post)}>
-            <FaEdit /> Edit
-          </button>
-          <button onClick={() => handleReportPost(post)}>
-            <FiFlag /> Report
-          </button>
-        </div>
-      ))}
-      {isEditing && (
-        <Modal
-          isOpen={true}
-          onRequestClose={handleCancelEdit}
-          contentLabel="Edit Post"
-        >
-          <h2>Edit Post</h2>
-          <form onSubmit={handlePostSubmit}>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => {
-                setEditorValue(value);
-                setCharacterCount(value.length);
-              }}
-              placeholder="Write a post..."
-            />
-            <p>Character count: {characterCount} / {characterLimit}</p>
-            <button type="submit" disabled={isEditingLoading}>
-              {isEditingLoading ? 'Updating...' : 'Update'}
-            </button>
-            <button type="button" onClick={handleCancelEdit}>
-              Cancel
-            </button>
-          </form>
-        </Modal>
-      )}
-      {isReporting && (
-        <Modal
-          isOpen={true}
-          onRequestClose={handleCancelReport}
-          contentLabel="Report Post"
-        >
-          <h2>Report Post</h2>
-          <form onSubmit={handleReportSubmit}>
-            <label>
-              Reason:
-              <select
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-              >
-                <option value="">Select a reason</option>
-                <option value="spam">Spam</option>
-                <option value="harassment">Harassment</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-            <label>
-              Description:
-              <textarea
-                value={reportDescription}
-                onChange={(e) => setReportDescription(e.target.value)}
-              />
-            </label>
-            <button type="submit" disabled={isReportingLoading}>
-              {isReportingLoading ? 'Reporting...' : 'Report'}
-            </button>
-            <button type="button" onClick={handleCancelReport}>
-              Cancel
-            </button>
-          </form>
-        </Modal>
-      )}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
+      </Modal>
     </div>
   );
 }
