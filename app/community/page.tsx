@@ -38,6 +38,7 @@ export default function CommunityPage() {
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
   const [filteredPosts, setFilteredPosts] = useState([]);
+  const [lastPostId, setLastPostId] = useState(null);
 
   useEffect(() => {
     const storedPosts = getValue('communityPosts');
@@ -79,31 +80,45 @@ export default function CommunityPage() {
         return false;
       }
     });
-    setFilteredPosts(filteredBy.slice(0, pageNumber * postsPerPage));
-  }, [posts, searchQuery, sortOrder, filterBy, pageNumber, postsPerPage, user]);
+    setFilteredPosts(filteredBy);
+  }, [posts, searchQuery, sortOrder, filterBy, user]);
 
   const handleScroll = () => {
     const scrollPosition = window.scrollY + window.innerHeight;
     const height = document.body.offsetHeight;
     if (scrollPosition >= height * 0.9 && hasMorePosts && !loadingMorePosts) {
-      setLoadingMorePosts(true);
-      setPageNumber(pageNumber + 1);
+      loadMorePosts();
+    }
+  };
+
+  const loadMorePosts = async () => {
+    setLoadingMorePosts(true);
+    try {
+      const response = await axios.get('/api/posts', {
+        params: {
+          pageNumber: pageNumber + 1,
+          postsPerPage,
+          lastPostId,
+        },
+      });
+      const newPosts = response.data;
+      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
+      setLastPostId(newPosts[newPosts.length - 1].id);
+      setPageNumber((prevPageNumber) => prevPageNumber + 1);
+      if (newPosts.length < postsPerPage) {
+        setHasMorePosts(false);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingMorePosts(false);
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, pageNumber]);
-
-  useEffect(() => {
-    if (pageNumber * postsPerPage >= posts.length) {
-      setHasMorePosts(false);
-    } else {
-      setHasMorePosts(true);
-    }
-    setLoadingMorePosts(false);
-  }, [pageNumber, postsPerPage, posts]);
+  }, [hasMorePosts, loadingMorePosts]);
 
   return (
     // your JSX code here

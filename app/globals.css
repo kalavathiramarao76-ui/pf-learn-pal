@@ -4,67 +4,39 @@
 
 :root {
   --font-family: 'Inter', sans-serif;
-  --font-size: 18px;
-  --font-size-small: 16px;
-  --font-size-large: 20px;
-  --font-size-extra-large: 24px;
-  --font-size-extra-extra-large: 30px;
-  --font-size-very-small: 12px;
-  --font-size-huge: 36px;
-  --font-size-gigantic: 48px;
+  --font-size-base: 18px;
+  --font-size-ratio: 1.2;
   --line-height: 1.6;
   --text-color: #333;
   --background-color: #f7f7f7;
-  --dark-text-color: #fff;
-  --dark-background-color: #333;
   --link-color: #3498db;
-  --link-hover-color: #2c6f9e;
   --button-color: #3498db;
-  --button-hover-color: #2c6f9e;
-  --high-contrast-text-color: #000;
-  --high-contrast-background-color: #fff;
-  --high-contrast-link-color: #00698f;
-  --high-contrast-link-hover-color: #004c6f;
-  --high-contrast-button-color: #00698f;
-  --high-contrast-button-hover-color: #004c6f;
-  --low-contrast-text-color: #666;
-  --low-contrast-background-color: #ccc;
-  --low-contrast-link-color: #888;
-  --low-contrast-link-hover-color: #777;
-  --low-contrast-button-color: #888;
-  --low-contrast-button-hover-color: #777;
-  --very-high-contrast-text-color: #000;
-  --very-high-contrast-background-color: #fff;
-  --very-high-contrast-link-color: #000;
-  --very-high-contrast-link-hover-color: #000;
-  --very-high-contrast-button-color: #000;
-  --very-high-contrast-button-hover-color: #000;
-  --super-high-contrast-text-color: #000;
-  --super-high-contrast-background-color: #fff;
-  --super-high-contrast-link-color: #000;
-  --super-high-contrast-link-hover-color: #000;
-  --super-high-contrast-button-color: #000;
-  --super-high-contrast-button-hover-color: #000;
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
   --focus-box-shadow: 0 0 0 2px #3498db;
+}
+
+:root {
+  --font-size-small: calc(var(--font-size-base) * 0.8);
+  --font-size-large: calc(var(--font-size-base) * var(--font-size-ratio));
+  --font-size-extra-large: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio));
+  --font-size-extra-extra-large: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio));
+  --font-size-very-small: calc(var(--font-size-base) * 0.6);
+  --font-size-huge: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio));
+  --font-size-gigantic: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio));
+  --link-hover-color: #2c6f9e;
+  --button-hover-color: #2c6f9e;
   --focus-box-shadow-large: 0 0 0 4px #3498db;
-  --font-size-increase: 1.2;
-  --font-size-decrease: 0.8;
-  --font-size-increase-large: 1.5;
-  --font-size-decrease-small: 0.6;
-  --font-size-increase-extra-large: 2;
-  --font-size-decrease-extra-small: 0.4;
 }
 
 @media (prefers-contrast: high) {
   :root {
-    --text-color: var(--high-contrast-text-color);
-    --background-color: var(--high-contrast-background-color);
-    --link-color: var(--high-contrast-link-color);
-    --link-hover-color: var(--high-contrast-link-hover-color);
-    --button-color: var(--high-contrast-button-color);
-    --button-hover-color: var(--high-contrast-button-hover-color);
+    --text-color: #000;
+    --background-color: #fff;
+    --link-color: #00698f;
+    --link-hover-color: #004c6f;
+    --button-color: #00698f;
+    --button-hover-color: #004c6f;
     --focus-color: #00698f;
     --focus-background-color: #fff;
     --focus-box-shadow: 0 0 0 2px #00698f;
@@ -74,112 +46,15 @@
 
 @media (prefers-contrast: low) {
   :root {
-    --text-color: var(--low-contrast-text-color);
-    --background-color: var(--low-contrast-background-color);
-    --link-color: var(--low-contrast-link-color);
-    --link-hover-color: var(--low-contrast-link-hover-color);
-    --button-color: var(--low-contrast-button-color);
-    --button-hover-color: var(--low-contrast-button-hover-color);
+    --text-color: #666;
+    --background-color: #ccc;
+    --link-color: #888;
+    --link-hover-color: #777;
+    --button-color: #888;
+    --button-hover-color: #777;
     --focus-color: #888;
     --focus-background-color: #ccc;
     --focus-box-shadow: 0 0 0 2px #888;
     --focus-box-shadow-large: 0 0 0 4px #888;
   }
-}
-
-@media (prefers-contrast: more) {
-  :root {
-    --text-color: var(--very-high-contrast-text-color);
-    --background-color: var(--very-high-contrast-background-color);
-    --link-color: var(--very-high-contrast-link-color);
-    --link-hover-color: var(--very-high-contrast-link-hover-color);
-    --button-color: var(--very-high-contrast-button-color);
-    --button-hover-color: var(--very-high-contrast-button-hover-color);
-    --focus-color: #000;
-    --focus-background-color: #fff;
-    --focus-box-shadow: 0 0 0 2px #000;
-    --focus-box-shadow-large: 0 0 0 4px #000;
-  }
-}
-
-@media (prefers-contrast: less) {
-  :root {
-    --text-color: var(--low-contrast-text-color);
-    --background-color: var(--low-contrast-background-color);
-    --link-color: var(--low-contrast-link-color);
-    --link-hover-color: var(--low-contrast-link-hover-color);
-    --button-color: var(--low-contrast-button-color);
-    --button-hover-color: var(--low-contrast-button-hover-color);
-    --focus-color: #888;
-    --focus-background-color: #ccc;
-    --focus-box-shadow: 0 0 0 2px #888;
-    --focus-box-shadow-large: 0 0 0 4px #888;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-color: var(--dark-text-color);
-    --background-color: var(--dark-background-color);
-    --link-color: #66d9ef;
-    --link-hover-color: #44a0e6;
-    --button-color: #66d9ef;
-    --button-hover-color: #44a0e6;
-    --focus-color: #66d9ef;
-    --focus-background-color: #333;
-    --focus-box-shadow: 0 0 0 2px #66d9ef;
-    --focus-box-shadow-large: 0 0 0 4px #66d9ef;
-  }
-}
-
-.font-size-small {
-  font-size: var(--font-size-small);
-}
-
-.font-size-large {
-  font-size: var(--font-size-large);
-}
-
-.font-size-extra-large {
-  font-size: var(--font-size-extra-large);
-}
-
-.font-size-extra-extra-large {
-  font-size: var(--font-size-extra-extra-large);
-}
-
-.font-size-very-small {
-  font-size: var(--font-size-very-small);
-}
-
-.font-size-huge {
-  font-size: var(--font-size-huge);
-}
-
-.font-size-gigantic {
-  font-size: var(--font-size-gigantic);
-}
-
-.font-size-increase {
-  font-size: calc(1em * var(--font-size-increase));
-}
-
-.font-size-decrease {
-  font-size: calc(1em * var(--font-size-decrease));
-}
-
-.font-size-increase-large {
-  font-size: calc(1em * var(--font-size-increase-large));
-}
-
-.font-size-decrease-small {
-  font-size: calc(1em * var(--font-size-decrease-small));
-}
-
-.font-size-increase-extra-large {
-  font-size: calc(1em * var(--font-size-increase-extra-large));
-}
-
-.font-size-decrease-extra-small {
-  font-size: calc(1em * var(--font-size-decrease-extra-small));
 }
