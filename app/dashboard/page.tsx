@@ -78,102 +78,101 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data);
+        setRecommendedPlan(data.recommendedPlan);
+        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const handleCustomizePlan = () => {
-    setIsCustomizingPlan(true);
+  const getPersonalizedPlanRecommendation = async () => {
+    const response = await fetch('/api/personalized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        progress: userProgress,
+        goals: user.goals,
+        learningStyle: user.learningStyle,
+      }),
+    });
+    const data = await response.json();
+    setPersonalizedPlan(data.personalizedPlan);
   };
 
-  const handleSaveCustomizedPlan = () => {
-    setIsCustomizingPlan(false);
+  useEffect(() => {
+    if (user && userProgress) {
+      getPersonalizedPlanRecommendation();
+    }
+  }, [user, userProgress]);
+
+  const updatePlanRecommendationEngine = async () => {
+    const response = await fetch('/api/update-plan-recommendation-engine', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        algorithm: planRecommendationEngine.algorithm,
+        parameters: planRecommendationEngine.parameters,
+      }),
+    });
+    const data = await response.json();
+    setPlanRecommendationEngine(data.planRecommendationEngine);
   };
+
+  useEffect(() => {
+    if (user) {
+      updatePlanRecommendationEngine();
+    }
+  }, [user, planRecommendationEngine]);
 
   return (
     <DashboardLayout>
-      <div className="dashboard-container">
-        <div className="header-section">
-          <h1>Personalized Learning Companion</h1>
-          <p>Get started with your customized learning plan</p>
-          <button onClick={handleCustomizePlan}>Customize Your Plan</button>
-        </div>
-        {isCustomizingPlan && (
-          <div className="customization-section">
-            <h2>Customize Your Learning Plan</h2>
-            <form>
-              <label>Learning Style:</label>
-              <select
-                value={customizationOptions.learningStyle}
-                onChange={(e) =>
-                  setCustomizationOptions({
-                    ...customizationOptions,
-                    learningStyle: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Learning Style</option>
-                <option value="visual">Visual</option>
-                <option value="auditory">Auditory</option>
-                <option value="kinesthetic">Kinesthetic</option>
-              </select>
-              <label>Knowledge Level:</label>
-              <select
-                value={customizationOptions.knowledgeLevel}
-                onChange={(e) =>
-                  setCustomizationOptions({
-                    ...customizationOptions,
-                    knowledgeLevel: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Knowledge Level</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-              <label>Goals:</label>
-              <input
-                type="text"
-                value={customizationOptions.goals}
-                onChange={(e) =>
-                  setCustomizationOptions({
-                    ...customizationOptions,
-                    goals: e.target.value,
-                  })
-                }
-              />
-              <label>Topics:</label>
-              <input
-                type="text"
-                value={customizationOptions.topics.join(', ')}
-                onChange={(e) =>
-                  setCustomizationOptions({
-                    ...customizationOptions,
-                    topics: e.target.value.split(', '),
-                  })
-                }
-              />
-              <button onClick={handleSaveCustomizedPlan}>Save Customized Plan</button>
-            </form>
+      <div className="container">
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+              link={recommendedPlan ? recommendedPlan.link : '#'}
+            />
           </div>
-        )}
-        <div className="cards-section">
-          <StudyPlanCard
-            title="Recommended Plan"
-            description="Based on your learning style and goals"
-            plan={recommendedPlan}
-          />
-          <ProgressCard
-            title="Your Progress"
-            completedLessons={userProgress.completedLessons}
-            totalLessons={userProgress.totalLessons}
-            progressPercentage={userProgress.progressPercentage}
-          />
-          <CommunityCard title="Join Our Community" />
-          <ResourceCard title="Additional Resources" />
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Plan"
+              description={personalizedPlan ? personalizedPlan.description : 'No plan generated'}
+              link={personalizedPlan ? personalizedPlan.link : '#'}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="User Progress"
+              progressPercentage={userProgress.progressPercentage}
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <CommunityCard title="Community" />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard title="Resources" />
+          </div>
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Plan Recommendation Engine</h5>
+                <p className="card-text">Algorithm: {planRecommendationEngine.algorithm}</p>
+                <p className="card-text">Parameters: {JSON.stringify(planRecommendationEngine.parameters)}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>

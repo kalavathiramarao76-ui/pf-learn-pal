@@ -8,6 +8,7 @@
   --font-size-small: 16px;
   --font-size-large: 20px;
   --font-size-extra-large: 24px;
+  --font-size-extra-extra-large: 30px;
   --line-height: 1.6;
   --text-color: #333;
   --background-color: #f7f7f7;
@@ -39,6 +40,8 @@
   --focus-background-color: #f2f2f2;
   --focus-box-shadow: 0 0 0 2px #3498db;
   --focus-box-shadow-large: 0 0 0 4px #3498db;
+  --font-size-very-small: 12px;
+  --font-size-huge: 36px;
 }
 
 @media (prefers-contrast: high) {
@@ -86,20 +89,77 @@
   }
 }
 
-@media (min-width: 640px) {
+@media (prefers-color-scheme: dark) {
   :root {
-    --font-size: 20px;
-    --font-size-small: 18px;
-    --font-size-large: 24px;
-    --font-size-extra-large: 28px;
+    --text-color: var(--dark-text-color);
+    --background-color: var(--dark-background-color);
   }
 }
 
-@media (min-width: 1280px) {
+@media (prefers-color-scheme: light) {
   :root {
-    --font-size: 22px;
-    --font-size-small: 20px;
-    --font-size-large: 26px;
-    --font-size-extra-large: 30px;
+    --text-color: #333;
+    --background-color: #f7f7f7;
   }
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+a {
+  color: var(--link-color);
+}
+
+a:hover {
+  color: var(--link-hover-color);
+}
+
+button {
+  background-color: var(--button-color);
+  color: var(--text-color);
+}
+
+button:hover {
+  background-color: var(--button-hover-color);
+}
+
+:focus {
+  outline: var(--focus-box-shadow);
+  box-shadow: var(--focus-box-shadow);
+  background-color: var(--focus-background-color);
+  color: var(--focus-color);
+}
+
+:focus-large {
+  outline: var(--focus-box-shadow-large);
+  box-shadow: var(--focus-box-shadow-large);
+}
+
+.small-text {
+  font-size: var(--font-size-small);
+}
+
+.large-text {
+  font-size: var(--font-size-large);
+}
+
+.extra-large-text {
+  font-size: var(--font-size-extra-large);
+}
+
+.extra-extra-large-text {
+  font-size: var(--font-size-extra-extra-large);
+}
+
+.very-small-text {
+  font-size: var(--font-size-very-small);
+}
+
+.huge-text {
+  font-size: var(--font-size-huge);
 }
