@@ -29,6 +29,10 @@
   --font-size-option-3: 20px;
   --font-size-option-4: 22px;
   --font-size-option-5: 24px;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+  --font-style-normal: normal;
+  --font-style-italic: italic;
 }
 
 @media (prefers-contrast: high) {
@@ -43,6 +47,8 @@
     --focus-background-color: #fff;
     --focus-box-shadow: 0 0 0 2px #00698f;
     --focus-box-shadow-large: 0 0 0 4px #00698f;
+    --font-weight-normal: 500;
+    --font-weight-bold: 900;
   }
 }
 
@@ -58,6 +64,8 @@
     --focus-background-color: #eee;
     --focus-box-shadow: 0 0 0 2px #005c99;
     --focus-box-shadow-large: 0 0 0 4px #005c99;
+    --font-weight-normal: 450;
+    --font-weight-bold: 800;
   }
 }
 
@@ -73,6 +81,8 @@
     --focus-background-color: #ccc;
     --focus-box-shadow: 0 0 0 2px #6699cc;
     --focus-box-shadow-large: 0 0 0 4px #6699cc;
+    --font-weight-normal: 350;
+    --font-weight-bold: 600;
   }
 }
 
@@ -88,6 +98,8 @@
     --focus-background-color: #f2f2f2;
     --focus-box-shadow: 0 0 0 2px #3498db;
     --focus-box-shadow-large: 0 0 0 4px #3498db;
+    --font-weight-normal: 400;
+    --font-weight-bold: 700;
   }
 }
 
@@ -95,45 +107,91 @@
   :root {
     --text-color: #fff;
     --background-color: #000;
-    --link-color: #ff69b4;
-    --link-hover-color: #ff99cc;
-    --button-color: #ff69b4;
-    --button-hover-color: #ff99cc;
-    --focus-color: #ff69b4;
+    --link-color: #fff;
+    --link-hover-color: #ccc;
+    --button-color: #fff;
+    --button-hover-color: #ccc;
+    --focus-color: #fff;
     --focus-background-color: #000;
-    --focus-box-shadow: 0 0 0 2px #ff69b4;
-    --focus-box-shadow-large: 0 0 0 4px #ff69b4;
+    --focus-box-shadow: 0 0 0 2px #fff;
+    --focus-box-shadow-large: 0 0 0 4px #fff;
+    --font-weight-normal: 500;
+    --font-weight-bold: 900;
   }
 }
 
-.font-size-option-1 {
-  font-size: var(--font-size-option-1);
+* {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--text-color);
+  background-color: var(--background-color);
 }
 
-.font-size-option-2 {
-  font-size: var(--font-size-option-2);
+a {
+  color: var(--link-color);
+  text-decoration: none;
 }
 
-.font-size-option-3 {
-  font-size: var(--font-size-option-3);
+a:hover {
+  color: var(--link-hover-color);
 }
 
-.font-size-option-4 {
-  font-size: var(--font-size-option-4);
+button {
+  color: var(--button-color);
+  background-color: var(--focus-background-color);
+  border: none;
+  padding: 10px 20px;
+  font-size: var(--font-size-base);
+  cursor: pointer;
 }
 
-.font-size-option-5 {
-  font-size: var(--font-size-option-5);
+button:hover {
+  color: var(--button-hover-color);
 }
 
-.high-contrast {
-  filter: invert(100%);
+button:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
 }
 
-.low-contrast {
-  filter: invert(50%);
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-box-shadow-large);
 }
 
-.normal-contrast {
-  filter: invert(0);
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-bold);
+}
+
+p {
+  font-weight: var(--font-weight-normal);
+}
+
+small {
+  font-size: var(--font-size-small);
+}
+
+large {
+  font-size: var(--font-size-large);
+}
+
+.xl {
+  font-size: var(--font-size-extra-large);
+}
+
+.xxl {
+  font-size: var(--font-size-extra-extra-large);
+}
+
+.very-small {
+  font-size: var(--font-size-very-small);
+}
+
+.huge {
+  font-size: var(--font-size-huge);
+}
+
+.gigantic {
+  font-size: var(--font-size-gigantic);
 }

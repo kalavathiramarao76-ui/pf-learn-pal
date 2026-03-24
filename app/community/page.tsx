@@ -71,40 +71,48 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
-      return 0;
     });
-    setFilteredPosts(sorted);
-  }, [posts, searchQuery, sortOrder]);
+    const filteredSorted = sorted.filter((post) => {
+      if (filterBy === 'all') {
+        return true;
+      } else if (filterBy === 'mine') {
+        return post.authorId === user?.id;
+      } else {
+        return post.category === filterBy;
+      }
+    });
+    setFilteredPosts(filteredSorted);
+  }, [posts, searchQuery, sortOrder, filterBy, user]);
+
+  const handleScroll = () => {
+    const scrollPosition = window.scrollY + window.innerHeight;
+    const documentHeight = document.body.offsetHeight;
+    if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
+      setLoadingMorePosts(true);
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+        .then(response => {
+          const newPosts = response.data;
+          setPosts([...posts, ...newPosts]);
+          setHasMorePosts(newPosts.length === postsPerPage);
+          setPageNumber(pageNumber + 1);
+          setLoadingMorePosts(false);
+        })
+        .catch(error => {
+          console.error(error);
+          setLoadingMorePosts(false);
+        });
+    }
+  };
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollHeight = document.body.offsetHeight;
-      const scrollTop = window.scrollY;
-      const clientHeight = window.innerHeight;
-      if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-        setLoadingMorePosts(true);
-        axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
-          .then(response => {
-            const newPosts = response.data;
-            setPosts([...posts, ...newPosts]);
-            setPageNumber(pageNumber + 1);
-            setHasMorePosts(newPosts.length === postsPerPage);
-            setLoadingMorePosts(false);
-          })
-          .catch(error => {
-            console.error(error);
-            setLoadingMorePosts(false);
-          });
-      }
-    };
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [hasMorePosts, loadingMorePosts, pageNumber, posts, postsPerPage]);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
 
   return (
-    // existing JSX code
+    // your JSX code here
   );
 }
