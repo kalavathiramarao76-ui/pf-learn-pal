@@ -72,43 +72,36 @@ export default function CommunityPage() {
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
       }
+      return 0;
     });
     setFilteredPosts(sorted);
   }, [posts, searchQuery, sortOrder]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const documentHeight = document.body.offsetHeight;
-      if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
-        loadMorePosts();
+      const scrollHeight = document.body.offsetHeight;
+      const scrollTop = window.scrollY;
+      const clientHeight = window.innerHeight;
+      if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+        setLoadingMorePosts(true);
+        axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
+          .then(response => {
+            const newPosts = response.data;
+            setPosts([...posts, ...newPosts]);
+            setHasMorePosts(newPosts.length === postsPerPage);
+            setLoadingMorePosts(false);
+          })
+          .catch(error => {
+            console.error(error);
+            setLoadingMorePosts(false);
+          });
       }
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts]);
-
-  const loadMorePosts = async () => {
-    setLoadingMorePosts(true);
-    try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          pageNumber: pageNumber + 1,
-          postsPerPage,
-          lastPostId,
-        },
-      });
-      const newPosts = response.data;
-      setPosts([...posts, ...newPosts]);
-      setLastPostId(newPosts[newPosts.length - 1].id);
-      setPageNumber(pageNumber + 1);
-      setHasMorePosts(newPosts.length === postsPerPage);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
-    }
-  };
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
 
   return (
     // your JSX code here

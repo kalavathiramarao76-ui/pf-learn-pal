@@ -71,6 +71,36 @@
   }
 }
 
+@media (prefers-contrast: no-preference) {
+  :root {
+    --text-color: #333;
+    --background-color: #f7f7f7;
+    --link-color: #3498db;
+    --link-hover-color: #2c6f9e;
+    --button-color: #3498db;
+    --button-hover-color: #2c6f9e;
+    --focus-color: #3498db;
+    --focus-background-color: #f2f2f2;
+    --focus-box-shadow: 0 0 0 2px #3498db;
+    --focus-box-shadow-large: 0 0 0 4px #3498db;
+  }
+}
+
+@media (prefers-contrast: forced) {
+  :root {
+    --text-color: #fff;
+    --background-color: #000;
+    --link-color: #ff69b4;
+    --link-hover-color: #ff99cc;
+    --button-color: #ff69b4;
+    --button-hover-color: #ff99cc;
+    --focus-color: #ff69b4;
+    --focus-background-color: #000;
+    --focus-box-shadow: 0 0 0 2px #ff69b4;
+    --focus-box-shadow-large: 0 0 0 4px #ff69b4;
+  }
+}
+
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
@@ -105,35 +135,4 @@ body.font-size-huge {
 
 body.font-size-gigantic {
   font-size: var(--font-size-gigantic);
-}
-
-a, a:link, a:visited {
-  color: var(--link-color);
-  text-decoration: none;
-}
-
-a:hover, a:active {
-  color: var(--link-hover-color);
-}
-
-button, input[type="button"], input[type="submit"] {
-  background-color: var(--button-color);
-  color: var(--text-color);
-  border: none;
-  padding: 10px 20px;
-  font-size: var(--font-size-base);
-  cursor: pointer;
-}
-
-button:hover, input[type="button"]:hover, input[type="submit"]:hover {
-  background-color: var(--button-hover-color);
-}
-
-button:focus, input[type="button"]:focus, input[type="submit"]:focus {
-  outline: none;
-  box-shadow: var(--focus-box-shadow);
-}
-
-button:focus:hover, input[type="button"]:focus:hover, input[type="submit"]:focus:hover {
-  box-shadow: var(--focus-box-shadow-large);
 }

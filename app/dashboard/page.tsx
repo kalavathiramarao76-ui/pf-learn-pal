@@ -78,52 +78,70 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data);
+        setRecommendedPlan(data.recommendedPlan);
+        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const handleRecommendedPlan = () => {
-    if (recommendedPlan) {
-      return (
-        <div className="recommended-plan-section">
-          <h2>Recommended Plan</h2>
-          <p>Based on your progress and goals, we recommend the following plan:</p>
-          <ul>
-            {recommendedPlan.map((plan, index) => (
-              <li key={index}>{plan.name}</li>
-            ))}
-          </ul>
-        </div>
-      );
-    } else {
-      return null;
-    }
+  const getPersonalizedPlanRecommendation = async () => {
+    const response = await fetch('/api/personalized-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        learningStyle: user.learningStyle,
+        knowledgeLevel: user.knowledgeLevel,
+        goals: user.goals,
+      }),
+    });
+    const data = await response.json();
+    setPersonalizedPlan(data.personalizedPlan);
+  };
+
+  const handlePlanRecommendation = () => {
+    getPersonalizedPlanRecommendation();
   };
 
   return (
     <DashboardLayout>
-      <div className="dashboard-page">
-        <div className="study-plan-section">
-          <h2>Study Plan Options</h2>
-          {studyPlanOptions.map((option, index) => (
-            <StudyPlanCard key={index} option={option} />
-          ))}
+      <div className="container">
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan?.description}
+              link={recommendedPlan?.link}
+            />
+          </div>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Plan"
+              description={personalizedPlan?.description}
+              link={personalizedPlan?.link}
+              onClick={handlePlanRecommendation}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+          </div>
         </div>
-        <div className="progress-section">
-          <h2>Progress</h2>
-          <ProgressCard progress={userProgress} />
+        <div className="row">
+          <div className="col-md-4">
+            <CommunityCard title="Join Our Community" link="/community" />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard title="Additional Resources" link="/resources" />
+          </div>
         </div>
-        <div className="community-section">
-          <h2>Community</h2>
-          <CommunityCard />
-        </div>
-        <div className="resource-section">
-          <h2>Resources</h2>
-          <ResourceCard />
-        </div>
-        {handleRecommendedPlan()}
       </div>
     </DashboardLayout>
   );
