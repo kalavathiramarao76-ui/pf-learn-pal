@@ -78,70 +78,101 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
-        setLearningPlanRecommendations(data.learningPlanRecommendations);
+        setRecommendedPlan(data);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const getPersonalizedPlanRecommendation = async () => {
-    const response = await fetch('/api/personalized-plan', {
+  const handleCustomizePlan = async () => {
+    setIsCustomizingPlan(true);
+    const response = await fetch('/api/customize-plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId: user.id,
-        learningStyle: user.learningStyle,
-        knowledgeLevel: user.knowledgeLevel,
-        goals: user.goals,
+        learningStyle: customizationOptions.learningStyle,
+        knowledgeLevel: customizationOptions.knowledgeLevel,
+        goals: customizationOptions.goals,
+        topics: customizationOptions.topics,
       }),
     });
     const data = await response.json();
-    setPersonalizedPlan(data.personalizedPlan);
+    setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
   };
 
-  const handlePlanRecommendation = () => {
-    getPersonalizedPlanRecommendation();
+  const handleUpdateCustomizationOptions = (option, value) => {
+    setCustomizationOptions((prevOptions) => ({ ...prevOptions, [option]: value }));
+  };
+
+  const handleAddTopic = (topic) => {
+    setCustomizationOptions((prevOptions) => ({ ...prevOptions, topics: [...prevOptions.topics, topic] }));
+  };
+
+  const handleRemoveTopic = (topic) => {
+    setCustomizationOptions((prevOptions) => ({ ...prevOptions, topics: prevOptions.topics.filter((t) => t !== topic) }));
   };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description={recommendedPlan?.description}
-              link={recommendedPlan?.link}
-            />
+        <h1>Personalized Learning Companion</h1>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard plan={recommendedPlan} />
+            )}
+            <h2>Customize Your Plan</h2>
+            <form>
+              <label>
+                Learning Style:
+                <select value={customizationOptions.learningStyle} onChange={(e) => handleUpdateCustomizationOptions('learningStyle', e.target.value)}>
+                  <option value="">Select a learning style</option>
+                  <option value="visual">Visual</option>
+                  <option value="auditory">Auditory</option>
+                  <option value="kinesthetic">Kinesthetic</option>
+                </select>
+              </label>
+              <label>
+                Knowledge Level:
+                <select value={customizationOptions.knowledgeLevel} onChange={(e) => handleUpdateCustomizationOptions('knowledgeLevel', e.target.value)}>
+                  <option value="">Select a knowledge level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </label>
+              <label>
+                Goals:
+                <input type="text" value={customizationOptions.goals} onChange={(e) => handleUpdateCustomizationOptions('goals', e.target.value)} />
+              </label>
+              <label>
+                Topics:
+                <ul>
+                  {customizationOptions.topics.map((topic) => (
+                    <li key={topic}>
+                      {topic}
+                      <button type="button" onClick={() => handleRemoveTopic(topic)}>Remove</button>
+                    </li>
+                  ))}
+                </ul>
+                <input type="text" placeholder="Add a topic" />
+                <button type="button" onClick={() => handleAddTopic('New Topic')}>Add</button>
+              </label>
+              <button type="button" onClick={handleCustomizePlan} disabled={isCustomizingPlan}>Customize Plan</button>
+            </form>
+            {customizedPlan && (
+              <StudyPlanCard plan={customizedPlan} />
+            )}
           </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Personalized Plan"
-              description={personalizedPlan?.description}
-              link={personalizedPlan?.link}
-              onClick={handlePlanRecommendation}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <CommunityCard title="Join Our Community" link="/community" />
-          </div>
-          <div className="col-md-4">
-            <ResourceCard title="Additional Resources" link="/resources" />
-          </div>
-        </div>
+        )}
+        <ProgressCard progress={userProgress} />
+        <CommunityCard />
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );

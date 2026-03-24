@@ -98,9 +98,7 @@ export default function CommunityPage() {
       }
     };
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
 
   return (
