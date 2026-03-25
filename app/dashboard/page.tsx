@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [upcomingLessons, setUpcomingLessons] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [aiModel, setAiModel] = useState(null);
+  const [mlModel, setMlModel] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -87,60 +88,88 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const loadAiModel = async () => {
-        const model = await tf.loadLayersModel('https://example.com/model.json');
-        setAiModel(model);
+      const trainMlModel = async () => {
+        const userFeatures = [
+          user.learningStyle,
+          user.knowledgeLevel,
+          user.goals,
+        ];
+        const studyPlanFeatures = studyPlanOptions.map((plan) => [
+          plan.name,
+          plan.description,
+          plan.link,
+        ]);
+        const mlModel = tf.sequential();
+        mlModel.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [3] }));
+        mlModel.add(tf.layers.dense({ units: 10, activation: 'relu' }));
+        mlModel.add(tf.layers.dense({ units: studyPlanFeatures.length, activation: 'softmax' }));
+        mlModel.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+        const xs = tf.tensor2d(userFeatures, [1, 3]);
+        const ys = tf.tensor2d(studyPlanFeatures.map((_, index) => [index]), [1, studyPlanFeatures.length]);
+        await mlModel.fit(xs, ys, { epochs: 100 });
+        setMlModel(mlModel);
       };
-      loadAiModel();
+      trainMlModel();
     }
-  }, [user]);
-
-  const predictPersonalizedPlan = async () => {
-    if (aiModel && user) {
-      const userInput = tf.tensor2d([[
-        user.progress,
-        user.goals,
-      ]]);
-      const prediction = aiModel.predict(userInput);
-      const personalizedPlan = await prediction.data();
-      setPersonalizedPlan(personalizedPlan);
-    }
-  };
+  }, [user, studyPlanOptions]);
 
   useEffect(() => {
-    if (aiModel && user) {
-      predictPersonalizedPlan();
+    if (mlModel) {
+      const predictRecommendedPlan = async () => {
+        const userFeatures = [
+          user.learningStyle,
+          user.knowledgeLevel,
+          user.goals,
+        ];
+        const xs = tf.tensor2d(userFeatures, [1, 3]);
+        const predictions = mlModel.predict(xs);
+        const recommendedPlanIndex = predictions.argMax(1).dataSync()[0];
+        setRecommendedPlan(studyPlanOptions[recommendedPlanIndex]);
+      };
+      predictRecommendedPlan();
     }
-  }, [aiModel, user]);
+  }, [mlModel, user, studyPlanOptions]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        title="Recommended Plan"
-        description={recommendedPlan?.description}
-        link={recommendedPlan?.link}
-      />
-      <StudyPlanCard
-        title="Personalized Plan"
-        description={personalizedPlan?.toString()}
-        link="/personalized-plan"
-      />
-      <ProgressCard
-        title="Your Progress"
-        completedLessons={userProgress.completedLessons}
-        totalLessons={userProgress.totalLessons}
-        progressPercentage={userProgress.progressPercentage}
-      />
-      <CommunityCard
-        title="Join the Community"
-        description="Connect with other learners and get support"
-        link="/community"
-      />
-      <ResourceCard
-        title="Additional Resources"
-        description="Access extra materials to supplement your learning"
-        link="/resources"
-      />
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Study Plan"
+              plan={recommendedPlan}
+              link={recommendedPlan ? recommendedPlan.link : ''}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard title="Join Our Community" />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard title="Additional Resources" />
+          </div>
+          <div className="col-md-4">
+            <Link href="/customize-plan">
+              <a>Customize Your Study Plan</a>
+            </Link>
+          </div>
+          <div className="col-md-4">
+            <Link href="/view-progress">
+              <a>View Your Progress</a>
+            </Link>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
