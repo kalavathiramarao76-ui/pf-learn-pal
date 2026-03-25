@@ -81,26 +81,32 @@ export default function CommunityPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const documentHeight = document.body.offsetHeight;
-      if (scrollPosition >= documentHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-        setLoadingMorePosts(true);
-        axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
-          .then(response => {
-            const newPosts = response.data;
-            setPosts([...posts, ...newPosts]);
-            setHasMorePosts(newPosts.length === postsPerPage);
-            setLoadingMorePosts(false);
-          })
-          .catch(error => {
-            console.error(error);
-            setLoadingMorePosts(false);
-          });
+      const scrollHeight = document.body.offsetHeight;
+      const scrollTop = window.scrollY;
+      const clientHeight = window.innerHeight;
+      if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+        loadMorePosts();
       }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
+  }, [hasMorePosts, loadingMorePosts]);
+
+  const loadMorePosts = async () => {
+    setLoadingMorePosts(true);
+    try {
+      const response = await axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`);
+      const newPosts = response.data;
+      if (newPosts.length < postsPerPage) {
+        setHasMorePosts(false);
+      }
+      setPosts([...posts, ...newPosts]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingMorePosts(false);
+    }
+  };
 
   return (
     // your JSX code here

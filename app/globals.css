@@ -88,3 +88,23 @@
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
 }
+
+.font-size-option-1 {
+  font-size: var(--font-size-option-1);
+}
+
+.font-size-option-2 {
+  font-size: var(--font-size-option-2);
+}
+
+.font-size-option-3 {
+  font-size: var(--font-size-option-3);
+}
+
+.font-size-option-4 {
+  font-size: var(--font-size-option-4);
+}
+
+.font-size-option-5 {
+  font-size: var(--font-size-option-5);
+}

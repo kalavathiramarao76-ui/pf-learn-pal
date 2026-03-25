@@ -77,48 +77,61 @@ export default function DashboardPage() {
           body: JSON.stringify({
             userId: user.id,
             userProgress: userProgress,
-            userGoals: user.goals,
+            userFeedback: userFeedback,
           }),
         });
         const data = await response.json();
         setRecommendedPlan(data.recommendedPlan);
-        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
     }
-  }, [user, userProgress]);
+  }, [user, userProgress, userFeedback]);
 
-  useEffect(() => {
-    if (user) {
-      const trainAiModel = async () => {
-        const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const trainingData = [
-          { input: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-        ];
-        const inputs = trainingData.map(data => data.input);
-        const outputs = trainingData.map(data => data.output);
-        model.fit(tf.tensor2d(inputs, [inputs.length, 10]), tf.tensor2d(outputs, [outputs.length, 10]), {
-          epochs: 100,
-        });
-        setAiModel(model);
+  const trainStudyPlanRecommendationEngine = async () => {
+    const studyPlanData = await fetch('/api/study-plans');
+    const studyPlanJson = await studyPlanData.json();
+    const userProgressData = await fetch('/api/user-progress');
+    const userProgressJson = await userProgressData.json();
+    const userFeedbackData = await fetch('/api/user-feedback');
+    const userFeedbackJson = await userFeedbackData.json();
+
+    const trainingData = studyPlanJson.map((studyPlan) => {
+      return {
+        input: {
+          userProgress: userProgressJson.find((progress) => progress.userId === user.id),
+          userFeedback: userFeedbackJson.find((feedback) => feedback.userId === user.id),
+        },
+        output: studyPlan,
       };
-      trainAiModel();
-    }
-  }, [user]);
+    });
 
-  const getAiRecommendations = async () => {
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
+    model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+    model.compile({ optimizer: tf.optimizers.adam(), loss: 'meanSquaredError' });
+
+    await model.fit(tf.data.array(trainingData.map((data) => data.input)), tf.data.array(trainingData.map((data) => data.output)), {
+      epochs: 100,
+    });
+
+    setAiModel(model);
+  };
+
+  const getStudyPlanRecommendations = async () => {
     if (aiModel) {
-      const userInput = tf.tensor2d([userProgress.completedLessons, userProgress.totalLessons, userProgress.progressPercentage], [1, 3]);
-      const output = aiModel.predict(userInput);
+      const userInput = {
+        userProgress: userProgress,
+        userFeedback: userFeedback,
+      };
+      const output = aiModel.predict(tf.tensor2d([userInput]));
       const recommendations = await output.data();
       setLearningPlanRecommendations(recommendations);
     }
   };
+
+  useEffect(() => {
+    trainStudyPlanRecommendationEngine();
+  }, [userProgress, userFeedback]);
 
   return (
     <DashboardLayout>
@@ -126,31 +139,30 @@ export default function DashboardPage() {
         <h1>Personalized Learning Companion</h1>
         <div className="row">
           <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description="Based on your progress and goals"
-              plan={recommendedPlan}
-              recommendations={learningPlanRecommendations}
-            />
+            <StudyPlanCard studyPlan={recommendedPlan} />
           </div>
           <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
-            />
+            <ProgressCard userProgress={userProgress} />
           </div>
           <div className="col-md-4">
-            <CommunityCard title="Join the Community" />
+            <CommunityCard />
           </div>
         </div>
         <div className="row">
           <div className="col-md-4">
-            <ResourceCard title="Additional Resources" />
+            <ResourceCard />
           </div>
           <div className="col-md-4">
-            <button onClick={getAiRecommendations}>Get AI Recommendations</button>
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Study Plan Recommendations</h5>
+                <ul>
+                  {learningPlanRecommendations.map((recommendation, index) => (
+                    <li key={index}>{recommendation}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
