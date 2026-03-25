@@ -88,11 +88,3 @@
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
 }
-
-body {
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height);
-  color: var(--text-color);
-  background-color: var(--background-color);
-}
