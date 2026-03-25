@@ -43,6 +43,18 @@
   --dark-focus-background-color: #2f2f2f;
   --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
   --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
+  --high-contrast-text-color: #000;
+  --high-contrast-background-color: #fff;
+  --high-contrast-link-color: #00698f;
+  --high-contrast-link-hover-color: #004c6f;
+  --high-contrast-button-color: #00698f;
+  --high-contrast-button-hover-color: #004c6f;
+  --high-contrast-focus-color: #00698f;
+  --high-contrast-focus-background-color: #fff;
+  --high-contrast-focus-box-shadow: 0 0 0 2px #00698f;
+  --high-contrast-focus-box-shadow-large: 0 0 0 4px #00698f;
+  --high-contrast-font-weight-normal: 500;
+  --high-contrast-font-weight-bold: 900;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -62,18 +74,23 @@
 
 @media (prefers-contrast: high) {
   :root {
-    --text-color: #000;
-    --background-color: #fff;
-    --link-color: #00698f;
-    --link-hover-color: #004c6f;
-    --button-color: #00698f;
-    --button-hover-color: #004c6f;
-    --focus-color: #00698f;
-    --focus-background-color: #fff;
-    --focus-box-shadow: 0 0 0 2px #00698f;
-    --focus-box-shadow-large: 0 0 0 4px #00698f;
-    --font-weight-normal: 500;
-    --font-weight-bold: 900;
+    --text-color: var(--high-contrast-text-color);
+    --background-color: var(--high-contrast-background-color);
+    --link-color: var(--high-contrast-link-color);
+    --link-hover-color: var(--high-contrast-link-hover-color);
+    --button-color: var(--high-contrast-button-color);
+    --button-hover-color: var(--high-contrast-button-hover-color);
+    --focus-color: var(--high-contrast-focus-color);
+    --focus-background-color: var(--high-contrast-focus-background-color);
+    --focus-box-shadow: var(--high-contrast-focus-box-shadow);
+    --focus-box-shadow-large: var(--high-contrast-focus-box-shadow-large);
+    --font-weight-normal: var(--high-contrast-font-weight-normal);
+    --font-weight-bold: var(--high-contrast-font-weight-bold);
+  }
+}
+
+@media (prefers-color-scheme: dark) and (prefers-contrast: high) {
+  :root {
     --dark-text-color: #000;
     --dark-background-color: #000;
     --dark-link-color: #66d9ef;
@@ -84,20 +101,5 @@
     --dark-focus-background-color: #000;
     --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
     --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
-  }
-}
-
-@media (prefers-contrast: more) {
-  :root {
-    --text-color: #111;
-    --background-color: #eee;
-    --link-color: #005c99;
-    --link-hover-color: #003d66;
-    --button-color: #005c99;
-    --button-hover-color: #003d66;
-    --focus-color: #005c99;
-    --focus-background-color: #eee;
-    --focus-box-shadow: 0 0 0 2px #005c99;
-    --focus-box-shadow-large: 0 0 0 4px #005c99;
   }
 }
