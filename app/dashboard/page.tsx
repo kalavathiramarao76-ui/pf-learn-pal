@@ -76,114 +76,85 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data);
+        setRecommendedPlan(data.recommendedPlan);
       };
       getRecommendedPlan();
+
+      const trainMachineLearningModel = async () => {
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
+        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+        const trainingData = await fetch('/api/training-data', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const trainingDataJson = await trainingData.json();
+        const trainingInputs = trainingDataJson.map((data) => data.inputs);
+        const trainingOutputs = trainingDataJson.map((data) => data.outputs);
+        model.fit(tf.tensor2d(trainingInputs, [trainingInputs.length, 10]), tf.tensor2d(trainingOutputs, [trainingOutputs.length, 10]), {
+          epochs: 100,
+        });
+        setMachineLearningModel(model);
+      };
+      trainMachineLearningModel();
+
+      const makePrediction = async () => {
+        if (machineLearningModel) {
+          const prediction = machineLearningModel.predict(tf.tensor2d([user.learningStyle, user.knowledgeLevel, user.goals], [1, 3]));
+          const predictionData = await prediction.data();
+          const predictedPlan = studyPlanOptions[predictionData.indexOf(Math.max(...predictionData))];
+          setPersonalizedPlan(predictedPlan);
+        }
+      };
+      makePrediction();
     }
-  }, [user]);
-
-  const handleCustomizePlan = () => {
-    setIsCustomizingPlan(true);
-  };
-
-  const handleSaveCustomizedPlan = () => {
-    const customizedPlan = {
-      learningStyle: customizationOptions.learningStyle,
-      knowledgeLevel: customizationOptions.knowledgeLevel,
-      goals: customizationOptions.goals,
-      topics: customizationOptions.topics,
-    };
-    setCustomizedPlan(customizedPlan);
-    setIsCustomizingPlan(false);
-  };
-
-  const handleLearningStyleChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      learningStyle: event.target.value,
-    });
-  };
-
-  const handleKnowledgeLevelChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      knowledgeLevel: event.target.value,
-    });
-  };
-
-  const handleGoalsChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      goals: event.target.value,
-    });
-  };
-
-  const handleTopicsChange = (event) => {
-    const topics = event.target.value.split(',');
-    setCustomizationOptions({
-      ...customizationOptions,
-      topics: topics,
-    });
-  };
+  }, [user, machineLearningModel]);
 
   return (
     <DashboardLayout>
       <div className="container">
         <h1>Personalized Learning Companion</h1>
-        {isCustomizingPlan ? (
-          <div>
-            <h2>Customize Your Learning Plan</h2>
-            <form>
-              <label>Learning Style:</label>
-              <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
-                <option value="">Select a learning style</option>
-                <option value="visual">Visual</option>
-                <option value="auditory">Auditory</option>
-                <option value="kinesthetic">Kinesthetic</option>
-              </select>
-              <br />
-              <label>Knowledge Level:</label>
-              <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
-                <option value="">Select a knowledge level</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-              <br />
-              <label>Goals:</label>
-              <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
-              <br />
-              <label>Topics:</label>
-              <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
-              <br />
-              <button type="button" onClick={handleSaveCustomizedPlan}>
-                Save Customized Plan
-              </button>
-            </form>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+              link={recommendedPlan ? recommendedPlan.link : '#'}
+            />
           </div>
-        ) : (
-          <div>
-            <h2>Recommended Learning Plan</h2>
-            {recommendedPlan && (
-              <div>
-                <p>Learning Style: {recommendedPlan.learningStyle}</p>
-                <p>Knowledge Level: {recommendedPlan.knowledgeLevel}</p>
-                <p>Goals: {recommendedPlan.goals}</p>
-                <p>Topics: {recommendedPlan.topics.join(', ')}</p>
-              </div>
-            )}
-            <button type="button" onClick={handleCustomizePlan}>
-              Customize Plan
-            </button>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Plan"
+              description={personalizedPlan ? personalizedPlan.description : 'No plan generated'}
+              link={personalizedPlan ? personalizedPlan.link : '#'}
+            />
           </div>
-        )}
-        <StudyPlanCard studyPlanOptions={studyPlanOptions} />
-        <ProgressCard userProgress={userProgress} />
-        <CommunityCard />
-        <ResourceCard />
+          <div className="col-md-4">
+            <ProgressCard
+              title="User Progress"
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <CommunityCard title="Community" />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard title="Resources" />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
