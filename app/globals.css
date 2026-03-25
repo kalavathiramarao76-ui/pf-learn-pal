@@ -78,29 +78,9 @@
   }
 }
 
-@media (prefers-contrast: high) {
-  :root {
-    --text-color: var(--high-contrast-text-color);
-    --background-color: var(--high-contrast-background-color);
-    --link-color: var(--high-contrast-link-color);
-    --link-hover-color: var(--high-contrast-link-hover-color);
-    --button-color: var(--high-contrast-button-color);
-    --button-hover-color: var(--high-contrast-button-hover-color);
-    --focus-color: var(--high-contrast-focus-color);
-    --focus-background-color: var(--high-contrast-focus-background-color);
-    --focus-box-shadow: var(--high-contrast-focus-box-shadow);
-    --focus-box-shadow-large: var(--high-contrast-focus-box-shadow-large);
-    --font-weight-normal: var(--high-contrast-font-weight-normal);
-    --font-weight-bold: var(--high-contrast-font-weight-bold);
-  }
-}
-
 body {
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height);
-  color: var(--text-color);
   background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 a {
@@ -112,19 +92,106 @@ a:hover {
 }
 
 button {
-  color: var(--button-color);
+  background-color: var(--button-color);
+  color: var(--text-color);
 }
 
 button:hover {
-  color: var(--button-hover-color);
+  background-color: var(--button-hover-color);
 }
 
-:focus {
-  outline-color: var(--focus-color);
-  outline-background-color: var(--focus-background-color);
+button:focus {
   box-shadow: var(--focus-box-shadow);
 }
 
-:focus-large {
+button:focus-visible {
+  box-shadow: var(--focus-box-shadow-large);
+}
+
+.high-contrast-mode {
+  --text-color: var(--high-contrast-text-color);
+  --background-color: var(--high-contrast-background-color);
+  --link-color: var(--high-contrast-link-color);
+  --link-hover-color: var(--high-contrast-link-hover-color);
+  --button-color: var(--high-contrast-button-color);
+  --button-hover-color: var(--high-contrast-button-hover-color);
+  --focus-color: var(--high-contrast-focus-color);
+  --focus-background-color: var(--high-contrast-focus-background-color);
+  --focus-box-shadow: var(--high-contrast-focus-box-shadow);
+  --focus-box-shadow-large: var(--high-contrast-focus-box-shadow-large);
+  --font-weight-normal: var(--high-contrast-font-weight-normal);
+  --font-weight-bold: var(--high-contrast-font-weight-bold);
+}
+
+.dark-mode {
+  --text-color: var(--dark-text-color);
+  --background-color: var(--dark-background-color);
+  --link-color: var(--dark-link-color);
+  --link-hover-color: var(--dark-link-hover-color);
+  --button-color: var(--dark-button-color);
+  --button-hover-color: var(--dark-button-hover-color);
+  --focus-color: var(--dark-focus-color);
+  --focus-background-color: var(--dark-focus-background-color);
+  --focus-box-shadow: var(--dark-focus-box-shadow);
+  --focus-box-shadow-large: var(--dark-focus-box-shadow-large);
+}
+
+.high-contrast-mode body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.dark-mode body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.high-contrast-mode a {
+  color: var(--link-color);
+}
+
+.high-contrast-mode a:hover {
+  color: var(--link-hover-color);
+}
+
+.dark-mode a {
+  color: var(--link-color);
+}
+
+.dark-mode a:hover {
+  color: var(--link-hover-color);
+}
+
+.high-contrast-mode button {
+  background-color: var(--button-color);
+  color: var(--text-color);
+}
+
+.high-contrast-mode button:hover {
+  background-color: var(--button-hover-color);
+}
+
+.dark-mode button {
+  background-color: var(--button-color);
+  color: var(--text-color);
+}
+
+.dark-mode button:hover {
+  background-color: var(--button-hover-color);
+}
+
+.high-contrast-mode button:focus {
+  box-shadow: var(--focus-box-shadow);
+}
+
+.high-contrast-mode button:focus-visible {
+  box-shadow: var(--focus-box-shadow-large);
+}
+
+.dark-mode button:focus {
+  box-shadow: var(--focus-box-shadow);
+}
+
+.dark-mode button:focus-visible {
   box-shadow: var(--focus-box-shadow-large);
 }
