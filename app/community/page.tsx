@@ -72,73 +72,40 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
-      } else if (sortOrder === 'most-liked') {
-        return b.likes - a.likes;
-      } else if (sortOrder === 'least-liked') {
-        return a.likes - b.likes;
       }
+      return 0;
     });
 
-    const filteredByCategory = sorted.filter((post) => {
-      if (filterBy === 'all') {
-        return true;
-      } else if (filterBy === post.category) {
-        return true;
-      } else {
-        return false;
+    setFilteredPosts(sorted);
+  }, [posts, searchQuery, sortOrder]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.body.offsetHeight;
+      if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
+        loadMorePosts();
       }
-    });
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMorePosts, loadingMorePosts]);
 
-    setFilteredPosts(filteredByCategory);
-  }, [posts, searchQuery, sortOrder, filterBy]);
-
-  const handleFilterChange = (event, value) => {
-    setFilterBy(value);
-  };
-
-  const handleSortChange = (event, value) => {
-    setSortOrder(value);
-  };
-
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+  const loadMorePosts = async () => {
+    setLoadingMorePosts(true);
+    try {
+      const response = await axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`);
+      const newPosts = response.data;
+      setPosts([...posts, ...newPosts]);
+      setHasMorePosts(newPosts.length === postsPerPage);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingMorePosts(false);
+    }
   };
 
   return (
-    <div>
-      <h1>Community Page</h1>
-      <div>
-        <Autocomplete
-          options={['all', 'category1', 'category2', 'category3']}
-          value={filterBy}
-          onChange={handleFilterChange}
-          renderInput={(params) => (
-            <TextField {...params} label="Filter by category" />
-          )}
-        />
-        <Autocomplete
-          options={['newest', 'oldest', 'most-liked', 'least-liked']}
-          value={sortOrder}
-          onChange={handleSortChange}
-          renderInput={(params) => (
-            <TextField {...params} label="Sort by" />
-          )}
-        />
-        <input
-          type="search"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          placeholder="Search posts"
-        />
-      </div>
-      <div>
-        {filteredPosts.map((post) => (
-          <div key={post.id}>
-            <h2>{post.title}</h2>
-            <p>{post.content}</p>
-          </div>
-        ))}
-      </div>
-    </div>
+    // your JSX code here
   );
 }

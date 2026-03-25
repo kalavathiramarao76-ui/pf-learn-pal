@@ -99,81 +99,43 @@
   }
 }
 
-@media (max-width: 768px) {
-  :root {
-    --font-size-base: 16px;
-    --font-size-ratio: 1.1;
-    --line-height: 1.4;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --font-size-base: 14px;
-    --font-size-ratio: 1.0;
-    --line-height: 1.2;
-  }
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
+/* Add screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-body {
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height);
-  color: var(--text-color);
-  background-color: var(--background-color);
-  transition: background-color 0.3s ease;
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5em;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }
 
-a {
-  color: var(--link-color);
-  text-decoration: none;
-  transition: color 0.3s ease;
+/* Add high contrast mode support */
+.high-contrast-mode {
+  filter: invert(100%);
 }
 
-a:hover {
-  color: var(--link-hover-color);
+.high-contrast-mode img {
+  filter: invert(100%);
 }
 
-button {
-  background-color: var(--button-color);
-  color: var(--text-color);
-  border: none;
-  padding: 10px 20px;
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.high-contrast-mode video {
+  filter: invert(100%);
 }
 
-button:hover {
-  background-color: var(--button-hover-color);
-}
-
-:focus {
-  outline: var(--focus-box-shadow);
-  box-shadow: var(--focus-box-shadow);
-  background-color: var(--focus-background-color);
-}
-
-:focus-visible {
-  outline: var(--focus-box-shadow-large);
-  box-shadow: var(--focus-box-shadow-large);
-}
-
-.dark-mode {
-  --text-color: var(--dark-text-color);
-  --background-color: var(--dark-background-color);
-  --link-color: var(--dark-link-color);
-  --link-hover-color: var(--dark-link-hover-color);
-  --button-color: var(--dark-button-color);
-  --button-hover-color: var(--dark-button-hover-color);
-  --focus-color: var(--dark-focus-color);
-  --focus-background-color: var(--dark-focus-background-color);
-  --focus-box-shadow: var(--dark-focus-box-shadow);
-  --focus-box-shadow-large: var(--dark-focus-box-shadow-large);
+.high-contrast-mode iframe {
+  filter: invert(100%);
 }

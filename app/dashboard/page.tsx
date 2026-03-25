@@ -79,113 +79,68 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
-
-        // Integrate a more advanced AI-powered learning plan recommendation engine
-        const advancedAiModel = await trainAdvancedAiModel(user);
-        setAiModel(advancedAiModel);
-        const advancedRecommendations = await getAdvancedRecommendations(advancedAiModel, user);
-        setLearningPlanRecommendations(advancedRecommendations);
+        setRecommendedPlan(data);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const trainAdvancedAiModel = async (user) => {
-    // Train a more advanced AI model using user data and learning plan information
-    const model = tf.sequential();
-    model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
-    model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-    model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-    const trainingData = await getTrainingData(user);
-    await model.fit(trainingData.inputs, trainingData.labels, { epochs: 100 });
-    return model;
-  };
-
-  const getAdvancedRecommendations = async (aiModel, user) => {
-    // Use the trained AI model to generate advanced learning plan recommendations
-    const userInput = await getUserInput(user);
-    const predictions = aiModel.predict(userInput);
-    const recommendations = await getRecommendationsFromPredictions(predictions);
-    return recommendations;
-  };
-
-  const getTrainingData = async (user) => {
-    // Fetch training data for the advanced AI model
-    const response = await fetch('/api/training-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-      }),
-    });
-    const data = await response.json();
-    return data;
-  };
-
-  const getUserInput = async (user) => {
-    // Prepare user input for the advanced AI model
-    const userInput = {
-      learningStyle: user.learningStyle,
-      knowledgeLevel: user.knowledgeLevel,
-      goals: user.goals,
-    };
-    return userInput;
-  };
-
-  const getRecommendationsFromPredictions = async (predictions) => {
-    // Convert predictions from the AI model into learning plan recommendations
-    const recommendations = [];
-    for (const prediction of predictions) {
-      const recommendation = await getRecommendationFromPrediction(prediction);
-      recommendations.push(recommendation);
+  useEffect(() => {
+    if (user) {
+      const loadAiModel = async () => {
+        const model = await tf.loadLayersModel('https://example.com/model.json');
+        setAiModel(model);
+      };
+      loadAiModel();
     }
-    return recommendations;
+  }, [user]);
+
+  const predictPersonalizedPlan = async () => {
+    if (aiModel && user) {
+      const userInput = tf.tensor2d([[
+        user.progress,
+        user.goals,
+      ]]);
+      const prediction = aiModel.predict(userInput);
+      const personalizedPlan = await prediction.data();
+      setPersonalizedPlan(personalizedPlan);
+    }
   };
 
-  const getRecommendationFromPrediction = async (prediction) => {
-    // Fetch a learning plan recommendation based on a prediction from the AI model
-    const response = await fetch('/api/recommendation', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prediction: prediction,
-      }),
-    });
-    const data = await response.json();
-    return data.recommendation;
-  };
+  useEffect(() => {
+    if (aiModel && user) {
+      predictPersonalizedPlan();
+    }
+  }, [aiModel, user]);
 
   return (
     <DashboardLayout>
       <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
+        title="Recommended Plan"
+        description={recommendedPlan?.description}
+        link={recommendedPlan?.link}
       />
-      <ProgressCard userProgress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
-      {recommendedPlan && (
-        <div>
-          <h2>Recommended Plan: {recommendedPlan.name}</h2>
-          <p>{recommendedPlan.description}</p>
-        </div>
-      )}
-      {learningPlanRecommendations.length > 0 && (
-        <div>
-          <h2>Advanced Learning Plan Recommendations:</h2>
-          <ul>
-            {learningPlanRecommendations.map((recommendation, index) => (
-              <li key={index}>{recommendation.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <StudyPlanCard
+        title="Personalized Plan"
+        description={personalizedPlan?.toString()}
+        link="/personalized-plan"
+      />
+      <ProgressCard
+        title="Your Progress"
+        completedLessons={userProgress.completedLessons}
+        totalLessons={userProgress.totalLessons}
+        progressPercentage={userProgress.progressPercentage}
+      />
+      <CommunityCard
+        title="Join the Community"
+        description="Connect with other learners and get support"
+        link="/community"
+      />
+      <ResourceCard
+        title="Additional Resources"
+        description="Access extra materials to supplement your learning"
+        link="/resources"
+      />
     </DashboardLayout>
   );
 }
