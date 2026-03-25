@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [reminders, setReminders] = useState([]);
   const [aiModel, setAiModel] = useState(null);
   const [mlModel, setMlModel] = useState(null);
+  const [machineLearningModel, setMachineLearningModel] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -79,167 +80,91 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
+        setRecommendedPlan(data);
       };
       getRecommendedPlan();
+
+      const trainMachineLearningModel = async () => {
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
+        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+        const trainingData = [
+          { input: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+          { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+          { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+        ];
+        const inputs = trainingData.map(data => data.input);
+        const outputs = trainingData.map(data => data.output);
+        const xs = tf.tensor2d(inputs, [inputs.length, 10]);
+        const ys = tf.tensor2d(outputs, [outputs.length, 10]);
+        await model.fit(xs, ys, { epochs: 100 });
+        setMachineLearningModel(model);
+      };
+      trainMachineLearningModel();
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user) {
-      const getPersonalizedPlan = async () => {
-        const response = await fetch('/api/personalized-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
-          }),
-        });
-        const data = await response.json();
-        setPersonalizedPlan(data.personalizedPlan);
-      };
-      getPersonalizedPlan();
+  const predictPersonalizedPlan = async () => {
+    if (machineLearningModel) {
+      const userInput = tf.tensor2d([user.progress], [1, 10]);
+      const prediction = machineLearningModel.predict(userInput);
+      const predictedPlan = await prediction.data();
+      setPersonalizedPlan(predictedPlan);
     }
-  }, [user]);
+  };
 
   useEffect(() => {
-    if (user) {
-      const getCustomizedPlan = async () => {
-        const response = await fetch('/api/customized-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            learningStyle: customizationOptions.learningStyle,
-            knowledgeLevel: customizationOptions.knowledgeLevel,
-            goals: customizationOptions.goals,
-            topics: customizationOptions.topics,
-          }),
-        });
-        const data = await response.json();
-        setCustomizedPlan(data.customizedPlan);
-      };
-      getCustomizedPlan();
+    if (user && machineLearningModel) {
+      predictPersonalizedPlan();
     }
-  }, [user, customizationOptions]);
-
-  const handlePlanRecommendation = async () => {
-    const response = await fetch('/api/plan-recommendation', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        planRecommendationEngine: planRecommendationEngine,
-      }),
-    });
-    const data = await response.json();
-    setLearningPlanRecommendations(data.learningPlanRecommendations);
-  };
-
-  const handleCustomization = async () => {
-    setIsCustomizingPlan(true);
-    const response = await fetch('/api/customization', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        customizationOptions: customizationOptions,
-      }),
-    });
-    const data = await response.json();
-    setCustomizedPlan(data.customizedPlan);
-    setIsCustomizingPlan(false);
-  };
-
-  const handleAiModelTraining = async () => {
-    const response = await fetch('/api/ai-model-training', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        aiModel: aiModel,
-      }),
-    });
-    const data = await response.json();
-    setAiModel(data.aiModel);
-  };
-
-  const handleMlModelTraining = async () => {
-    const response = await fetch('/api/ml-model-training', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        mlModel: mlModel,
-      }),
-    });
-    const data = await response.json();
-    setMlModel(data.mlModel);
-  };
+  }, [user, machineLearningModel]);
 
   return (
     <DashboardLayout>
       <div className="container">
+        <h1>Personalized Learning Companion</h1>
         <div className="row">
           <div className="col-md-4">
             <StudyPlanCard
               title="Recommended Plan"
-              description={recommendedPlan?.description}
-              link={recommendedPlan?.link}
+              description="Based on your progress and goals"
+              plan={recommendedPlan}
             />
           </div>
           <div className="col-md-4">
             <StudyPlanCard
               title="Personalized Plan"
-              description={personalizedPlan?.description}
-              link={personalizedPlan?.link}
+              description="Generated by our machine learning model"
+              plan={personalizedPlan}
             />
           </div>
           <div className="col-md-4">
             <StudyPlanCard
               title="Customized Plan"
-              description={customizedPlan?.description}
-              link={customizedPlan?.link}
+              description="Create your own plan based on your learning style and goals"
+              plan={customizedPlan}
             />
           </div>
         </div>
         <div className="row">
           <div className="col-md-4">
             <ProgressCard
-              title="User Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
+              title="Your Progress"
+              progress={userProgress}
             />
           </div>
           <div className="col-md-4">
-            <CommunityCard title="Community" />
+            <CommunityCard
+              title="Join Our Community"
+              description="Connect with other learners and get support"
+            />
           </div>
           <div className="col-md-4">
-            <ResourceCard title="Resources" />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-12">
-            <button onClick={handlePlanRecommendation}>Get Plan Recommendations</button>
-            <button onClick={handleCustomization}>Customize Plan</button>
-            <button onClick={handleAiModelTraining}>Train AI Model</button>
-            <button onClick={handleMlModelTraining}>Train ML Model</button>
+            <ResourceCard
+              title="Additional Resources"
+              description="Access to extra learning materials and tools"
+            />
           </div>
         </div>
       </div>
