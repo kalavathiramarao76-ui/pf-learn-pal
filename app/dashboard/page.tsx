@@ -85,126 +85,91 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  const handleCustomizePlan = () => {
+  const handleCustomizePlan = async () => {
     setIsCustomizingPlan(true);
-  };
-
-  const handleSaveCustomizedPlan = (customizedPlan) => {
-    setCustomizedPlan(customizedPlan);
-    setIsCustomizingPlan(false);
-  };
-
-  const handleLearningStyleChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      learningStyle: event.target.value,
-    });
-  };
-
-  const handleKnowledgeLevelChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      knowledgeLevel: event.target.value,
-    });
-  };
-
-  const handleGoalsChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      goals: event.target.value,
-    });
-  };
-
-  const handleTopicsChange = (event) => {
-    setCustomizationOptions({
-      ...customizationOptions,
-      topics: event.target.value.split(','),
-    });
-  };
-
-  const getCustomizedPlan = async () => {
-    const response = await fetch('/api/customized-plan', {
+    const response = await fetch('/api/customize-plan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         userId: user.id,
-        learningStyle: customizationOptions.learningStyle,
-        knowledgeLevel: customizationOptions.knowledgeLevel,
-        goals: customizationOptions.goals,
-        topics: customizationOptions.topics,
+        customizationOptions: customizationOptions,
       }),
     });
     const data = await response.json();
     setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
+  };
+
+  const handleUpdateCustomizationOptions = (event) => {
+    const { name, value } = event.target;
+    setCustomizationOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
+  };
+
+  const handleUpdateCustomizationTopics = (topic) => {
+    setCustomizationOptions((prevOptions) => ({
+      ...prevOptions,
+      topics: prevOptions.topics.includes(topic) ? prevOptions.topics.filter((t) => t !== topic) : [...prevOptions.topics, topic],
+    }));
   };
 
   return (
     <DashboardLayout>
       <div className="container">
         <h1>Personalized Learning Companion</h1>
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description="Based on your progress and goals"
-              plan={recommendedPlan}
-            />
-          </div>
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Customized Plan"
-              description="Based on your learning style, knowledge level, and goals"
-              plan={customizedPlan}
-            />
-            {isCustomizingPlan ? (
-              <div>
-                <label>Learning Style:</label>
-                <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
+            <h2>Customize Your Plan</h2>
+            <form>
+              <label>
+                Learning Style:
+                <select name="learningStyle" value={customizationOptions.learningStyle} onChange={handleUpdateCustomizationOptions}>
                   <option value="">Select a learning style</option>
                   <option value="visual">Visual</option>
                   <option value="auditory">Auditory</option>
                   <option value="kinesthetic">Kinesthetic</option>
                 </select>
-                <br />
-                <label>Knowledge Level:</label>
-                <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
+              </label>
+              <label>
+                Knowledge Level:
+                <select name="knowledgeLevel" value={customizationOptions.knowledgeLevel} onChange={handleUpdateCustomizationOptions}>
                   <option value="">Select a knowledge level</option>
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                 </select>
-                <br />
-                <label>Goals:</label>
-                <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
-                <br />
-                <label>Topics:</label>
-                <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
-                <br />
-                <button onClick={getCustomizedPlan}>Get Customized Plan</button>
-              </div>
-            ) : (
-              <button onClick={handleCustomizePlan}>Customize Plan</button>
-            )}
+              </label>
+              <label>
+                Goals:
+                <input type="text" name="goals" value={customizationOptions.goals} onChange={handleUpdateCustomizationOptions} />
+              </label>
+              <label>
+                Topics:
+                {studyPlanOptions.map((option) => (
+                  <div key={option.name}>
+                    <input
+                      type="checkbox"
+                      name={option.name}
+                      checked={customizationOptions.topics.includes(option.name)}
+                      onChange={() => handleUpdateCustomizationTopics(option.name)}
+                    />
+                    <span>{option.name}</span>
+                  </div>
+                ))}
+              </label>
+              <button type="button" onClick={handleCustomizePlan} disabled={isCustomizingPlan}>
+                Customize Plan
+              </button>
+            </form>
+            {customizedPlan && <StudyPlanCard plan={customizedPlan} />}
           </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <CommunityCard title="Join Our Community" />
-          </div>
-          <div className="col-md-4">
-            <ResourceCard title="Additional Resources" />
-          </div>
-        </div>
+        )}
+        <ProgressCard progress={userProgress} />
+        <CommunityCard />
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );
