@@ -84,80 +84,96 @@
     --focus-background-color: #eee;
     --focus-box-shadow: 0 0 0 2px #005c99;
     --focus-box-shadow-large: 0 0 0 4px #005c99;
-    --font-weight-normal: 600;
-    --font-weight-bold: 1000;
-    --dark-text-color: #111;
-    --dark-background-color: #111;
+    --font-weight-normal: 500;
+    --font-weight-bold: 900;
+    --dark-text-color: #000;
+    --dark-background-color: #000;
     --dark-link-color: #66d9ef;
     --dark-link-hover-color: #4dd2ff;
     --dark-button-color: #66d9ef;
     --dark-button-hover-color: #4dd2ff;
     --dark-focus-color: #66d9ef;
-    --dark-focus-background-color: #111;
+    --dark-focus-background-color: #000;
     --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
     --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
   }
 }
 
-@media (prefers-color-scheme: dark) {
+@media (max-width: 768px) {
   :root {
-    --text-color: var(--dark-text-color);
-    --background-color: var(--dark-background-color);
-    --link-color: var(--dark-link-color);
-    --link-hover-color: var(--dark-link-hover-color);
-    --button-color: var(--dark-button-color);
-    --button-hover-color: var(--dark-button-hover-color);
-    --focus-color: var(--dark-focus-color);
-    --focus-background-color: var(--dark-focus-background-color);
-    --focus-box-shadow: var(--dark-focus-box-shadow);
-    --focus-box-shadow-large: var(--dark-focus-box-shadow-large);
+    --font-size-base: 16px;
+    --font-size-ratio: 1.1;
+    --line-height: 1.4;
   }
 }
 
-.font-size-small {
-  font-size: var(--font-size-small);
+@media (max-width: 480px) {
+  :root {
+    --font-size-base: 14px;
+    --font-size-ratio: 1.0;
+    --line-height: 1.2;
+  }
 }
 
-.font-size-large {
-  font-size: var(--font-size-large);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.font-size-extra-large {
-  font-size: var(--font-size-extra-large);
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--text-color);
+  background-color: var(--background-color);
+  transition: background-color 0.3s ease;
 }
 
-.font-size-extra-extra-large {
-  font-size: var(--font-size-extra-extra-large);
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: color 0.3s ease;
 }
 
-.font-size-very-small {
-  font-size: var(--font-size-very-small);
+a:hover {
+  color: var(--link-hover-color);
 }
 
-.font-size-huge {
-  font-size: var(--font-size-huge);
+button {
+  background-color: var(--button-color);
+  color: var(--text-color);
+  border: none;
+  padding: 10px 20px;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.font-size-gigantic {
-  font-size: var(--font-size-gigantic);
+button:hover {
+  background-color: var(--button-hover-color);
 }
 
-.font-size-option-1 {
-  font-size: var(--font-size-option-1);
+:focus {
+  outline: var(--focus-box-shadow);
+  box-shadow: var(--focus-box-shadow);
+  background-color: var(--focus-background-color);
 }
 
-.font-size-option-2 {
-  font-size: var(--font-size-option-2);
+:focus-visible {
+  outline: var(--focus-box-shadow-large);
+  box-shadow: var(--focus-box-shadow-large);
 }
 
-.font-size-option-3 {
-  font-size: var(--font-size-option-3);
-}
-
-.font-size-option-4 {
-  font-size: var(--font-size-option-4);
-}
-
-.font-size-option-5 {
-  font-size: var(--font-size-option-5);
+.dark-mode {
+  --text-color: var(--dark-text-color);
+  --background-color: var(--dark-background-color);
+  --link-color: var(--dark-link-color);
+  --link-hover-color: var(--dark-link-hover-color);
+  --button-color: var(--dark-button-color);
+  --button-hover-color: var(--dark-button-hover-color);
+  --focus-color: var(--dark-focus-color);
+  --focus-background-color: var(--dark-focus-background-color);
+  --focus-box-shadow: var(--dark-focus-box-shadow);
+  --focus-box-shadow-large: var(--dark-focus-box-shadow-large);
 }
