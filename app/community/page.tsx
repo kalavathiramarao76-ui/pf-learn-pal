@@ -85,27 +85,23 @@ export default function CommunityPage() {
       const documentHeight = document.body.offsetHeight;
       if (scrollPosition >= documentHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
         setLoadingMorePosts(true);
-        axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
+        axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
           .then(response => {
             const newPosts = response.data;
-            if (newPosts.length < postsPerPage) {
-              setHasMorePosts(false);
-            }
             setPosts([...posts, ...newPosts]);
+            setPageNumber(pageNumber + 1);
+            setHasMorePosts(newPosts.length === postsPerPage);
+            setLoadingMorePosts(false);
           })
           .catch(error => {
             console.error(error);
-          })
-          .finally(() => {
             setLoadingMorePosts(false);
           });
       }
     };
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMorePosts, loadingMorePosts, pageNumber, posts, postsPerPage]);
 
   return (
     // your JSX code here
