@@ -79,15 +79,75 @@ export default function DashboardPage() {
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data);
+        setRecommendedPlan(data.recommendedPlan);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  const handleCustomizePlan = async () => {
+  useEffect(() => {
+    if (user) {
+      const getPersonalizedPlan = async () => {
+        const response = await fetch('/api/personalized-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
+          }),
+        });
+        const data = await response.json();
+        setPersonalizedPlan(data.personalizedPlan);
+      };
+      getPersonalizedPlan();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      const getCustomizedPlan = async () => {
+        const response = await fetch('/api/customized-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            learningStyle: customizationOptions.learningStyle,
+            knowledgeLevel: customizationOptions.knowledgeLevel,
+            goals: customizationOptions.goals,
+            topics: customizationOptions.topics,
+          }),
+        });
+        const data = await response.json();
+        setCustomizedPlan(data.customizedPlan);
+      };
+      getCustomizedPlan();
+    }
+  }, [user, customizationOptions]);
+
+  const handlePlanRecommendation = async () => {
+    const response = await fetch('/api/plan-recommendation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        planRecommendationEngine: planRecommendationEngine,
+      }),
+    });
+    const data = await response.json();
+    setLearningPlanRecommendations(data.learningPlanRecommendations);
+  };
+
+  const handleCustomization = async () => {
     setIsCustomizingPlan(true);
-    const response = await fetch('/api/customize-plan', {
+    const response = await fetch('/api/customization', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -98,78 +158,90 @@ export default function DashboardPage() {
       }),
     });
     const data = await response.json();
-    setCustomizedPlan(data);
+    setCustomizedPlan(data.customizedPlan);
     setIsCustomizingPlan(false);
   };
 
-  const handleUpdateCustomizationOptions = (event) => {
-    const { name, value } = event.target;
-    setCustomizationOptions((prevOptions) => ({ ...prevOptions, [name]: value }));
+  const handleAiModelTraining = async () => {
+    const response = await fetch('/api/ai-model-training', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        aiModel: aiModel,
+      }),
+    });
+    const data = await response.json();
+    setAiModel(data.aiModel);
   };
 
-  const handleUpdateCustomizationTopics = (topic) => {
-    setCustomizationOptions((prevOptions) => ({
-      ...prevOptions,
-      topics: prevOptions.topics.includes(topic) ? prevOptions.topics.filter((t) => t !== topic) : [...prevOptions.topics, topic],
-    }));
+  const handleMlModelTraining = async () => {
+    const response = await fetch('/api/ml-model-training', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        mlModel: mlModel,
+      }),
+    });
+    const data = await response.json();
+    setMlModel(data.mlModel);
   };
 
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        {user && (
-          <div>
-            <h2>Recommended Plan</h2>
-            {recommendedPlan && <StudyPlanCard plan={recommendedPlan} />}
-            <h2>Customize Your Plan</h2>
-            <form>
-              <label>
-                Learning Style:
-                <select name="learningStyle" value={customizationOptions.learningStyle} onChange={handleUpdateCustomizationOptions}>
-                  <option value="">Select a learning style</option>
-                  <option value="visual">Visual</option>
-                  <option value="auditory">Auditory</option>
-                  <option value="kinesthetic">Kinesthetic</option>
-                </select>
-              </label>
-              <label>
-                Knowledge Level:
-                <select name="knowledgeLevel" value={customizationOptions.knowledgeLevel} onChange={handleUpdateCustomizationOptions}>
-                  <option value="">Select a knowledge level</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-              </label>
-              <label>
-                Goals:
-                <input type="text" name="goals" value={customizationOptions.goals} onChange={handleUpdateCustomizationOptions} />
-              </label>
-              <label>
-                Topics:
-                {studyPlanOptions.map((option) => (
-                  <div key={option.name}>
-                    <input
-                      type="checkbox"
-                      name={option.name}
-                      checked={customizationOptions.topics.includes(option.name)}
-                      onChange={() => handleUpdateCustomizationTopics(option.name)}
-                    />
-                    <span>{option.name}</span>
-                  </div>
-                ))}
-              </label>
-              <button type="button" onClick={handleCustomizePlan} disabled={isCustomizingPlan}>
-                Customize Plan
-              </button>
-            </form>
-            {customizedPlan && <StudyPlanCard plan={customizedPlan} />}
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan?.description}
+              link={recommendedPlan?.link}
+            />
           </div>
-        )}
-        <ProgressCard progress={userProgress} />
-        <CommunityCard />
-        <ResourceCard />
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Personalized Plan"
+              description={personalizedPlan?.description}
+              link={personalizedPlan?.link}
+            />
+          </div>
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Customized Plan"
+              description={customizedPlan?.description}
+              link={customizedPlan?.link}
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ProgressCard
+              title="User Progress"
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard title="Community" />
+          </div>
+          <div className="col-md-4">
+            <ResourceCard title="Resources" />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-12">
+            <button onClick={handlePlanRecommendation}>Get Plan Recommendations</button>
+            <button onClick={handleCustomization}>Customize Plan</button>
+            <button onClick={handleAiModelTraining}>Train AI Model</button>
+            <button onClick={handleMlModelTraining}>Train ML Model</button>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

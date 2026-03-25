@@ -72,20 +72,20 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
-      return 0;
     });
 
-    const paginated = sorted.slice(0, pageNumber * postsPerPage);
-    setFilteredPosts(paginated);
-  }, [posts, searchQuery, sortOrder, pageNumber, postsPerPage]);
+    setFilteredPosts(sorted);
+  }, [posts, searchQuery, sortOrder]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollHeight = document.body.scrollHeight;
-      const scrollTop = document.body.scrollTop;
-      const clientHeight = document.body.clientHeight;
-      if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.body.offsetHeight;
+
+      if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
         setLoadingMorePosts(true);
         axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
           .then(response => {
@@ -100,13 +100,15 @@ export default function CommunityPage() {
           });
       }
     };
+
     window.addEventListener('scroll', handleScroll);
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
 
   return (
-    // your JSX code here
+    // ... existing JSX code ...
   );
 }

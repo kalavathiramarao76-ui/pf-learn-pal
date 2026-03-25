@@ -99,7 +99,6 @@ body {
 
 a {
   color: var(--link-color);
-  text-decoration: none;
 }
 
 a:hover {
@@ -107,24 +106,41 @@ a:hover {
 }
 
 button {
-  background-color: var(--button-color);
-  color: var(--text-color);
-  border: none;
-  padding: 10px 20px;
-  font-size: var(--font-size-base);
-  cursor: pointer;
+  color: var(--button-color);
 }
 
 button:hover {
-  background-color: var(--button-hover-color);
+  color: var(--button-hover-color);
 }
 
-button:focus {
-  outline: none;
+:focus {
+  outline-color: var(--focus-color);
+  outline-offset: 2px;
   box-shadow: var(--focus-box-shadow);
 }
 
-button:focus-visible {
-  outline: none;
+:focus-large {
+  outline-color: var(--focus-color);
+  outline-offset: 4px;
   box-shadow: var(--focus-box-shadow-large);
+}
+
+.font-size-option-1 {
+  font-size: var(--font-size-option-1);
+}
+
+.font-size-option-2 {
+  font-size: var(--font-size-option-2);
+}
+
+.font-size-option-3 {
+  font-size: var(--font-size-option-3);
+}
+
+.font-size-option-4 {
+  font-size: var(--font-size-option-4);
+}
+
+.font-size-option-5 {
+  font-size: var(--font-size-option-5);
 }
