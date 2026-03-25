@@ -119,13 +119,12 @@ button:hover {
   background-color: var(--button-hover-color);
 }
 
-:focus {
-  outline: var(--focus-box-shadow);
+button:focus {
+  outline: none;
   box-shadow: var(--focus-box-shadow);
-  background-color: var(--focus-background-color);
 }
 
-:focus-large {
-  outline: var(--focus-box-shadow-large);
+button:focus-visible {
+  outline: none;
   box-shadow: var(--focus-box-shadow-large);
 }
