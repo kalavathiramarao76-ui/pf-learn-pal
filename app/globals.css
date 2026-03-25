@@ -33,6 +33,9 @@
   --font-weight-bold: 700;
   --font-style-normal: normal;
   --font-style-italic: italic;
+}
+
+:root {
   --dark-text-color: #fff;
   --dark-background-color: #2f2f2f;
   --dark-link-color: #66d9ef;
@@ -43,6 +46,9 @@
   --dark-focus-background-color: #2f2f2f;
   --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
   --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
+}
+
+:root {
   --high-contrast-text-color: #000;
   --high-contrast-background-color: #fff;
   --high-contrast-link-color: #00698f;
@@ -87,24 +93,4 @@
     --font-weight-normal: var(--high-contrast-font-weight-normal);
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
-}
-
-.font-size-option-1 {
-  font-size: var(--font-size-option-1);
-}
-
-.font-size-option-2 {
-  font-size: var(--font-size-option-2);
-}
-
-.font-size-option-3 {
-  font-size: var(--font-size-option-3);
-}
-
-.font-size-option-4 {
-  font-size: var(--font-size-option-4);
-}
-
-.font-size-option-5 {
-  font-size: var(--font-size-option-5);
 }
