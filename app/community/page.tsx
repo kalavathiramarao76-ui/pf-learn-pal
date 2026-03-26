@@ -79,47 +79,34 @@ export default function CommunityPage() {
     setFilteredPosts(sorted);
   }, [posts, searchQuery, sortOrder]);
 
-  const handleScroll = () => {
-    const scrollPosition = window.scrollY + window.innerHeight;
-    const documentHeight = document.body.offsetHeight;
-
-    if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
-      setLoadingMorePosts(true);
-      loadMorePosts();
-    }
-  };
-
-  const loadMorePosts = async () => {
-    try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          pageNumber: pageNumber + 1,
-          postsPerPage: postsPerPage,
-          lastPostId: lastPostId,
-        },
-      });
-
-      const newPosts = response.data.posts;
-      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
-      setLastPostId(newPosts[newPosts.length - 1].id);
-      setPageNumber((prevPageNumber) => prevPageNumber + 1);
-      setHasMorePosts(newPosts.length === postsPerPage);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
-    }
-  };
-
   useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.body.offsetHeight;
+      if (scrollPosition >= documentHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+        setLoadingMorePosts(true);
+        axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+          .then(response => {
+            const newPosts = response.data;
+            setPosts([...posts, ...newPosts]);
+            setPageNumber(pageNumber + 1);
+            setHasMorePosts(newPosts.length === postsPerPage);
+          })
+          .catch(error => {
+            console.error(error);
+          })
+          .finally(() => {
+            setLoadingMorePosts(false);
+          });
+      }
+    };
     window.addEventListener('scroll', handleScroll);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage, lastPostId]);
+  }, [hasMorePosts, loadingMorePosts, pageNumber, posts, postsPerPage]);
 
   return (
-    // existing JSX code
+    // your JSX code here
   );
 }
