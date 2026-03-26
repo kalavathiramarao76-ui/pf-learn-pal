@@ -107,8 +107,8 @@ a:hover {
 }
 
 button {
-  color: var(--button-color);
-  background-color: var(--focus-background-color);
+  background-color: var(--button-color);
+  color: var(--text-color);
   border: none;
   padding: 10px 20px;
   font-size: var(--font-size-base);
@@ -116,7 +116,7 @@ button {
 }
 
 button:hover {
-  color: var(--button-hover-color);
+  background-color: var(--button-hover-color);
 }
 
 button:focus {
@@ -127,24 +127,4 @@ button:focus {
 button:focus-visible {
   outline: none;
   box-shadow: var(--focus-box-shadow-large);
-}
-
-.font-size-option-1 {
-  font-size: var(--font-size-option-1);
-}
-
-.font-size-option-2 {
-  font-size: var(--font-size-option-2);
-}
-
-.font-size-option-3 {
-  font-size: var(--font-size-option-3);
-}
-
-.font-size-option-4 {
-  font-size: var(--font-size-option-4);
-}
-
-.font-size-option-5 {
-  font-size: var(--font-size-option-5);
 }
