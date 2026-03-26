@@ -83,67 +83,39 @@ export default function DashboardPage() {
         });
         const data = await response.json();
         setRecommendedPlan(data.recommendedPlan);
+        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
-
-      const trainMachineLearningModel = async () => {
-        const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const trainingData = await fetch('/api/training-data', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const trainingDataJson = await trainingData.json();
-        const inputs = trainingDataJson.inputs;
-        const labels = trainingDataJson.labels;
-        model.fit(inputs, labels, { epochs: 100 });
-        setMachineLearningModel(model);
-      };
-      trainMachineLearningModel();
-
-      const predictPersonalizedPlan = async () => {
-        if (machineLearningModel) {
-          const userInput = tf.tensor2d([[
-            user.learningStyle,
-            user.knowledgeLevel,
-            user.goals,
-            user.preferredTopics,
-            user.learningStyle,
-            user.knowledgeLevel,
-            user.goals,
-            user.preferredTopics,
-            user.learningStyle,
-            user.knowledgeLevel,
-          ]]);
-          const prediction = machineLearningModel.predict(userInput);
-          const personalizedPlan = await prediction.array();
-          setPersonalizedPlan(personalizedPlan);
-        }
-      };
-      predictPersonalizedPlan();
     }
   }, [user]);
 
-  const handleCustomizePlan = async () => {
-    if (customizationOptions.learningStyle && customizationOptions.knowledgeLevel && customizationOptions.goals) {
-      const response = await fetch('/api/customize-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          learningStyle: customizationOptions.learningStyle,
-          knowledgeLevel: customizationOptions.knowledgeLevel,
-          goals: customizationOptions.goals,
-          topics: customizationOptions.topics,
-        }),
-      });
-      const data = await response.json();
-      setCustomizedPlan(data.customizedPlan);
+  useEffect(() => {
+    if (user && user.learningStyle && user.knowledgeLevel && user.goals) {
+      const trainAiModel = async () => {
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [3] }));
+        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+        const trainingData = [
+          { input: [user.learningStyle, user.knowledgeLevel, user.goals], output: [1, 0, 0] },
+          { input: [user.learningStyle, user.knowledgeLevel, user.goals], output: [0, 1, 0] },
+          { input: [user.learningStyle, user.knowledgeLevel, user.goals], output: [0, 0, 1] },
+        ];
+        await model.fit(tf.tensor2d(trainingData.map((data) => data.input)), tf.tensor2d(trainingData.map((data) => data.output)), {
+          epochs: 100,
+        });
+        setAiModel(model);
+      };
+      trainAiModel();
+    }
+  }, [user]);
+
+  const getAiPoweredRecommendations = async () => {
+    if (aiModel) {
+      const input = tf.tensor2d([user.learningStyle, user.knowledgeLevel, user.goals]);
+      const output = aiModel.predict(input);
+      const recommendations = await output.data();
+      setLearningPlanRecommendations(recommendations);
     }
   };
 
@@ -151,89 +123,33 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="container">
         <h1>Personalized Learning Companion</h1>
-        {recommendedPlan && (
-          <div>
-            <h2>Recommended Plan: {recommendedPlan.name}</h2>
-            <p>{recommendedPlan.description}</p>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan}
+              link="/recommended-plan"
+            />
           </div>
-        )}
-        {personalizedPlan && (
-          <div>
-            <h2>Personalized Plan: {personalizedPlan.name}</h2>
-            <p>{personalizedPlan.description}</p>
+          <div className="col-md-4">
+            <ProgressCard
+              title="User Progress"
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
           </div>
-        )}
-        {customizedPlan && (
-          <div>
-            <h2>Customized Plan: {customizedPlan.name}</h2>
-            <p>{customizedPlan.description}</p>
+          <div className="col-md-4">
+            <CommunityCard title="Community" description="Join our community to connect with other learners" link="/community" />
           </div>
-        )}
-        <div>
-          <h2>Study Plan Options</h2>
-          {studyPlanOptions.map((option) => (
-            <StudyPlanCard key={option.name} option={option} />
-          ))}
         </div>
-        <div>
-          <h2>Progress</h2>
-          <ProgressCard progress={userProgress} />
-        </div>
-        <div>
-          <h2>Community</h2>
-          <CommunityCard />
-        </div>
-        <div>
-          <h2>Resources</h2>
-          <ResourceCard />
-        </div>
-        <div>
-          <h2>Customize Plan</h2>
-          <form>
-            <label>
-              Learning Style:
-              <select
-                value={customizationOptions.learningStyle}
-                onChange={(e) => setCustomizationOptions({ ...customizationOptions, learningStyle: e.target.value })}
-              >
-                <option value="">Select Learning Style</option>
-                <option value="visual">Visual</option>
-                <option value="auditory">Auditory</option>
-                <option value="kinesthetic">Kinesthetic</option>
-              </select>
-            </label>
-            <label>
-              Knowledge Level:
-              <select
-                value={customizationOptions.knowledgeLevel}
-                onChange={(e) => setCustomizationOptions({ ...customizationOptions, knowledgeLevel: e.target.value })}
-              >
-                <option value="">Select Knowledge Level</option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </label>
-            <label>
-              Goals:
-              <input
-                type="text"
-                value={customizationOptions.goals}
-                onChange={(e) => setCustomizationOptions({ ...customizationOptions, goals: e.target.value })}
-              />
-            </label>
-            <label>
-              Topics:
-              <input
-                type="text"
-                value={customizationOptions.topics.join(', ')}
-                onChange={(e) => setCustomizationOptions({ ...customizationOptions, topics: e.target.value.split(', ') })}
-              />
-            </label>
-            <button type="button" onClick={handleCustomizePlan}>
-              Customize Plan
-            </button>
-          </form>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard title="Resources" description="Access additional resources to support your learning" link="/resources" />
+          </div>
+          <div className="col-md-4">
+            <button onClick={getAiPoweredRecommendations}>Get AI-Powered Recommendations</button>
+          </div>
         </div>
       </div>
     </DashboardLayout>

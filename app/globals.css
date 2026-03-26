@@ -89,62 +89,92 @@
   }
 }
 
-body {
+* {
+  outline: none;
+}
+
+*:focus {
+  outline: var(--focus-color) solid 2px;
+  box-shadow: var(--focus-box-shadow);
+}
+
+*:focus-large {
+  outline: var(--focus-color) solid 4px;
+  box-shadow: var(--focus-box-shadow-large);
+}
+
+button, input, select, textarea {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
-  line-height: var(--line-height);
-  color: var(--text-color);
-  background-color: var(--background-color);
+  font-weight: var(--font-weight-normal);
+}
+
+button:hover, input:hover, select:hover, textarea:hover {
+  cursor: pointer;
+}
+
+button:active, input:active, select:active, textarea:active {
+  transform: translateY(2px);
+}
+
+button:focus, input:focus, select:focus, textarea:focus {
+  outline: var(--focus-color) solid 2px;
+  box-shadow: var(--focus-box-shadow);
+}
+
+button:focus-large, input:focus-large, select:focus-large, textarea:focus-large {
+  outline: var(--focus-color) solid 4px;
+  box-shadow: var(--focus-box-shadow-large);
 }
 
 a {
-  color: var(--link-color);
   text-decoration: none;
+  color: var(--link-color);
 }
 
 a:hover {
   color: var(--link-hover-color);
 }
 
-button {
-  color: var(--button-color);
-  background-color: var(--focus-background-color);
-  border: none;
-  padding: 10px 20px;
-  font-size: var(--font-size-base);
-  cursor: pointer;
-}
-
-button:hover {
-  color: var(--button-hover-color);
-}
-
-button:focus {
-  outline: none;
+a:focus {
+  outline: var(--focus-color) solid 2px;
   box-shadow: var(--focus-box-shadow);
 }
 
-button:focus-visible {
-  outline: none;
+a:focus-large {
+  outline: var(--focus-color) solid 4px;
   box-shadow: var(--focus-box-shadow-large);
 }
 
-.font-size-option-1 {
-  font-size: var(--font-size-option-1);
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height);
+  color: var(--text-color);
+  background-color: var(--background-color);
 }
 
-.font-size-option-2 {
-  font-size: var(--font-size-option-2);
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-.font-size-option-3 {
-  font-size: var(--font-size-option-3);
+body::-webkit-scrollbar-thumb {
+  background-color: var(--focus-color);
+  border-radius: 10px;
 }
 
-.font-size-option-4 {
-  font-size: var(--font-size-option-4);
+body::-webkit-scrollbar-track {
+  background-color: var(--background-color);
 }
 
-.font-size-option-5 {
-  font-size: var(--font-size-option-5);
+[tabindex]:focus {
+  outline: var(--focus-color) solid 2px;
+  box-shadow: var(--focus-box-shadow);
+}
+
+[tabindex]:focus-large {
+  outline: var(--focus-color) solid 4px;
+  box-shadow: var(--focus-box-shadow-large);
 }

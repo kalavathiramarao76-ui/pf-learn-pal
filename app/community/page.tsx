@@ -80,10 +80,10 @@ export default function CommunityPage() {
   }, [posts, searchQuery, sortOrder]);
 
   const handleScroll = () => {
-    const scrollPosition = window.scrollY + window.innerHeight;
-    const documentHeight = document.body.offsetHeight;
-
-    if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = document.documentElement.clientHeight;
+    const scrollTop = document.documentElement.scrollTop;
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       loadMorePosts();
     }
   };
@@ -94,17 +94,17 @@ export default function CommunityPage() {
       const response = await axios.get('/api/posts', {
         params: {
           pageNumber: pageNumber + 1,
-          postsPerPage,
-          lastPostId,
+          postsPerPage: postsPerPage,
+          lastPostId: lastPostId,
         },
       });
       const newPosts = response.data;
-      setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
-      setLastPostId(newPosts[newPosts.length - 1].id);
       if (newPosts.length < postsPerPage) {
         setHasMorePosts(false);
       }
+      setPosts([...posts, ...newPosts]);
+      setPageNumber(pageNumber + 1);
+      setLastPostId(newPosts[newPosts.length - 1].id);
     } catch (error) {
       console.error(error);
     } finally {
@@ -114,9 +114,7 @@ export default function CommunityPage() {
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage, lastPostId]);
 
   return (
