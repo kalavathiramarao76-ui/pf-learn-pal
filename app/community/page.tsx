@@ -81,9 +81,9 @@ export default function CommunityPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollHeight = document.body.scrollHeight;
-      const scrollTop = document.body.scrollTop;
-      const clientHeight = document.body.clientHeight;
+      const scrollHeight = document.body.offsetHeight;
+      const scrollTop = window.scrollY;
+      const clientHeight = window.innerHeight;
       if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
         setLoadingMorePosts(true);
         axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)

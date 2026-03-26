@@ -83,3 +83,80 @@
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
 }
+
+/* Add screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5em;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Improve high contrast mode */
+.high-contrast-mode {
+  --text-color: var(--high-contrast-text-color);
+  --background-color: var(--high-contrast-background-color);
+  --link-color: var(--high-contrast-link-color);
+  --link-hover-color: var(--high-contrast-link-hover-color);
+  --button-color: var(--high-contrast-button-color);
+  --button-hover-color: var(--high-contrast-button-hover-color);
+  --focus-color: var(--high-contrast-focus-color);
+  --focus-background-color: var(--high-contrast-focus-background-color);
+  --focus-box-shadow: var(--high-contrast-focus-box-shadow);
+  --focus-box-shadow-large: var(--high-contrast-focus-box-shadow-large);
+  --font-weight-normal: var(--high-contrast-font-weight-normal);
+  --font-weight-bold: var(--high-contrast-font-weight-bold);
+}
+
+/* Add ARIA attributes for screen readers */
+[role="button"] {
+  cursor: pointer;
+}
+
+[role="link"] {
+  cursor: pointer;
+}
+
+[aria-label] {
+  position: relative;
+}
+
+[aria-label]:after {
+  content: attr(aria-label);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+[aria-label]:focus:after {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5em;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
