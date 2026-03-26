@@ -76,71 +76,51 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            learningStyle: recommendedPlanEngine.learningStyle,
-            knowledgeLevel: recommendedPlanEngine.knowledgeLevel,
-            goals: recommendedPlanEngine.goals,
+            userProgress: userProgress,
+            userFeedback: userFeedback,
           }),
         });
         const data = await response.json();
         setRecommendedPlan(data.recommendedPlan);
+        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
-
-      const getLearningPlanRecommendations = async () => {
-        const response = await fetch('/api/learning-plan-recommendations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            algorithm: planRecommendationEngine.algorithm,
-            parameters: planRecommendationEngine.parameters,
-          }),
-        });
-        const data = await response.json();
-        setLearningPlanRecommendations(data.recommendations);
-      };
-      getLearningPlanRecommendations();
     }
-  }, [user, recommendedPlanEngine, planRecommendationEngine]);
+  }, [user, userProgress, userFeedback]);
 
   useEffect(() => {
-    if (user) {
+    if (recommendedPlan) {
       const trainAiModel = async () => {
         const model = tf.sequential();
         model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
         model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const trainingData = [
-          { input: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-        ];
-        const inputs = trainingData.map((data) => data.input);
-        const outputs = trainingData.map((data) => data.output);
-        model.fit(tf.tensor2d(inputs, [inputs.length, 10]), tf.tensor2d(outputs, [outputs.length, 10]), {
-          epochs: 100,
+        const trainingData = [];
+        for (let i = 0; i < 100; i++) {
+          const input = tf.random.uniform([10]);
+          const output = tf.random.uniform([10]);
+          trainingData.push({ input, output });
+        }
+        await model.fit(tf.data.array(trainingData.map((data) => data.input)), tf.data.array(trainingData.map((data) => data.output)), {
+          epochs: 10,
         });
         setAiModel(model);
       };
       trainAiModel();
     }
-  }, [user]);
+  }, [recommendedPlan]);
 
-  const makeAiRecommendation = async () => {
+  useEffect(() => {
     if (aiModel) {
-      const userInput = [
-        recommendedPlanEngine.learningStyle,
-        recommendedPlanEngine.knowledgeLevel,
-        recommendedPlanEngine.goals,
-      ];
-      const inputTensor = tf.tensor2d([userInput], [1, 3]);
-      const output = aiModel.predict(inputTensor);
-      const recommendation = await output.data();
-      setRecommendedPlan(recommendation);
+      const makePrediction = async () => {
+        const input = tf.tensor2d([userProgress.completedLessons, userProgress.totalLessons, userFeedback.ratings.length, userFeedback.comments.length], [1, 4]);
+        const output = aiModel.predict(input);
+        const prediction = await output.data();
+        setPersonalizedPlan(prediction);
+      };
+      makePrediction();
     }
-  };
+  }, [aiModel, userProgress, userFeedback]);
 
   return (
     <DashboardLayout>
@@ -150,28 +130,45 @@ export default function DashboardPage() {
           <div className="col-md-4">
             <StudyPlanCard
               title="Recommended Plan"
-              description="Based on your learning style, knowledge level, and goals"
-              plan={recommendedPlan}
+              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+              link={recommendedPlan ? recommendedPlan.link : '#'}
             />
           </div>
           <div className="col-md-4">
             <ProgressCard
-              title="Your Progress"
+              title="User Progress"
               completedLessons={userProgress.completedLessons}
               totalLessons={userProgress.totalLessons}
               progressPercentage={userProgress.progressPercentage}
             />
           </div>
           <div className="col-md-4">
-            <CommunityCard title="Join the Community" />
+            <CommunityCard title="Community" />
           </div>
         </div>
         <div className="row">
           <div className="col-md-4">
-            <ResourceCard title="Additional Resources" />
+            <ResourceCard title="Resources" />
           </div>
           <div className="col-md-4">
-            <button onClick={makeAiRecommendation}>Get AI Recommendation</button>
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Personalized Plan</h5>
+                <p className="card-text">{personalizedPlan ? personalizedPlan.toString() : 'No plan generated'}</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Learning Plan Recommendations</h5>
+                <ul>
+                  {learningPlanRecommendations.map((recommendation, index) => (
+                    <li key={index}>{recommendation.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
