@@ -91,18 +91,20 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       const trainMachineLearningModel = async () => {
+        const userLearningData = await fetch('/api/user-learning-data', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const learningData = await userLearningData.json();
         const model = tf.sequential();
         model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
         model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const trainingData = [
-          { input: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-        ];
-        const inputs = trainingData.map(data => data.input);
-        const outputs = trainingData.map(data => data.output);
-        await model.fit(tf.tensor2d(inputs), tf.tensor2d(outputs), { epochs: 100 });
+        const xs = tf.tensor2d(learningData.map((data) => data.inputs), [learningData.length, 10]);
+        const ys = tf.tensor2d(learningData.map((data) => data.outputs), [learningData.length, 10]);
+        await model.fit(xs, ys, { epochs: 100 });
         setMachineLearningModel(model);
       };
       trainMachineLearningModel();
@@ -111,36 +113,32 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (machineLearningModel) {
-      const makePersonalizedRecommendations = async () => {
-        const userInput = [user.learningStyle, user.knowledgeLevel, user.goals];
-        const predictions = await machineLearningModel.predict(tf.tensor2d([userInput]));
-        const recommendedPlan = studyPlanOptions[predictions.argMax(1).dataSync()[0]];
-        setPersonalizedPlan(recommendedPlan);
+      const predictLearningPlan = async () => {
+        const userLearningData = await fetch('/api/user-learning-data', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const learningData = await userLearningData.json();
+        const inputs = tf.tensor2d([learningData.map((data) => data.inputs)], [1, 10]);
+        const predictions = machineLearningModel.predict(inputs);
+        const predictedPlan = await predictions.array();
+        setPersonalizedPlan(predictedPlan);
       };
-      makePersonalizedRecommendations();
+      predictLearningPlan();
     }
-  }, [machineLearningModel, user, studyPlanOptions]);
+  }, [machineLearningModel]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        title="Recommended Plan"
-        description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
-        link={recommendedPlan ? recommendedPlan.link : '/'}
-      />
-      <StudyPlanCard
-        title="Personalized Plan"
-        description={personalizedPlan ? personalizedPlan.description : 'No plan recommended'}
-        link={personalizedPlan ? personalizedPlan.link : '/'}
-      />
-      <ProgressCard
-        title="Progress"
-        progressPercentage={userProgress.progressPercentage}
-        completedLessons={userProgress.completedLessons}
-        totalLessons={userProgress.totalLessons}
-      />
-      <CommunityCard title="Community" />
-      <ResourceCard title="Resources" />
+      <h1>Personalized Learning Companion</h1>
+      <StudyPlanCard studyPlanOptions={studyPlanOptions} selectedStudyPlan={selectedStudyPlan} setSelectedStudyPlan={setSelectedStudyPlan} />
+      <ProgressCard userProgress={userProgress} />
+      <CommunityCard />
+      <ResourceCard />
+      {recommendedPlan && <p>Recommended Plan: {recommendedPlan}</p>}
+      {personalizedPlan && <p>Personalized Plan: {personalizedPlan}</p>}
     </DashboardLayout>
   );
 }
