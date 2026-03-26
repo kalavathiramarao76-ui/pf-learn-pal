@@ -76,9 +76,9 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
+            learningStyle: recommendedPlanEngine.learningStyle,
+            knowledgeLevel: recommendedPlanEngine.knowledgeLevel,
+            goals: recommendedPlanEngine.goals,
           }),
         });
         const data = await response.json();
@@ -86,85 +86,83 @@ export default function DashboardPage() {
       };
       getRecommendedPlan();
     }
-  }, [user]);
+  }, [user, recommendedPlanEngine]);
 
   useEffect(() => {
     if (user) {
       const trainMachineLearningModel = async () => {
-        const learningData = await fetch('/api/learning-data', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const learningDataJson = await learningData.json();
+        const userProgressData = {
+          completedLessons: userProgress.completedLessons,
+          totalLessons: userProgress.totalLessons,
+          progressPercentage: userProgress.progressPercentage,
+        };
+        const userFeedbackData = {
+          ratings: userFeedback.ratings,
+          comments: userFeedback.comments,
+        };
         const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
+        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [3] }));
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const xs = tf.tensor2d(learningDataJson.map((data) => data.features), [learningDataJson.length, 10]);
-        const ys = tf.tensor2d(learningDataJson.map((data) => data.label), [learningDataJson.length, 10]);
-        await model.fit(xs, ys, { epochs: 100 });
+        model.compile({ optimizer: tf.optimizers.adam(), loss: 'meanSquaredError' });
+        const trainingData = [
+          [userProgressData.completedLessons, userProgressData.totalLessons, userProgressData.progressPercentage],
+          [userFeedbackData.ratings.length, userFeedbackData.comments.length, userFeedbackData.ratings.reduce((a, b) => a + b, 0) / userFeedbackData.ratings.length],
+        ];
+        const labels = [
+          [1, 0, 0], // recommended plan
+          [0, 1, 0], // customized plan
+          [0, 0, 1], // personalized plan
+        ];
+        model.fit(tf.tensor2d(trainingData), tf.tensor2d(labels), { epochs: 100 });
         setMachineLearningModel(model);
       };
       trainMachineLearningModel();
     }
-  }, [user]);
+  }, [user, userProgress, userFeedback]);
 
   useEffect(() => {
     if (machineLearningModel) {
-      const makeRecommendations = async () => {
-        const userFeatures = tf.tensor2d([[
-          user.learningStyle === 'visual' ? 1 : 0,
-          user.learningStyle === 'auditory' ? 1 : 0,
-          user.learningStyle === 'kinesthetic' ? 1 : 0,
-          user.knowledgeLevel === 'beginner' ? 1 : 0,
-          user.knowledgeLevel === 'intermediate' ? 1 : 0,
-          user.knowledgeLevel === 'advanced' ? 1 : 0,
-          user.goals === 'improveSkills' ? 1 : 0,
-          user.goals === 'masterTopics' ? 1 : 0,
-          user.goals === 'exploreNewTopics' ? 1 : 0,
-          user.progressPercentage,
-        ]]);
-        const predictions = machineLearningModel.predict(userFeatures);
-        const recommendations = await predictions.array();
-        setLearningPlanRecommendations(recommendations);
+      const predictLearningPlan = async () => {
+        const userInput = [
+          [userProgress.completedLessons, userProgress.totalLessons, userProgress.progressPercentage],
+          [userFeedback.ratings.length, userFeedback.comments.length, userFeedback.ratings.reduce((a, b) => a + b, 0) / userFeedback.ratings.length],
+        ];
+        const predictions = machineLearningModel.predict(tf.tensor2d(userInput));
+        const predictedPlan = predictions.argMax(1).dataSync()[0];
+        if (predictedPlan === 0) {
+          setPersonalizedPlan(recommendedPlan);
+        } else if (predictedPlan === 1) {
+          setPersonalizedPlan(customizedPlan);
+        } else {
+          setPersonalizedPlan('personalized plan');
+        }
       };
-      makeRecommendations();
+      predictLearningPlan();
     }
-  }, [machineLearningModel, user]);
+  }, [machineLearningModel, userProgress, userFeedback, recommendedPlan, customizedPlan]);
 
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      <p>Welcome, {user.name}!</p>
-      <h2>Recommended Plan</h2>
-      {recommendedPlan && <p>{recommendedPlan}</p>}
-      <h2>Learning Plan Recommendations</h2>
-      {learningPlanRecommendations.length > 0 && (
-        <ul>
-          {learningPlanRecommendations.map((recommendation, index) => (
-            <li key={index}>{recommendation}</li>
-          ))}
-        </ul>
+      <StudyPlanCard
+        title="Recommended Plan"
+        description={recommendedPlan}
+        link="/recommended-plan"
+      />
+      <ProgressCard
+        title="User Progress"
+        completedLessons={userProgress.completedLessons}
+        totalLessons={userProgress.totalLessons}
+        progressPercentage={userProgress.progressPercentage}
+      />
+      <CommunityCard title="Community" />
+      <ResourceCard title="Resources" />
+      {personalizedPlan && (
+        <StudyPlanCard
+          title="Personalized Plan"
+          description={personalizedPlan}
+          link="/personalized-plan"
+        />
       )}
-      <h2>Study Plan Options</h2>
-      <ul>
-        {studyPlanOptions.map((option, index) => (
-          <li key={index}>
-            <Link href={option.link}>
-              <a>{option.name}</a>
-            </Link>
-            <p>{option.description}</p>
-          </li>
-        ))}
-      </ul>
-      <h2>Progress</h2>
-      <ProgressCard progress={userProgress.progressPercentage} />
-      <h2>Community</h2>
-      <CommunityCard />
-      <h2>Resources</h2>
-      <ResourceCard />
     </DashboardLayout>
   );
 }
