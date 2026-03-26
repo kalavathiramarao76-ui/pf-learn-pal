@@ -76,101 +76,116 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            userProgress: userProgress,
-            userFeedback: userFeedback,
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
-        setLearningPlanRecommendations(data.learningPlanRecommendations);
+        setRecommendedPlan(data);
       };
       getRecommendedPlan();
     }
-  }, [user, userProgress, userFeedback]);
+  }, [user]);
 
-  useEffect(() => {
-    if (recommendedPlan) {
-      const trainAiModel = async () => {
-        const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const trainingData = [];
-        for (let i = 0; i < 100; i++) {
-          const input = tf.random.uniform([10]);
-          const output = tf.random.uniform([10]);
-          trainingData.push({ input, output });
-        }
-        await model.fit(tf.data.array(trainingData.map((data) => data.input)), tf.data.array(trainingData.map((data) => data.output)), {
-          epochs: 10,
-        });
-        setAiModel(model);
-      };
-      trainAiModel();
-    }
-  }, [recommendedPlan]);
+  const handleCustomizePlan = () => {
+    setIsCustomizingPlan(true);
+  };
 
-  useEffect(() => {
-    if (aiModel) {
-      const makePrediction = async () => {
-        const input = tf.tensor2d([userProgress.completedLessons, userProgress.totalLessons, userFeedback.ratings.length, userFeedback.comments.length], [1, 4]);
-        const output = aiModel.predict(input);
-        const prediction = await output.data();
-        setPersonalizedPlan(prediction);
-      };
-      makePrediction();
-    }
-  }, [aiModel, userProgress, userFeedback]);
+  const handleSaveCustomizedPlan = async () => {
+    const response = await fetch('/api/customize-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        customizationOptions: customizationOptions,
+      }),
+    });
+    const data = await response.json();
+    setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
+  };
+
+  const handleLearningStyleChange = (event) => {
+    setCustomizationOptions((prevOptions) => ({
+      ...prevOptions,
+      learningStyle: event.target.value,
+    }));
+  };
+
+  const handleKnowledgeLevelChange = (event) => {
+    setCustomizationOptions((prevOptions) => ({
+      ...prevOptions,
+      knowledgeLevel: event.target.value,
+    }));
+  };
+
+  const handleGoalsChange = (event) => {
+    setCustomizationOptions((prevOptions) => ({
+      ...prevOptions,
+      goals: event.target.value,
+    }));
+  };
+
+  const handleTopicsChange = (event) => {
+    setCustomizationOptions((prevOptions) => ({
+      ...prevOptions,
+      topics: event.target.value.split(','),
+    }));
+  };
 
   return (
     <DashboardLayout>
       <div className="container">
         <h1>Personalized Learning Companion</h1>
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
-              link={recommendedPlan ? recommendedPlan.link : '#'}
-            />
+        {isCustomizingPlan ? (
+          <div>
+            <h2>Customize Your Learning Plan</h2>
+            <form>
+              <label>
+                Learning Style:
+                <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
+                  <option value="">Select a learning style</option>
+                  <option value="visual">Visual</option>
+                  <option value="auditory">Auditory</option>
+                  <option value="kinesthetic">Kinesthetic</option>
+                </select>
+              </label>
+              <label>
+                Knowledge Level:
+                <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
+                  <option value="">Select a knowledge level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </label>
+              <label>
+                Goals:
+                <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
+              </label>
+              <label>
+                Topics:
+                <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
+              </label>
+              <button type="button" onClick={handleSaveCustomizedPlan}>
+                Save Customized Plan
+              </button>
+            </form>
           </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="User Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
-            />
+        ) : (
+          <div>
+            <h2>Recommended Learning Plan</h2>
+            {recommendedPlan && (
+              <StudyPlanCard plan={recommendedPlan} />
+            )}
+            <button type="button" onClick={handleCustomizePlan}>
+              Customize Plan
+            </button>
           </div>
-          <div className="col-md-4">
-            <CommunityCard title="Community" />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard title="Resources" />
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Personalized Plan</h5>
-                <p className="card-text">{personalizedPlan ? personalizedPlan.toString() : 'No plan generated'}</p>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Learning Plan Recommendations</h5>
-                <ul>
-                  {learningPlanRecommendations.map((recommendation, index) => (
-                    <li key={index}>{recommendation.name}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
+        <ProgressCard progress={userProgress} />
+        <CommunityCard />
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );
