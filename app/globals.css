@@ -89,92 +89,62 @@
   }
 }
 
-* {
-  outline: none;
-}
-
-*:focus {
-  outline: var(--focus-color) solid 2px;
-  box-shadow: var(--focus-box-shadow);
-}
-
-*:focus-large {
-  outline: var(--focus-color) solid 4px;
-  box-shadow: var(--focus-box-shadow-large);
-}
-
-button, input, select, textarea {
+body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-normal);
-}
-
-button:hover, input:hover, select:hover, textarea:hover {
-  cursor: pointer;
-}
-
-button:active, input:active, select:active, textarea:active {
-  transform: translateY(2px);
-}
-
-button:focus, input:focus, select:focus, textarea:focus {
-  outline: var(--focus-color) solid 2px;
-  box-shadow: var(--focus-box-shadow);
-}
-
-button:focus-large, input:focus-large, select:focus-large, textarea:focus-large {
-  outline: var(--focus-color) solid 4px;
-  box-shadow: var(--focus-box-shadow-large);
+  line-height: var(--line-height);
+  color: var(--text-color);
+  background-color: var(--background-color);
 }
 
 a {
-  text-decoration: none;
   color: var(--link-color);
+  text-decoration: none;
 }
 
 a:hover {
   color: var(--link-hover-color);
 }
 
-a:focus {
-  outline: var(--focus-color) solid 2px;
-  box-shadow: var(--focus-box-shadow);
-}
-
-a:focus-large {
-  outline: var(--focus-color) solid 4px;
-  box-shadow: var(--focus-box-shadow-large);
-}
-
-body {
-  font-family: var(--font-family);
+button {
+  color: var(--button-color);
+  background-color: var(--focus-background-color);
+  border: none;
+  padding: 10px 20px;
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--line-height);
-  color: var(--text-color);
-  background-color: var(--background-color);
+  cursor: pointer;
 }
 
-body::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+button:hover {
+  color: var(--button-hover-color);
 }
 
-body::-webkit-scrollbar-thumb {
-  background-color: var(--focus-color);
-  border-radius: 10px;
-}
-
-body::-webkit-scrollbar-track {
-  background-color: var(--background-color);
-}
-
-[tabindex]:focus {
-  outline: var(--focus-color) solid 2px;
+button:focus {
+  outline: none;
   box-shadow: var(--focus-box-shadow);
 }
 
-[tabindex]:focus-large {
-  outline: var(--focus-color) solid 4px;
+button:focus-visible {
+  outline: none;
   box-shadow: var(--focus-box-shadow-large);
+}
+
+.font-size-option-1 {
+  font-size: var(--font-size-option-1);
+}
+
+.font-size-option-2 {
+  font-size: var(--font-size-option-2);
+}
+
+.font-size-option-3 {
+  font-size: var(--font-size-option-3);
+}
+
+.font-size-option-4 {
+  font-size: var(--font-size-option-4);
+}
+
+.font-size-option-5 {
+  font-size: var(--font-size-option-5);
 }

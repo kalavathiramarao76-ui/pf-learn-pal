@@ -76,81 +76,120 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
           }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
-        setLearningPlanRecommendations(data.learningPlanRecommendations);
+        setRecommendedPlan(data);
       };
       getRecommendedPlan();
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user && user.learningStyle && user.knowledgeLevel && user.goals) {
-      const trainAiModel = async () => {
-        const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [3] }));
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const trainingData = [
-          { input: [user.learningStyle, user.knowledgeLevel, user.goals], output: [1, 0, 0] },
-          { input: [user.learningStyle, user.knowledgeLevel, user.goals], output: [0, 1, 0] },
-          { input: [user.learningStyle, user.knowledgeLevel, user.goals], output: [0, 0, 1] },
-        ];
-        await model.fit(tf.tensor2d(trainingData.map((data) => data.input)), tf.tensor2d(trainingData.map((data) => data.output)), {
-          epochs: 100,
-        });
-        setAiModel(model);
-      };
-      trainAiModel();
-    }
-  }, [user]);
+  const handleCustomizePlan = async () => {
+    setIsCustomizingPlan(true);
+    const response = await fetch('/api/customize-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        learningStyle: customizationOptions.learningStyle,
+        knowledgeLevel: customizationOptions.knowledgeLevel,
+        goals: customizationOptions.goals,
+        topics: customizationOptions.topics,
+      }),
+    });
+    const data = await response.json();
+    setCustomizedPlan(data);
+    setIsCustomizingPlan(false);
+  };
 
-  const getAiPoweredRecommendations = async () => {
-    if (aiModel) {
-      const input = tf.tensor2d([user.learningStyle, user.knowledgeLevel, user.goals]);
-      const output = aiModel.predict(input);
-      const recommendations = await output.data();
-      setLearningPlanRecommendations(recommendations);
-    }
+  const handleLearningStyleChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      learningStyle: event.target.value,
+    });
+  };
+
+  const handleKnowledgeLevelChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      knowledgeLevel: event.target.value,
+    });
+  };
+
+  const handleGoalsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      goals: event.target.value,
+    });
+  };
+
+  const handleTopicsChange = (event) => {
+    setCustomizationOptions({
+      ...customizationOptions,
+      topics: event.target.value.split(','),
+    });
   };
 
   return (
     <DashboardLayout>
       <div className="container">
         <h1>Personalized Learning Companion</h1>
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description={recommendedPlan}
-              link="/recommended-plan"
-            />
+        {user && (
+          <div>
+            <h2>Recommended Plan</h2>
+            {recommendedPlan && (
+              <div>
+                <p>Learning Style: {recommendedPlan.learningStyle}</p>
+                <p>Knowledge Level: {recommendedPlan.knowledgeLevel}</p>
+                <p>Goals: {recommendedPlan.goals}</p>
+                <p>Recommended Plan: {recommendedPlan.recommendedPlan}</p>
+              </div>
+            )}
+            <h2>Customize Your Plan</h2>
+            <form>
+              <label>Learning Style:</label>
+              <select value={customizationOptions.learningStyle} onChange={handleLearningStyleChange}>
+                <option value="">Select a learning style</option>
+                <option value="visual">Visual</option>
+                <option value="auditory">Auditory</option>
+                <option value="kinesthetic">Kinesthetic</option>
+              </select>
+              <br />
+              <label>Knowledge Level:</label>
+              <select value={customizationOptions.knowledgeLevel} onChange={handleKnowledgeLevelChange}>
+                <option value="">Select a knowledge level</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+              <br />
+              <label>Goals:</label>
+              <input type="text" value={customizationOptions.goals} onChange={handleGoalsChange} />
+              <br />
+              <label>Topics:</label>
+              <input type="text" value={customizationOptions.topics.join(',')} onChange={handleTopicsChange} />
+              <br />
+              <button type="button" onClick={handleCustomizePlan}>Customize Plan</button>
+            </form>
+            {isCustomizingPlan && <p>Customizing plan...</p>}
+            {customizedPlan && (
+              <div>
+                <h2>Customized Plan</h2>
+                <p>Learning Style: {customizedPlan.learningStyle}</p>
+                <p>Knowledge Level: {customizedPlan.knowledgeLevel}</p>
+                <p>Goals: {customizedPlan.goals}</p>
+                <p>Customized Plan: {customizedPlan.customizedPlan}</p>
+              </div>
+            )}
           </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="User Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard title="Community" description="Join our community to connect with other learners" link="/community" />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard title="Resources" description="Access additional resources to support your learning" link="/resources" />
-          </div>
-          <div className="col-md-4">
-            <button onClick={getAiPoweredRecommendations}>Get AI-Powered Recommendations</button>
-          </div>
-        </div>
+        )}
+        <StudyPlanCard />
+        <ProgressCard />
+        <CommunityCard />
+        <ResourceCard />
       </div>
     </DashboardLayout>
   );
