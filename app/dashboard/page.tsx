@@ -76,9 +76,9 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            learningStyle: recommendedPlanEngine.learningStyle,
-            knowledgeLevel: recommendedPlanEngine.knowledgeLevel,
-            goals: recommendedPlanEngine.goals,
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
           }),
         });
         const data = await response.json();
@@ -86,83 +86,61 @@ export default function DashboardPage() {
       };
       getRecommendedPlan();
     }
-  }, [user, recommendedPlanEngine]);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       const trainMachineLearningModel = async () => {
-        const userProgressData = {
-          completedLessons: userProgress.completedLessons,
-          totalLessons: userProgress.totalLessons,
-          progressPercentage: userProgress.progressPercentage,
-        };
-        const userFeedbackData = {
-          ratings: userFeedback.ratings,
-          comments: userFeedback.comments,
-        };
         const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [3] }));
+        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'meanSquaredError' });
+        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
         const trainingData = [
-          [userProgressData.completedLessons, userProgressData.totalLessons, userProgressData.progressPercentage],
-          [userFeedbackData.ratings.length, userFeedbackData.comments.length, userFeedbackData.ratings.reduce((a, b) => a + b, 0) / userFeedbackData.ratings.length],
+          { input: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+          { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+          { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
         ];
-        const labels = [
-          [1, 0, 0], // recommended plan
-          [0, 1, 0], // customized plan
-          [0, 0, 1], // personalized plan
-        ];
-        model.fit(tf.tensor2d(trainingData), tf.tensor2d(labels), { epochs: 100 });
+        const inputs = trainingData.map(data => data.input);
+        const outputs = trainingData.map(data => data.output);
+        await model.fit(tf.tensor2d(inputs), tf.tensor2d(outputs), { epochs: 100 });
         setMachineLearningModel(model);
       };
       trainMachineLearningModel();
     }
-  }, [user, userProgress, userFeedback]);
+  }, [user]);
 
   useEffect(() => {
     if (machineLearningModel) {
-      const predictLearningPlan = async () => {
-        const userInput = [
-          [userProgress.completedLessons, userProgress.totalLessons, userProgress.progressPercentage],
-          [userFeedback.ratings.length, userFeedback.comments.length, userFeedback.ratings.reduce((a, b) => a + b, 0) / userFeedback.ratings.length],
-        ];
-        const predictions = machineLearningModel.predict(tf.tensor2d(userInput));
-        const predictedPlan = predictions.argMax(1).dataSync()[0];
-        if (predictedPlan === 0) {
-          setPersonalizedPlan(recommendedPlan);
-        } else if (predictedPlan === 1) {
-          setPersonalizedPlan(customizedPlan);
-        } else {
-          setPersonalizedPlan('personalized plan');
-        }
+      const makePersonalizedRecommendations = async () => {
+        const userInput = [user.learningStyle, user.knowledgeLevel, user.goals];
+        const predictions = await machineLearningModel.predict(tf.tensor2d([userInput]));
+        const recommendedPlan = studyPlanOptions[predictions.argMax(1).dataSync()[0]];
+        setPersonalizedPlan(recommendedPlan);
       };
-      predictLearningPlan();
+      makePersonalizedRecommendations();
     }
-  }, [machineLearningModel, userProgress, userFeedback, recommendedPlan, customizedPlan]);
+  }, [machineLearningModel, user, studyPlanOptions]);
 
   return (
     <DashboardLayout>
       <StudyPlanCard
         title="Recommended Plan"
-        description={recommendedPlan}
-        link="/recommended-plan"
+        description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+        link={recommendedPlan ? recommendedPlan.link : '/'}
+      />
+      <StudyPlanCard
+        title="Personalized Plan"
+        description={personalizedPlan ? personalizedPlan.description : 'No plan recommended'}
+        link={personalizedPlan ? personalizedPlan.link : '/'}
       />
       <ProgressCard
-        title="User Progress"
+        title="Progress"
+        progressPercentage={userProgress.progressPercentage}
         completedLessons={userProgress.completedLessons}
         totalLessons={userProgress.totalLessons}
-        progressPercentage={userProgress.progressPercentage}
       />
       <CommunityCard title="Community" />
       <ResourceCard title="Resources" />
-      {personalizedPlan && (
-        <StudyPlanCard
-          title="Personalized Plan"
-          description={personalizedPlan}
-          link="/personalized-plan"
-        />
-      )}
     </DashboardLayout>
   );
 }

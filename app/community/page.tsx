@@ -72,60 +72,38 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
-      } else {
-        return 0;
       }
+      return 0;
     });
 
-    const filteredSorted = sorted.filter((post) => {
-      if (filterBy === 'all') {
-        return true;
-      } else if (filterBy === 'mine') {
-        return post.authorId === user?.id;
-      } else {
-        return post.category === filterBy;
-      }
-    });
-
-    setFilteredPosts(filteredSorted);
-  }, [posts, searchQuery, sortOrder, filterBy, user]);
-
-  const handleScroll = () => {
-    const scrollPosition = window.scrollY + window.innerHeight;
-    const documentHeight = document.body.offsetHeight;
-    if (scrollPosition >= documentHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-      loadMorePosts();
-    }
-  };
-
-  const loadMorePosts = async () => {
-    setLoadingMorePosts(true);
-    try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          pageNumber: pageNumber + 1,
-          postsPerPage,
-          lastPostId,
-        },
-      });
-      const newPosts = response.data;
-      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
-      setLastPostId(newPosts[newPosts.length - 1].id);
-      setPageNumber((prevPageNumber) => prevPageNumber + 1);
-      setHasMorePosts(newPosts.length === postsPerPage);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
-    }
-  };
+    setFilteredPosts(sorted);
+  }, [posts, searchQuery, sortOrder]);
 
   useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.body.offsetHeight;
+      if (scrollPosition >= documentHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+        setLoadingMorePosts(true);
+        axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+          .then(response => {
+            const newPosts = response.data;
+            setPosts([...posts, ...newPosts]);
+            setPageNumber(pageNumber + 1);
+            setHasMorePosts(newPosts.length === postsPerPage);
+            setLoadingMorePosts(false);
+          })
+          .catch(error => {
+            console.error(error);
+            setLoadingMorePosts(false);
+          });
+      }
+    };
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage, lastPostId]);
+  }, [hasMorePosts, loadingMorePosts, pageNumber, posts, postsPerPage]);
 
   return (
     // your JSX code here
