@@ -76,9 +76,8 @@ export default function CommunityPage() {
       return 0;
     });
 
-    const paginated = sorted.slice(0, pageNumber * postsPerPage);
-    setFilteredPosts(paginated);
-  }, [posts, searchQuery, sortOrder, pageNumber, postsPerPage]);
+    setFilteredPosts(sorted);
+  }, [posts, searchQuery, sortOrder]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,29 +85,36 @@ export default function CommunityPage() {
       const scrollTop = document.body.scrollTop;
       const clientHeight = document.body.clientHeight;
       if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-        setLoadingMorePosts(true);
-        axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
-          .then(response => {
-            const newPosts = response.data;
-            if (newPosts.length < postsPerPage) {
-              setHasMorePosts(false);
-            }
-            setPosts([...posts, ...newPosts]);
-            setPageNumber(pageNumber + 1);
-          })
-          .catch(error => {
-            console.error(error);
-          })
-          .finally(() => {
-            setLoadingMorePosts(false);
-          });
+        loadMorePosts();
       }
     };
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage, posts]);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMorePosts, loadingMorePosts]);
+
+  const loadMorePosts = async () => {
+    setLoadingMorePosts(true);
+    try {
+      const response = await axios.get('/api/posts', {
+        params: {
+          pageNumber: pageNumber + 1,
+          postsPerPage,
+          lastPostId,
+        },
+      });
+      const newPosts = response.data;
+      if (newPosts.length < postsPerPage) {
+        setHasMorePosts(false);
+      }
+      setPosts([...posts, ...newPosts]);
+      setPageNumber(pageNumber + 1);
+      setLastPostId(newPosts[newPosts.length - 1].id);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingMorePosts(false);
+    }
+  };
 
   return (
     // your JSX code here
