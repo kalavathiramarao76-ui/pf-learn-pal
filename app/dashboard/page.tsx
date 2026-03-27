@@ -76,225 +76,48 @@ export default function DashboardPage() {
   const [machineLearningModel, setMachineLearningModel] = useState(cache.machineLearningModel);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      cache.user = JSON.parse(storedUser);
-    }
-  }, []);
+    const trainAiModel = async () => {
+      if (!aiModel) {
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
+        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
+        setAiModel(model);
+      }
+    };
+    trainAiModel();
+  }, [aiModel]);
 
   useEffect(() => {
-    if (user && !cache.recommendedPlan) {
-      const getRecommendedPlan = async () => {
-        const response = await fetch('/api/recommended-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setRecommendedPlan(data);
-        cache.recommendedPlan = data;
-      };
-      getRecommendedPlan();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.personalizedPlan) {
-      const getPersonalizedPlan = async () => {
-        const response = await fetch('/api/personalized-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setPersonalizedPlan(data);
-        cache.personalizedPlan = data;
-      };
-      getPersonalizedPlan();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.customizedPlan) {
-      const getCustomizedPlan = async () => {
-        const response = await fetch('/api/customized-plan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setCustomizedPlan(data);
-        cache.customizedPlan = data;
-      };
-      getCustomizedPlan();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.learningPlanRecommendations) {
-      const getLearningPlanRecommendations = async () => {
-        const response = await fetch('/api/learning-plan-recommendations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setLearningPlanRecommendations(data);
-        cache.learningPlanRecommendations = data;
-      };
-      getLearningPlanRecommendations();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.userProgress) {
-      const getUserProgress = async () => {
-        const response = await fetch('/api/user-progress', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setUserProgress(data);
-        cache.userProgress = data;
-      };
-      getUserProgress();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.userFeedback) {
-      const getUserFeedback = async () => {
-        const response = await fetch('/api/user-feedback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setUserFeedback(data);
-        cache.userFeedback = data;
-      };
-      getUserFeedback();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.upcomingLessons) {
-      const getUpcomingLessons = async () => {
-        const response = await fetch('/api/upcoming-lessons', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setUpcomingLessons(data);
-        cache.upcomingLessons = data;
-      };
-      getUpcomingLessons();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.reminders) {
-      const getReminders = async () => {
-        const response = await fetch('/api/reminders', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setReminders(data);
-        cache.reminders = data;
-      };
-      getReminders();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.aiModel) {
-      const getAiModel = async () => {
-        const response = await fetch('/api/ai-model', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setAiModel(data);
-        cache.aiModel = data;
-      };
-      getAiModel();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.mlModel) {
-      const getMlModel = async () => {
-        const response = await fetch('/api/ml-model', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setMlModel(data);
-        cache.mlModel = data;
-      };
-      getMlModel();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !cache.machineLearningModel) {
-      const getMachineLearningModel = async () => {
-        const response = await fetch('/api/machine-learning-model', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        const data = await response.json();
-        setMachineLearningModel(data);
-        cache.machineLearningModel = data;
-      };
-      getMachineLearningModel();
-    }
-  }, [user]);
+    const generateLearningPlanRecommendations = async () => {
+      if (aiModel && userProgress && userFeedback) {
+        const userInput = tf.tensor2d([[
+          userProgress.completedLessons,
+          userProgress.totalLessons,
+          userProgress.progressPercentage,
+          ...userFeedback.ratings,
+          ...userFeedback.comments.map(comment => comment.length),
+        ]]);
+        const predictions = aiModel.predict(userInput);
+        const recommendations = await predictions.data();
+        setLearningPlanRecommendations(recommendations.map((prediction, index) => ({
+          plan: studyPlanOptions[index],
+          confidence: prediction,
+        })));
+      }
+    };
+    generateLearningPlanRecommendations();
+  }, [aiModel, userProgress, userFeedback, studyPlanOptions]);
 
   return (
     <DashboardLayout>
       <StudyPlanCard
-        recommendedPlan={recommendedPlan}
-        personalizedPlan={personalizedPlan}
-        customizedPlan={customizedPlan}
         studyPlanOptions={studyPlanOptions}
         selectedStudyPlan={selectedStudyPlan}
         setSelectedStudyPlan={setSelectedStudyPlan}
-      />
-      <ProgressCard
-        userProgress={userProgress}
         learningPlanRecommendations={learningPlanRecommendations}
       />
+      <ProgressCard userProgress={userProgress} />
       <CommunityCard />
       <ResourceCard />
     </DashboardLayout>
