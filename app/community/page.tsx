@@ -72,9 +72,8 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
-      } else {
-        return 0;
       }
+      return 0;
     });
 
     setFilteredPosts(sorted);
@@ -82,20 +81,23 @@ export default function CommunityPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollHeight = document.body.scrollHeight;
-      const scrollTop = document.body.scrollTop;
-      const clientHeight = document.body.clientHeight;
+      const scrollHeight = document.body.offsetHeight;
+      const scrollTop = window.scrollY;
+      const clientHeight = window.innerHeight;
       if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
         setLoadingMorePosts(true);
         axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
           .then(response => {
             const newPosts = response.data;
+            if (newPosts.length < postsPerPage) {
+              setHasMorePosts(false);
+            }
             setPosts([...posts, ...newPosts]);
-            setHasMorePosts(newPosts.length === postsPerPage);
-            setLoadingMorePosts(false);
           })
           .catch(error => {
             console.error(error);
+          })
+          .finally(() => {
             setLoadingMorePosts(false);
           });
       }
@@ -104,7 +106,7 @@ export default function CommunityPage() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [posts, hasMorePosts, loadingMorePosts, postsPerPage]);
+  }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
 
   return (
     // your JSX code here

@@ -10,20 +10,36 @@ import CommunityCard from '../../components/CommunityCard';
 import ResourceCard from '../../components/ResourceCard';
 import * as tf from '@tensorflow/tfjs';
 
+const cache = {
+  user: null,
+  recommendedPlan: null,
+  personalizedPlan: null,
+  customizedPlan: null,
+  studyPlanOptions: null,
+  learningPlanRecommendations: null,
+  userProgress: null,
+  userFeedback: null,
+  upcomingLessons: null,
+  reminders: null,
+  aiModel: null,
+  mlModel: null,
+  machineLearningModel: null,
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState(null);
-  const [recommendedPlan, setRecommendedPlan] = useState(null);
-  const [personalizedPlan, setPersonalizedPlan] = useState(null);
-  const [customizedPlan, setCustomizedPlan] = useState(null);
-  const [studyPlanOptions, setStudyPlanOptions] = useState([
+  const [user, setUser] = useState(cache.user);
+  const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
+  const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
+  const [customizedPlan, setCustomizedPlan] = useState(cache.customizedPlan);
+  const [studyPlanOptions, setStudyPlanOptions] = useState(cache.studyPlanOptions || [
     { name: 'Foundational Plan', description: 'Build a strong foundation in the basics', link: '/foundational-plan' },
     { name: 'Intermediate Plan', description: 'Improve your skills with intermediate-level content', link: '/intermediate-plan' },
     { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
   ]);
   const [selectedStudyPlan, setSelectedStudyPlan] = useState(null);
-  const [learningPlanRecommendations, setLearningPlanRecommendations] = useState([]);
+  const [learningPlanRecommendations, setLearningPlanRecommendations] = useState(cache.learningPlanRecommendations || []);
   const [recommendedPlanEngine, setRecommendedPlanEngine] = useState({
     learningStyle: '',
     knowledgeLevel: '',
@@ -44,134 +60,243 @@ export default function DashboardPage() {
       similarityThreshold: 0.5,
     },
   });
-  const [userProgress, setUserProgress] = useState({
+  const [userProgress, setUserProgress] = useState(cache.userProgress || {
     completedLessons: 0,
     totalLessons: 0,
     progressPercentage: 0,
   });
-  const [userFeedback, setUserFeedback] = useState({
+  const [userFeedback, setUserFeedback] = useState(cache.userFeedback || {
     ratings: [],
     comments: [],
   });
-  const [upcomingLessons, setUpcomingLessons] = useState([]);
-  const [reminders, setReminders] = useState([]);
-  const [aiModel, setAiModel] = useState(null);
-  const [mlModel, setMlModel] = useState(null);
-  const [machineLearningModel, setMachineLearningModel] = useState(null);
+  const [upcomingLessons, setUpcomingLessons] = useState(cache.upcomingLessons || []);
+  const [reminders, setReminders] = useState(cache.reminders || []);
+  const [aiModel, setAiModel] = useState(cache.aiModel);
+  const [mlModel, setMlModel] = useState(cache.mlModel);
+  const [machineLearningModel, setMachineLearningModel] = useState(cache.machineLearningModel);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+      cache.user = JSON.parse(storedUser);
     }
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && !cache.recommendedPlan) {
       const getRecommendedPlan = async () => {
         const response = await fetch('/api/recommended-plan', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            userId: user.id,
-            userProgress: userProgress,
-            userFeedback: userFeedback,
-          }),
+          body: JSON.stringify({ userId: user.id }),
         });
         const data = await response.json();
-        setRecommendedPlan(data.recommendedPlan);
-        setLearningPlanRecommendations(data.learningPlanRecommendations);
+        setRecommendedPlan(data);
+        cache.recommendedPlan = data;
       };
       getRecommendedPlan();
     }
-  }, [user, userProgress, userFeedback]);
+  }, [user]);
 
   useEffect(() => {
-    if (recommendedPlan) {
-      const trainAiModel = async () => {
-        const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const trainingData = [
-          { input: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-          { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
-        ];
-        const inputs = trainingData.map((data) => data.input);
-        const outputs = trainingData.map((data) => data.output);
-        await model.fit(tf.tensor2d(inputs, [inputs.length, 10]), tf.tensor2d(outputs, [outputs.length, 10]), {
-          epochs: 100,
+    if (user && !cache.personalizedPlan) {
+      const getPersonalizedPlan = async () => {
+        const response = await fetch('/api/personalized-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
         });
-        setAiModel(model);
+        const data = await response.json();
+        setPersonalizedPlan(data);
+        cache.personalizedPlan = data;
       };
-      trainAiModel();
+      getPersonalizedPlan();
     }
-  }, [recommendedPlan]);
+  }, [user]);
 
   useEffect(() => {
-    if (aiModel) {
-      const makePrediction = async () => {
-        const input = tf.tensor2d([userProgress.completedLessons, userProgress.totalLessons, userFeedback.ratings.length], [1, 3]);
-        const output = aiModel.predict(input);
-        const prediction = await output.data();
-        setPersonalizedPlan(prediction);
+    if (user && !cache.customizedPlan) {
+      const getCustomizedPlan = async () => {
+        const response = await fetch('/api/customized-plan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setCustomizedPlan(data);
+        cache.customizedPlan = data;
       };
-      makePrediction();
+      getCustomizedPlan();
     }
-  }, [aiModel, userProgress, userFeedback]);
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.learningPlanRecommendations) {
+      const getLearningPlanRecommendations = async () => {
+        const response = await fetch('/api/learning-plan-recommendations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setLearningPlanRecommendations(data);
+        cache.learningPlanRecommendations = data;
+      };
+      getLearningPlanRecommendations();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.userProgress) {
+      const getUserProgress = async () => {
+        const response = await fetch('/api/user-progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setUserProgress(data);
+        cache.userProgress = data;
+      };
+      getUserProgress();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.userFeedback) {
+      const getUserFeedback = async () => {
+        const response = await fetch('/api/user-feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setUserFeedback(data);
+        cache.userFeedback = data;
+      };
+      getUserFeedback();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.upcomingLessons) {
+      const getUpcomingLessons = async () => {
+        const response = await fetch('/api/upcoming-lessons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setUpcomingLessons(data);
+        cache.upcomingLessons = data;
+      };
+      getUpcomingLessons();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.reminders) {
+      const getReminders = async () => {
+        const response = await fetch('/api/reminders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setReminders(data);
+        cache.reminders = data;
+      };
+      getReminders();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.aiModel) {
+      const getAiModel = async () => {
+        const response = await fetch('/api/ai-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setAiModel(data);
+        cache.aiModel = data;
+      };
+      getAiModel();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.mlModel) {
+      const getMlModel = async () => {
+        const response = await fetch('/api/ml-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setMlModel(data);
+        cache.mlModel = data;
+      };
+      getMlModel();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !cache.machineLearningModel) {
+      const getMachineLearningModel = async () => {
+        const response = await fetch('/api/machine-learning-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        const data = await response.json();
+        setMachineLearningModel(data);
+        cache.machineLearningModel = data;
+      };
+      getMachineLearningModel();
+    }
+  }, [user]);
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
-              link={recommendedPlan ? recommendedPlan.link : '#'}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="User Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard title="Community" />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard title="Resources" />
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Personalized Plan</h5>
-                <p className="card-text">{personalizedPlan ? personalizedPlan.toString() : 'No plan generated'}</p>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Learning Plan Recommendations</h5>
-                <ul>
-                  {learningPlanRecommendations.map((recommendation, index) => (
-                    <li key={index}>{recommendation.name}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <StudyPlanCard
+        recommendedPlan={recommendedPlan}
+        personalizedPlan={personalizedPlan}
+        customizedPlan={customizedPlan}
+        studyPlanOptions={studyPlanOptions}
+        selectedStudyPlan={selectedStudyPlan}
+        setSelectedStudyPlan={setSelectedStudyPlan}
+      />
+      <ProgressCard
+        userProgress={userProgress}
+        learningPlanRecommendations={learningPlanRecommendations}
+      />
+      <CommunityCard />
+      <ResourceCard />
     </DashboardLayout>
   );
 }
