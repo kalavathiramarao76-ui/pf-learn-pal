@@ -81,9 +81,9 @@ export default function CommunityPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollHeight = document.body.scrollHeight;
-      const scrollTop = document.body.scrollTop;
-      const clientHeight = document.body.clientHeight;
+      const scrollHeight = document.body.offsetHeight;
+      const scrollTop = window.scrollY;
+      const clientHeight = window.innerHeight;
       if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
         loadMorePosts();
       }
@@ -95,20 +95,10 @@ export default function CommunityPage() {
   const loadMorePosts = async () => {
     setLoadingMorePosts(true);
     try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          pageNumber: pageNumber + 1,
-          postsPerPage,
-          lastPostId,
-        },
-      });
+      const response = await axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`);
       const newPosts = response.data;
-      if (newPosts.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
       setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
-      setLastPostId(newPosts[newPosts.length - 1].id);
+      setHasMorePosts(newPosts.length === postsPerPage);
     } catch (error) {
       console.error(error);
     } finally {
