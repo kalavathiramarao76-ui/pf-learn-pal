@@ -72,6 +72,45 @@ interface PersonalizedLearningPlanRecommendation {
   recommendationReason: string;
 }
 
+interface RecommendationEngineInput {
+  userBehavior: {
+    completedLessons: number;
+    totalLessons: number;
+    progressPercentage: number;
+  };
+  userPreferences: {
+    learningStyle: string;
+    knowledgeLevel: string;
+    goals: string;
+  };
+}
+
+interface RecommendationEngineOutput {
+  recommendedPlan: string;
+  recommendationReason: string;
+}
+
+const recommendationEngine = async (input: RecommendationEngineInput): Promise<RecommendationEngineOutput> => {
+  // Implement a recommendation engine using machine learning or other algorithms
+  // For demonstration purposes, a simple rule-based engine is used
+  if (input.userBehavior.progressPercentage < 50) {
+    return {
+      recommendedPlan: 'Foundational Plan',
+      recommendationReason: 'You are struggling with the current plan, let\'s start with the basics.',
+    };
+  } else if (input.userBehavior.progressPercentage < 80) {
+    return {
+      recommendedPlan: 'Intermediate Plan',
+      recommendationReason: 'You are making good progress, let\'s move on to intermediate-level content.',
+    };
+  } else {
+    return {
+      recommendedPlan: 'Advanced Plan',
+      recommendationReason: 'You are doing great, let\'s challenge you with advanced topics and techniques.',
+    };
+  }
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -97,115 +136,67 @@ export default function DashboardPage() {
   });
   const [isCustomizingPlan, setIsCustomizingPlan] = useState(false);
   const [planRecommendationEngine, setPlanRecommendationEngine] = useState<PlanRecommendationEngine>({
-    algorithm: 'collaborative_filtering',
+    algorithm: 'collaborative filtering',
     parameters: {
-      numRecommendations: 5,
+      numRecommendations: 3,
       similarityThreshold: 0.5,
     },
   });
-  const [personalizedRecommendations, setPersonalizedRecommendations] = useState<PersonalizedLearningPlanRecommendation[]>([]);
+  const [recommendedPlan, setRecommendedPlan] = useState(null);
+  const [recommendationReason, setRecommendationReason] = useState(null);
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const fetchRecommendedPlan = async () => {
       if (user) {
-        const response = await client.get('/recommendations', {
-          params: {
-            userId: user.id,
-            learningStyle: recommendedPlanEngine.learningStyle,
-            knowledgeLevel: recommendedPlanEngine.knowledgeLevel,
-            goals: recommendedPlanEngine.goals,
-          },
-        });
-        const recommendations = response.data;
-        setPersonalizedRecommendations(recommendations);
+        const userBehavior = {
+          completedLessons: user.completedLessons,
+          totalLessons: user.totalLessons,
+          progressPercentage: user.progressPercentage,
+        };
+        const userPreferences = {
+          learningStyle: user.learningStyle,
+          knowledgeLevel: user.knowledgeLevel,
+          goals: user.goals,
+        };
+        const input: RecommendationEngineInput = {
+          userBehavior,
+          userPreferences,
+        };
+        const output: RecommendationEngineOutput = await recommendationEngine(input);
+        setRecommendedPlan(output.recommendedPlan);
+        setRecommendationReason(output.recommendationReason);
       }
     };
-    fetchRecommendations();
-  }, [user, recommendedPlanEngine]);
-
-  const handlePlanSelection = (plan: StudyPlan) => {
-    setSelectedStudyPlan(plan);
-    const updatedRecommendedPlanEngine = { ...recommendedPlanEngine };
-    updatedRecommendedPlanEngine.recommendedPlan = plan.name;
-    setRecommendedPlanEngine(updatedRecommendedPlanEngine);
-  };
-
-  const handleCustomization = (options: CustomizationOptions) => {
-    setCustomizationOptions(options);
-    setIsCustomizingPlan(true);
-  };
-
-  const handleSaveCustomization = () => {
-    const updatedRecommendedPlanEngine = { ...recommendedPlanEngine };
-    updatedRecommendedPlanEngine.learningStyle = customizationOptions.learningStyle;
-    updatedRecommendedPlanEngine.knowledgeLevel = customizationOptions.knowledgeLevel;
-    updatedRecommendedPlanEngine.goals = customizationOptions.goals;
-    setRecommendedPlanEngine(updatedRecommendedPlanEngine);
-    setIsCustomizingPlan(false);
-  };
+    fetchRecommendedPlan();
+  }, [user]);
 
   return (
     <DashboardLayout>
       <h1>Personalized Learning Companion</h1>
-      <div>
-        <h2>Study Plans</h2>
+      <p>Welcome, {user.name}!</p>
+      <h2>Recommended Study Plan:</h2>
+      {recommendedPlan && (
+        <p>
+          We recommend the <strong>{recommendedPlan}</strong> plan for you. {recommendationReason}
+        </p>
+      )}
+      <h2>Study Plans:</h2>
+      <ul>
         {studyPlans.map((plan) => (
-          <StudyPlanCard key={plan.name} plan={plan} onSelect={handlePlanSelection} />
+          <li key={plan.name}>
+            <Link href={plan.link}>
+              <a>{plan.name}</a>
+            </Link>
+            <p>{plan.description}</p>
+          </li>
         ))}
-      </div>
-      <div>
-        <h2>Recommended Plans</h2>
-        {personalizedRecommendations.map((recommendation) => (
-          <div key={recommendation.planName}>
-            <h3>{recommendation.planName}</h3>
-            <p>{recommendation.planDescription}</p>
-            <p>Recommended because: {recommendation.recommendationReason}</p>
-          </div>
-        ))}
-      </div>
-      <div>
-        <h2>Customize Your Plan</h2>
-        {isCustomizingPlan ? (
-          <div>
-            <label>Learning Style:</label>
-            <input
-              type="text"
-              value={customizationOptions.learningStyle}
-              onChange={(e) => handleCustomization({ ...customizationOptions, learningStyle: e.target.value })}
-            />
-            <br />
-            <label>Knowledge Level:</label>
-            <input
-              type="text"
-              value={customizationOptions.knowledgeLevel}
-              onChange={(e) => handleCustomization({ ...customizationOptions, knowledgeLevel: e.target.value })}
-            />
-            <br />
-            <label>Goals:</label>
-            <input
-              type="text"
-              value={customizationOptions.goals}
-              onChange={(e) => handleCustomization({ ...customizationOptions, goals: e.target.value })}
-            />
-            <br />
-            <button onClick={handleSaveCustomization}>Save Customization</button>
-          </div>
-        ) : (
-          <button onClick={() => setIsCustomizingPlan(true)}>Customize Your Plan</button>
-        )}
-      </div>
-      <div>
-        <h2>Progress</h2>
-        <ProgressCard />
-      </div>
-      <div>
-        <h2>Community</h2>
-        <CommunityCard />
-      </div>
-      <div>
-        <h2>Resources</h2>
-        <ResourceCard />
-      </div>
+      </ul>
+      <h2>Progress:</h2>
+      <ProgressCard user={user} />
+      <h2>Community:</h2>
+      <CommunityCard />
+      <h2>Resources:</h2>
+      <ResourceCard />
     </DashboardLayout>
   );
 }

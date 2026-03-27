@@ -76,23 +76,21 @@ export default function CommunityPage() {
       return 0;
     });
 
-    const paginated = sorted.slice(0, pageNumber * postsPerPage);
-    setFilteredPosts(paginated);
-  }, [posts, searchQuery, sortOrder, pageNumber, postsPerPage]);
+    setFilteredPosts(sorted);
+  }, [posts, searchQuery, sortOrder]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollHeight = document.body.scrollHeight;
-      const scrollTop = document.body.scrollTop;
-      const clientHeight = document.body.clientHeight;
-      if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const documentHeight = document.body.offsetHeight;
+
+      if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
         setLoadingMorePosts(true);
-        axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+        axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
           .then(response => {
             const newPosts = response.data;
             setPosts([...posts, ...newPosts]);
             setHasMorePosts(newPosts.length === postsPerPage);
-            setPageNumber(pageNumber + 1);
             setLoadingMorePosts(false);
           })
           .catch(error => {
@@ -101,9 +99,13 @@ export default function CommunityPage() {
           });
       }
     };
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage, posts]);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [posts, hasMorePosts, loadingMorePosts, postsPerPage]);
 
   return (
     // your JSX code here
