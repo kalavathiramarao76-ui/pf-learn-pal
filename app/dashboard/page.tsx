@@ -97,9 +97,9 @@ export default function DashboardPage() {
   });
   const [isCustomizingPlan, setIsCustomizingPlan] = useState(false);
   const [planRecommendationEngine, setPlanRecommendationEngine] = useState<PlanRecommendationEngine>({
-    algorithm: 'collaborativeFiltering',
+    algorithm: 'collaborative_filtering',
     parameters: {
-      numRecommendations: 5,
+      numRecommendations: 3,
       similarityThreshold: 0.5,
     },
   });
@@ -112,74 +112,131 @@ export default function DashboardPage() {
     ratings: [],
     comments: [],
   });
-  const [personalizedLearningPlanRecommendations, setPersonalizedLearningPlanRecommendations] = useState<PersonalizedLearningPlanRecommendation[]>([]);
+  const [recommendedStudyPlans, setRecommendedStudyPlans] = useState<PersonalizedLearningPlanRecommendation[]>([]);
 
   useEffect(() => {
-    if (user && userProgress) {
-      const recommendations = generatePersonalizedLearningPlanRecommendations(user, userProgress);
-      setPersonalizedLearningPlanRecommendations(recommendations);
-    }
-  }, [user, userProgress]);
-
-  const generatePersonalizedLearningPlanRecommendations = (user: any, userProgress: UserProgress) => {
-    const recommendations: PersonalizedLearningPlanRecommendation[] = [];
-
-    // Simple example of generating recommendations based on user progress and goals
-    if (userProgress.progressPercentage < 50) {
-      recommendations.push({
-        planName: 'Foundational Plan',
-        planDescription: 'Build a strong foundation in the basics',
-        planLink: '/foundational-plan',
-        recommendationReason: 'You are behind in your progress, this plan will help you catch up',
+    const fetchUserProgress = async () => {
+      const response = await client.get('/user/progress');
+      const data = response.data;
+      setUserProgress({
+        completedLessons: data.completedLessons,
+        totalLessons: data.totalLessons,
+        progressPercentage: data.progressPercentage,
       });
-    } else if (userProgress.progressPercentage >= 50 && userProgress.progressPercentage < 80) {
-      recommendations.push({
-        planName: 'Intermediate Plan',
-        planDescription: 'Improve your skills with intermediate-level content',
-        planLink: '/intermediate-plan',
-        recommendationReason: 'You are making good progress, this plan will help you improve your skills',
-      });
-    } else {
-      recommendations.push({
-        planName: 'Advanced Plan',
-        planDescription: 'Master advanced topics and techniques',
-        planLink: '/advanced-plan',
-        recommendationReason: 'You are close to completing the course, this plan will help you master the advanced topics',
-      });
-    }
+    };
+    fetchUserProgress();
+  }, []);
 
-    return recommendations;
+  useEffect(() => {
+    const fetchUserFeedback = async () => {
+      const response = await client.get('/user/feedback');
+      const data = response.data;
+      setUserFeedback({
+        ratings: data.ratings,
+        comments: data.comments,
+      });
+    };
+    fetchUserFeedback();
+  }, []);
+
+  useEffect(() => {
+    const recommendStudyPlans = async () => {
+      const response = await client.post('/recommend/study-plans', {
+        userProgress: userProgress,
+        userFeedback: userFeedback,
+        planRecommendationEngine: planRecommendationEngine,
+      });
+      const data = response.data;
+      setRecommendedStudyPlans(data);
+    };
+    recommendStudyPlans();
+  }, [userProgress, userFeedback, planRecommendationEngine]);
+
+  const handlePlanSelection = (plan: StudyPlan) => {
+    setSelectedStudyPlan(plan);
+  };
+
+  const handleCustomization = (options: CustomizationOptions) => {
+    setCustomizationOptions(options);
+    setIsCustomizingPlan(true);
   };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard studyPlans={studyPlans} selectedStudyPlan={selectedStudyPlan} setSelectedStudyPlan={setSelectedStudyPlan} />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard userProgress={userProgress} />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-12">
-            <h2>Personalized Learning Plan Recommendations</h2>
-            {personalizedLearningPlanRecommendations.map((recommendation, index) => (
-              <div key={index}>
-                <h3>{recommendation.planName}</h3>
-                <p>{recommendation.planDescription}</p>
-                <p>Recommended because: {recommendation.recommendationReason}</p>
-                <Link href={recommendation.planLink}>View Plan</Link>
-              </div>
-            ))}
-          </div>
-        </div>
+      <h1>Personalized Learning Companion</h1>
+      <div>
+        <h2>Recommended Study Plans</h2>
+        {recommendedStudyPlans.map((plan, index) => (
+          <StudyPlanCard key={index} plan={plan} />
+        ))}
       </div>
+      <div>
+        <h2>Study Plans</h2>
+        {studyPlans.map((plan, index) => (
+          <Link key={index} href={plan.link}>
+            <a onClick={() => handlePlanSelection(plan)}>
+              <StudyPlanCard plan={plan} />
+            </a>
+          </Link>
+        ))}
+      </div>
+      <div>
+        <h2>Progress</h2>
+        <ProgressCard progress={userProgress} />
+      </div>
+      <div>
+        <h2>Community</h2>
+        <CommunityCard />
+      </div>
+      <div>
+        <h2>Resources</h2>
+        <ResourceCard />
+      </div>
+      {isCustomizingPlan && (
+        <div>
+          <h2>Customize Your Plan</h2>
+          <form>
+            <label>
+              Learning Style:
+              <select
+                value={customizationOptions.learningStyle}
+                onChange={(e) => handleCustomization({ ...customizationOptions, learningStyle: e.target.value })}
+              >
+                <option value="visual">Visual</option>
+                <option value="auditory">Auditory</option>
+                <option value="kinesthetic">Kinesthetic</option>
+              </select>
+            </label>
+            <label>
+              Knowledge Level:
+              <select
+                value={customizationOptions.knowledgeLevel}
+                onChange={(e) => handleCustomization({ ...customizationOptions, knowledgeLevel: e.target.value })}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </label>
+            <label>
+              Goals:
+              <input
+                type="text"
+                value={customizationOptions.goals}
+                onChange={(e) => handleCustomization({ ...customizationOptions, goals: e.target.value })}
+              />
+            </label>
+            <label>
+              Topics:
+              <input
+                type="text"
+                value={customizationOptions.topics.join(', ')}
+                onChange={(e) => handleCustomization({ ...customizationOptions, topics: e.target.value.split(', ') })}
+              />
+            </label>
+          </form>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

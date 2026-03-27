@@ -92,6 +92,16 @@ button:hover {
   background-color: var(--button-hover-color);
 }
 
+button:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-box-shadow-large);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --text-color: var(--dark-text-color);
@@ -122,13 +132,14 @@ button:hover {
     --font-weight-normal: var(--high-contrast-font-weight-normal);
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
-  h1, h2, h3, h4, h5, h6 {
-    font-size: calc(var(--font-size-large) * 1.1);
-  }
-  p {
-    font-size: calc(var(--font-size-base) * 1.1);
-  }
-  button {
-    font-size: calc(var(--font-size-base) * 1.1);
-  }
+}
+
+[tabindex]:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
+}
+
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-box-shadow-large);
 }
