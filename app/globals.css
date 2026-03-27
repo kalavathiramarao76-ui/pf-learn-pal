@@ -119,5 +119,16 @@ button:hover {
     --focus-background-color: var(--high-contrast-focus-background-color);
     --focus-box-shadow: var(--high-contrast-focus-box-shadow);
     --focus-box-shadow-large: var(--high-contrast-focus-box-shadow-large);
+    --font-weight-normal: var(--high-contrast-font-weight-normal);
+    --font-weight-bold: var(--high-contrast-font-weight-bold);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: calc(var(--font-size-large) * 1.1);
+  }
+  p {
+    font-size: calc(var(--font-size-base) * 1.1);
+  }
+  button {
+    font-size: calc(var(--font-size-base) * 1.1);
   }
 }

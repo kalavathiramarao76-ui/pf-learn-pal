@@ -65,6 +65,13 @@ interface UserFeedback {
   comments: any[];
 }
 
+interface PersonalizedLearningPlanRecommendation {
+  planName: string;
+  planDescription: string;
+  planLink: string;
+  recommendationReason: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -96,37 +103,52 @@ export default function DashboardPage() {
       similarityThreshold: 0.5,
     },
   });
-  const [userProgress, setUserProgress] = useState<UserProgress>(cache.userProgress || {
+  const [userProgress, setUserProgress] = useState<UserProgress>({
     completedLessons: 0,
     totalLessons: 0,
     progressPercentage: 0,
   });
-  const [userFeedback, setUserFeedback] = useState<UserFeedback>(cache.userFeedback || {
+  const [userFeedback, setUserFeedback] = useState<UserFeedback>({
     ratings: [],
     comments: [],
   });
-  const [upcomingLessons, setUpcomingLessons] = useState(cache.upcomingLessons || []);
-  const [reminders, setReminders] = useState(cache.reminders || []);
-  const [aiModel, setAiModel] = useState(cache.aiModel);
+  const [personalizedLearningPlanRecommendations, setPersonalizedLearningPlanRecommendations] = useState<PersonalizedLearningPlanRecommendation[]>([]);
 
   useEffect(() => {
-    const fetchStudyPlans = async () => {
-      const response = await client.get('/study-plans');
-      setStudyPlans(response.data);
-    };
-    fetchStudyPlans();
-  }, []);
+    if (user && userProgress) {
+      const recommendations = generatePersonalizedLearningPlanRecommendations(user, userProgress);
+      setPersonalizedLearningPlanRecommendations(recommendations);
+    }
+  }, [user, userProgress]);
 
-  const handleStudyPlanSelect = (studyPlan: StudyPlan) => {
-    setSelectedStudyPlan(studyPlan);
-  };
+  const generatePersonalizedLearningPlanRecommendations = (user: any, userProgress: UserProgress) => {
+    const recommendations: PersonalizedLearningPlanRecommendation[] = [];
 
-  const handleCustomizationOptionsChange = (options: CustomizationOptions) => {
-    setCustomizationOptions(options);
-  };
+    // Simple example of generating recommendations based on user progress and goals
+    if (userProgress.progressPercentage < 50) {
+      recommendations.push({
+        planName: 'Foundational Plan',
+        planDescription: 'Build a strong foundation in the basics',
+        planLink: '/foundational-plan',
+        recommendationReason: 'You are behind in your progress, this plan will help you catch up',
+      });
+    } else if (userProgress.progressPercentage >= 50 && userProgress.progressPercentage < 80) {
+      recommendations.push({
+        planName: 'Intermediate Plan',
+        planDescription: 'Improve your skills with intermediate-level content',
+        planLink: '/intermediate-plan',
+        recommendationReason: 'You are making good progress, this plan will help you improve your skills',
+      });
+    } else {
+      recommendations.push({
+        planName: 'Advanced Plan',
+        planDescription: 'Master advanced topics and techniques',
+        planLink: '/advanced-plan',
+        recommendationReason: 'You are close to completing the course, this plan will help you master the advanced topics',
+      });
+    }
 
-  const handlePlanRecommendationEngineChange = (engine: PlanRecommendationEngine) => {
-    setPlanRecommendationEngine(engine);
+    return recommendations;
   };
 
   return (
@@ -135,45 +157,26 @@ export default function DashboardPage() {
         <h1>Personalized Learning Companion</h1>
         <div className="row">
           <div className="col-md-4">
-            <h2>Study Plans</h2>
-            {studyPlans.map((studyPlan, index) => (
-              <StudyPlanCard
-                key={index}
-                studyPlan={studyPlan}
-                onSelect={handleStudyPlanSelect}
-                isSelected={selectedStudyPlan === studyPlan}
-              />
-            ))}
+            <StudyPlanCard studyPlans={studyPlans} selectedStudyPlan={selectedStudyPlan} setSelectedStudyPlan={setSelectedStudyPlan} />
           </div>
           <div className="col-md-4">
-            <h2>Progress</h2>
             <ProgressCard userProgress={userProgress} />
           </div>
           <div className="col-md-4">
-            <h2>Community</h2>
             <CommunityCard />
           </div>
         </div>
         <div className="row">
-          <div className="col-md-4">
-            <h2>Resources</h2>
-            <ResourceCard />
-          </div>
-          <div className="col-md-4">
-            <h2>Upcoming Lessons</h2>
-            <ul>
-              {upcomingLessons.map((lesson, index) => (
-                <li key={index}>{lesson}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="col-md-4">
-            <h2>Reminders</h2>
-            <ul>
-              {reminders.map((reminder, index) => (
-                <li key={index}>{reminder}</li>
-              ))}
-            </ul>
+          <div className="col-md-12">
+            <h2>Personalized Learning Plan Recommendations</h2>
+            {personalizedLearningPlanRecommendations.map((recommendation, index) => (
+              <div key={index}>
+                <h3>{recommendation.planName}</h3>
+                <p>{recommendation.planDescription}</p>
+                <p>Recommended because: {recommendation.recommendationReason}</p>
+                <Link href={recommendation.planLink}>View Plan</Link>
+              </div>
+            ))}
           </div>
         </div>
       </div>

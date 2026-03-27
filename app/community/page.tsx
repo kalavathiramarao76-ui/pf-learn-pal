@@ -79,30 +79,135 @@ export default function CommunityPage() {
     setFilteredPosts(sorted);
   }, [posts, searchQuery, sortOrder]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const documentHeight = document.body.offsetHeight;
-      if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
-        setLoadingMorePosts(true);
-        axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
-          .then(response => {
-            const newPosts = response.data;
-            setPosts([...posts, ...newPosts]);
-            setHasMorePosts(newPosts.length === postsPerPage);
-            setLoadingMorePosts(false);
-          })
-          .catch(error => {
-            console.error(error);
-            setLoadingMorePosts(false);
-          });
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, posts, postsPerPage]);
+  const handleEditPost = (post) => {
+    setEditingPost(post);
+    setModalIsOpen(true);
+    setIsEditing(true);
+  };
+
+  const handleReportPost = (post) => {
+    setReportingPost(post);
+    setModalIsOpen(true);
+    setIsReporting(true);
+  };
+
+  const handleSaveEditedPost = async () => {
+    if (isEditingLoading) return;
+    setIsEditingLoading(true);
+    try {
+      const updatedPost = {
+        ...editingPost,
+        content: editorValue,
+      };
+      const response = await axios.put(`/api/posts/${editingPost.id}`, updatedPost);
+      const updatedPosts = posts.map((post) => (post.id === editingPost.id ? response.data : post));
+      setPosts(updatedPosts);
+      setSuccess('Post updated successfully');
+    } catch (error) {
+      setError('Failed to update post');
+    } finally {
+      setIsEditingLoading(false);
+      setModalIsOpen(false);
+      setIsEditing(false);
+    }
+  };
+
+  const handleReportPostSubmit = async () => {
+    if (isReportingLoading) return;
+    setIsReportingLoading(true);
+    try {
+      const reportData = {
+        postId: reportingPost.id,
+        reason: reportReason,
+        description: reportDescription,
+      };
+      const response = await axios.post('/api/reports', reportData);
+      setSuccess('Report submitted successfully');
+    } catch (error) {
+      setError('Failed to submit report');
+    } finally {
+      setIsReportingLoading(false);
+      setModalIsOpen(false);
+      setIsReporting(false);
+    }
+  };
 
   return (
-    // your existing JSX code here
+    <div>
+      <h1>Community Page</h1>
+      <div>
+        {filteredPosts.map((post) => (
+          <div key={post.id}>
+            <h2>{post.title}</h2>
+            <p>{post.content}</p>
+            <button onClick={() => handleEditPost(post)}>
+              <FaEdit /> Edit
+            </button>
+            <button onClick={() => handleReportPost(post)}>
+              <FiFlag /> Report
+            </button>
+          </div>
+        ))}
+      </div>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        contentLabel="Edit Post"
+      >
+        {isEditing ? (
+          <div>
+            <h2>Edit Post</h2>
+            <ReactQuill
+              value={editorValue}
+              onChange={(value) => setEditorValue(value)}
+              modules={{
+                toolbar: [
+                  ['bold', 'italic', 'underline', 'strike'],
+                  ['blockquote', 'code-block'],
+                  [{ header: 1 }, { header: 2 }],
+                  [{ list: 'ordered' }, { list: 'bullet' }],
+                  [{ script: 'sub' }, { script: 'super' }],
+                  [{ indent: '-1' }, { indent: '+1' }],
+                  [{ direction: 'rtl' }],
+                  [{ font: [] }],
+                  [{ align: [] }],
+                  ['clean'],
+                ],
+              }}
+            />
+            <button onClick={handleSaveEditedPost} disabled={isEditingLoading}>
+              {isEditingLoading ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        ) : isReporting ? (
+          <div>
+            <h2>Report Post</h2>
+            <Autocomplete
+              options={['Spam', 'Inappropriate content', 'Other']}
+              value={reportReason}
+              onChange={(event, value) => setReportReason(value)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Reason"
+                  fullWidth
+                />
+              )}
+            />
+            <TextField
+              label="Description"
+              value={reportDescription}
+              onChange={(event) => setReportDescription(event.target.value)}
+              fullWidth
+              multiline
+              rows={4}
+            />
+            <button onClick={handleReportPostSubmit} disabled={isReportingLoading}>
+              {isReportingLoading ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        ) : null}
+      </Modal>
+    </div>
   );
 }
