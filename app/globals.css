@@ -40,6 +40,8 @@
   --high-contrast-focus-box-shadow: 0 0 0 2px #00698f;
   --high-contrast-font-weight-normal: 500;
   --high-contrast-font-weight-bold: 900;
+  --font-size-small: 14px;
+  --font-size-large: 24px;
 }
 
 body {
@@ -85,6 +87,14 @@ button:hover {
 button:focus {
   outline: none;
   box-shadow: var(--focus-box-shadow);
+}
+
+small {
+  font-size: var(--font-size-small);
+}
+
+.large {
+  font-size: var(--font-size-large);
 }
 
 @media (prefers-contrast: high) {
