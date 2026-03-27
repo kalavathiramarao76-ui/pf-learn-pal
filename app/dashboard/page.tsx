@@ -75,51 +75,68 @@ export default function DashboardPage() {
   const [mlModel, setMlModel] = useState(cache.mlModel);
   const [machineLearningModel, setMachineLearningModel] = useState(cache.machineLearningModel);
 
-  useEffect(() => {
-    const trainAiModel = async () => {
-      if (!aiModel) {
-        const model = tf.sequential();
-        model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-        model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        setAiModel(model);
-      }
-    };
-    trainAiModel();
-  }, [aiModel]);
+  const recommendationEngine = async () => {
+    const userGoals = user.goals;
+    const userProgressData = userProgress;
+    const studyPlanOptionsData = studyPlanOptions;
+
+    // Define a simple recommendation algorithm based on user goals and progress
+    const recommendedPlans = studyPlanOptionsData.filter((plan) => {
+      return plan.name.includes(userGoals) && plan.description.includes(userProgressData.progressPercentage.toString());
+    });
+
+    setLearningPlanRecommendations(recommendedPlans);
+  };
 
   useEffect(() => {
-    const generateLearningPlanRecommendations = async () => {
-      if (aiModel && userProgress && userFeedback) {
-        const userInput = tf.tensor2d([[
-          userProgress.completedLessons,
-          userProgress.totalLessons,
-          userProgress.progressPercentage,
-          ...userFeedback.ratings,
-          ...userFeedback.comments.map(comment => comment.length),
-        ]]);
-        const predictions = aiModel.predict(userInput);
-        const recommendations = await predictions.data();
-        setLearningPlanRecommendations(recommendations.map((prediction, index) => ({
-          plan: studyPlanOptions[index],
-          confidence: prediction,
-        })));
-      }
-    };
-    generateLearningPlanRecommendations();
-  }, [aiModel, userProgress, userFeedback, studyPlanOptions]);
+    if (user && userProgress) {
+      recommendationEngine();
+    }
+  }, [user, userProgress]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        studyPlanOptions={studyPlanOptions}
-        selectedStudyPlan={selectedStudyPlan}
-        setSelectedStudyPlan={setSelectedStudyPlan}
-        learningPlanRecommendations={learningPlanRecommendations}
-      />
-      <ProgressCard userProgress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+      <div className="container">
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Study Plan"
+              description="Based on your goals and progress"
+              plan={learningPlanRecommendations[0]}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              description="Completed lessons and progress percentage"
+              progress={userProgress}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard
+              title="Join the Community"
+              description="Discuss with other learners and get support"
+              link="/community"
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard
+              title="Additional Resources"
+              description="Supplemental materials to aid in your learning"
+              link="/resources"
+            />
+          </div>
+          <div className="col-md-4">
+            <Link href="/customize-plan">
+              <a>
+                <button className="btn btn-primary">Customize Your Plan</button>
+              </a>
+            </Link>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
