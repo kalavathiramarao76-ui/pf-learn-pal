@@ -75,183 +75,60 @@ export default function DashboardPage() {
   const [mlModel, setMlModel] = useState(cache.mlModel);
   const [machineLearningModel, setMachineLearningModel] = useState(cache.machineLearningModel);
 
-  const recommendationEngine = async () => {
-    const userProgressData = userProgress;
-    const userFeedbackData = userFeedback;
-    const studyPlanOptionsData = studyPlanOptions;
-
-    // Preprocess data
-    const userData = {
-      progress: userProgressData.progressPercentage,
-      feedback: userFeedbackData.ratings.reduce((a, b) => a + b, 0) / userFeedbackData.ratings.length,
+  useEffect(() => {
+    const loadAiModel = async () => {
+      const model = await tf.loadLayersModel('https://example.com/model.json');
+      setAiModel(model);
     };
-
-    const planFeatures = studyPlanOptionsData.map((plan) => ({
-      name: plan.name,
-      description: plan.description,
-      link: plan.link,
-    }));
-
-    // Train model
-    const model = tf.sequential();
-    model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [2] }));
-    model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-    model.compile({ optimizer: tf.optimizers.adam(), loss: 'meanSquaredError' });
-
-    const trainingData = tf.data.zip({
-      xs: tf.data.array([userData.progress, userData.feedback]),
-      ys: tf.data.array(planFeatures.map((plan) => plan.name)),
-    });
-
-    await model.fitDataset(trainingData, { epochs: 100 });
-
-    // Make predictions
-    const predictions = model.predict(tf.tensor2d([userData.progress, userData.feedback], [1, 2]));
-
-    // Get top recommendations
-    const topRecommendations = predictions.argMax(1).dataSync();
-
-    // Update learning plan recommendations
-    setLearningPlanRecommendations(studyPlanOptionsData.filter((plan) => topRecommendations.includes(plan.name)));
-  };
+    loadAiModel();
+  }, []);
 
   useEffect(() => {
-    if (userProgress && userFeedback && studyPlanOptions) {
-      recommendationEngine();
+    if (aiModel) {
+      const makeRecommendations = async () => {
+        const userInput = {
+          userProgress: userProgress,
+          userFeedback: userFeedback,
+        };
+        const predictions = await aiModel.predict(userInput);
+        const recommendations = predictions.dataSync();
+        setLearningPlanRecommendations(recommendations);
+      };
+      makeRecommendations();
     }
-  }, [userProgress, userFeedback, studyPlanOptions]);
+  }, [aiModel, userProgress, userFeedback]);
+
+  const handleUserProgressUpdate = (newProgress) => {
+    setUserProgress(newProgress);
+  };
+
+  const handleUserFeedbackUpdate = (newFeedback) => {
+    setUserFeedback(newFeedback);
+  };
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <h1>Personalized Learning Companion</h1>
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description="Based on your progress and feedback"
-              plan={recommendedPlan}
-              options={studyPlanOptions}
-              onSelect={(plan) => setSelectedStudyPlan(plan)}
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              progress={userProgress.progressPercentage}
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard title="Join the Community" />
-          </div>
+      <StudyPlanCard
+        studyPlanOptions={studyPlanOptions}
+        selectedStudyPlan={selectedStudyPlan}
+        setSelectedStudyPlan={setSelectedStudyPlan}
+      />
+      <ProgressCard
+        userProgress={userProgress}
+        handleUserProgressUpdate={handleUserProgressUpdate}
+      />
+      <CommunityCard />
+      <ResourceCard />
+      {learningPlanRecommendations.length > 0 && (
+        <div>
+          <h2>Recommended Learning Plans</h2>
+          <ul>
+            {learningPlanRecommendations.map((recommendation, index) => (
+              <li key={index}>{recommendation}</li>
+            ))}
+          </ul>
         </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard title="Additional Resources" />
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Learning Plan Recommendations</h5>
-                <ul>
-                  {learningPlanRecommendations.map((plan) => (
-                    <li key={plan.name}>{plan.name}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Customize Your Plan</h5>
-                <form>
-                  <div className="form-group">
-                    <label>Learning Style</label>
-                    <select
-                      className="form-control"
-                      value={customizationOptions.learningStyle}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          learningStyle: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Select a learning style</option>
-                      <option value="visual">Visual</option>
-                      <option value="auditory">Auditory</option>
-                      <option value="kinesthetic">Kinesthetic</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Knowledge Level</label>
-                    <select
-                      className="form-control"
-                      value={customizationOptions.knowledgeLevel}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          knowledgeLevel: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Select a knowledge level</option>
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Goals</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={customizationOptions.goals}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          goals: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Topics</label>
-                    <select
-                      multiple
-                      className="form-control"
-                      value={customizationOptions.topics}
-                      onChange={(e) =>
-                        setCustomizationOptions({
-                          ...customizationOptions,
-                          topics: Array.from(e.target.selectedOptions, (option) => option.value),
-                        })
-                      }
-                    >
-                      <option value="topic1">Topic 1</option>
-                      <option value="topic2">Topic 2</option>
-                      <option value="topic3">Topic 3</option>
-                    </select>
-                  </div>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsCustomizingPlan(true);
-                    }}
-                  >
-                    Customize Plan
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -83,20 +83,3 @@
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
 }
-
-@media (prefers-color-scheme: dark) and (prefers-contrast: high) {
-  :root {
-    --text-color: #fff;
-    --background-color: #000;
-    --link-color: #66d9ef;
-    --link-hover-color: #4dd2ff;
-    --button-color: #66d9ef;
-    --button-hover-color: #4dd2ff;
-    --focus-color: #66d9ef;
-    --focus-background-color: #000;
-    --focus-box-shadow: 0 0 0 2px #66d9ef;
-    --focus-box-shadow-large: 0 0 0 4px #66d9ef;
-    --font-weight-normal: 500;
-    --font-weight-bold: 900;
-  }
-}
