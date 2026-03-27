@@ -14,14 +14,6 @@
   --focus-color: #3498db;
   --focus-background-color: #f2f2f2;
   --focus-box-shadow: 0 0 0 2px #3498db;
-  --focus-box-shadow-large: 0 0 0 4px #3498db;
-  --font-size-small: calc(var(--font-size-base) * 0.8);
-  --font-size-large: calc(var(--font-size-base) * var(--font-size-ratio));
-  --font-size-extra-large: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio));
-  --font-size-extra-extra-large: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio));
-  --font-size-very-small: calc(var(--font-size-base) * 0.6);
-  --font-size-huge: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio));
-  --font-size-gigantic: calc(var(--font-size-base) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio) * var(--font-size-ratio));
   --link-hover-color: #2c6f9e;
   --button-hover-color: #2c6f9e;
   --font-weight-normal: 400;
@@ -37,7 +29,6 @@
   --dark-focus-color: #66d9ef;
   --dark-focus-background-color: #2f2f2f;
   --dark-focus-box-shadow: 0 0 0 2px #66d9ef;
-  --dark-focus-box-shadow-large: 0 0 0 4px #66d9ef;
   --high-contrast-text-color: #000;
   --high-contrast-background-color: #fff;
   --high-contrast-link-color: #00698f;
@@ -47,7 +38,6 @@
   --high-contrast-focus-color: #00698f;
   --high-contrast-focus-background-color: #fff;
   --high-contrast-focus-box-shadow: 0 0 0 2px #00698f;
-  --high-contrast-focus-box-shadow-large: 0 0 0 4px #00698f;
   --high-contrast-font-weight-normal: 500;
   --high-contrast-font-weight-bold: 900;
 }
@@ -61,7 +51,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-size: var(--font-size-large);
+  font-size: calc(var(--font-size-base) * var(--font-size-ratio));
   margin-bottom: 0.5em;
 }
 
@@ -95,51 +85,4 @@ button:hover {
 button:focus {
   outline: none;
   box-shadow: var(--focus-box-shadow);
-}
-
-button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-box-shadow-large);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-color: var(--dark-text-color);
-    --background-color: var(--dark-background-color);
-    --link-color: var(--dark-link-color);
-    --link-hover-color: var(--dark-link-hover-color);
-    --button-color: var(--dark-button-color);
-    --button-hover-color: var(--dark-button-hover-color);
-    --focus-color: var(--dark-focus-color);
-    --focus-background-color: var(--dark-focus-background-color);
-    --focus-box-shadow: var(--dark-focus-box-shadow);
-    --focus-box-shadow-large: var(--dark-focus-box-shadow-large);
-  }
-}
-
-@media (prefers-contrast: high) {
-  :root {
-    --text-color: var(--high-contrast-text-color);
-    --background-color: var(--high-contrast-background-color);
-    --link-color: var(--high-contrast-link-color);
-    --link-hover-color: var(--high-contrast-link-hover-color);
-    --button-color: var(--high-contrast-button-color);
-    --button-hover-color: var(--high-contrast-button-hover-color);
-    --focus-color: var(--high-contrast-focus-color);
-    --focus-background-color: var(--high-contrast-focus-background-color);
-    --focus-box-shadow: var(--high-contrast-focus-box-shadow);
-    --focus-box-shadow-large: var(--high-contrast-focus-box-shadow-large);
-    --font-weight-normal: var(--high-contrast-font-weight-normal);
-    --font-weight-bold: var(--high-contrast-font-weight-bold);
-  }
-}
-
-[tabindex]:focus {
-  outline: none;
-  box-shadow: var(--focus-box-shadow);
-}
-
-[tabindex]:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-box-shadow-large);
 }
