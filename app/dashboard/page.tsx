@@ -90,55 +90,85 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user) {
-      const trainMachineLearningModel = async () => {
-        const userLearningData = await fetch('/api/user-learning-data', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const learningData = await userLearningData.json();
+      const trainAiModel = async () => {
         const model = tf.sequential();
         model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
         model.compile({ optimizer: tf.optimizers.adam(), loss: 'categoricalCrossentropy', metrics: ['accuracy'] });
-        const xs = tf.tensor2d(learningData.map((data) => data.inputs), [learningData.length, 10]);
-        const ys = tf.tensor2d(learningData.map((data) => data.outputs), [learningData.length, 10]);
-        await model.fit(xs, ys, { epochs: 100 });
-        setMachineLearningModel(model);
+        const trainingData = [
+          { input: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+          { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+          { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+        ];
+        const inputs = trainingData.map(data => data.input);
+        const outputs = trainingData.map(data => data.output);
+        model.fit(tf.tensor2d(inputs, [inputs.length, 10]), tf.tensor2d(outputs, [outputs.length, 10]), {
+          epochs: 100,
+          batchSize: 10,
+        });
+        setAiModel(model);
       };
-      trainMachineLearningModel();
+      trainAiModel();
     }
   }, [user]);
 
   useEffect(() => {
-    if (machineLearningModel) {
-      const predictLearningPlan = async () => {
-        const userLearningData = await fetch('/api/user-learning-data', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const learningData = await userLearningData.json();
-        const inputs = tf.tensor2d([learningData.map((data) => data.inputs)], [1, 10]);
-        const predictions = machineLearningModel.predict(inputs);
-        const predictedPlan = await predictions.array();
-        setPersonalizedPlan(predictedPlan);
+    if (aiModel) {
+      const predictRecommendedPlan = async () => {
+        const userInput = tf.tensor2d([user.learningStyle, user.knowledgeLevel, user.goals], [1, 3]);
+        const prediction = aiModel.predict(userInput);
+        const recommendedPlan = prediction.dataSync()[0];
+        setRecommendedPlan(recommendedPlan);
       };
-      predictLearningPlan();
+      predictRecommendedPlan();
     }
-  }, [machineLearningModel]);
+  }, [aiModel, user]);
 
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      <StudyPlanCard studyPlanOptions={studyPlanOptions} selectedStudyPlan={selectedStudyPlan} setSelectedStudyPlan={setSelectedStudyPlan} />
-      <ProgressCard userProgress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
-      {recommendedPlan && <p>Recommended Plan: {recommendedPlan}</p>}
-      {personalizedPlan && <p>Personalized Plan: {personalizedPlan}</p>}
+      <div className="container">
+        <h1>Personalized Learning Companion</h1>
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description="Based on your learning style, knowledge level, and goals"
+              plan={recommendedPlan}
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              description="Track your progress and stay motivated"
+              progress={userProgress}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard
+              title="Join the Community"
+              description="Connect with other learners and get support"
+            />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard
+              title="Additional Resources"
+              description="Access to additional learning materials and resources"
+            />
+          </div>
+          <div className="col-md-4">
+            <Link href="/customize-plan">
+              <a>Customize Your Plan</a>
+            </Link>
+          </div>
+          <div className="col-md-4">
+            <Link href="/view-progress">
+              <a>View Your Progress</a>
+            </Link>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
