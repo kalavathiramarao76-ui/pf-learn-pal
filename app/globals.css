@@ -84,58 +84,19 @@
   }
 }
 
-/* Add screen reader support */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.sr-only:focus {
-  position: static;
-  width: auto;
-  height: auto;
-  padding: 0.5em;
-  margin: 0;
-  overflow: visible;
-  clip: auto;
-  white-space: normal;
-}
-
-/* Improve high contrast mode */
-.high-contrast-mode {
-  --text-color: var(--high-contrast-text-color);
-  --background-color: var(--high-contrast-background-color);
-  --link-color: var(--high-contrast-link-color);
-  --link-hover-color: var(--high-contrast-link-hover-color);
-  --button-color: var(--high-contrast-button-color);
-  --button-hover-color: var(--high-contrast-button-hover-color);
-  --focus-color: var(--high-contrast-focus-color);
-  --focus-background-color: var(--high-contrast-focus-background-color);
-  --focus-box-shadow: var(--high-contrast-focus-box-shadow);
-  --focus-box-shadow-large: var(--high-contrast-focus-box-shadow-large);
-  --font-weight-normal: var(--high-contrast-font-weight-normal);
-  --font-weight-bold: var(--high-contrast-font-weight-bold);
-}
-
-/* Add high contrast mode toggle */
-.high-contrast-mode-toggle {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: #fff;
-  border: none;
-  padding: 10px;
-  cursor: pointer;
-}
-
-.high-contrast-mode-toggle:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #00698f;
+@media (prefers-color-scheme: dark) and (prefers-contrast: high) {
+  :root {
+    --text-color: #fff;
+    --background-color: #000;
+    --link-color: #66d9ef;
+    --link-hover-color: #4dd2ff;
+    --button-color: #66d9ef;
+    --button-hover-color: #4dd2ff;
+    --focus-color: #66d9ef;
+    --focus-background-color: #000;
+    --focus-box-shadow: 0 0 0 2px #66d9ef;
+    --focus-box-shadow-large: 0 0 0 4px #66d9ef;
+    --font-weight-normal: 500;
+    --font-weight-bold: 900;
+  }
 }
