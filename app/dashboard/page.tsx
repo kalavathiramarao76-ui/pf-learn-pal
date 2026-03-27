@@ -111,92 +111,108 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
   }
 };
 
+const machineLearningModel = async () => {
+  // Load the machine learning model
+  const model = await tf.loadLayersModel('https://example.com/model.json');
+  return model;
+};
+
+const predict = async (model: any, input: RecommendationEngineInput) => {
+  // Preprocess the input data
+  const inputData = tf.tensor2d([
+    input.userBehavior.completedLessons,
+    input.userBehavior.totalLessons,
+    input.userBehavior.progressPercentage,
+    input.userPreferences.learningStyle === 'visual' ? 1 : 0,
+    input.userPreferences.learningStyle === 'auditory' ? 1 : 0,
+    input.userPreferences.learningStyle === 'kinesthetic' ? 1 : 0,
+    input.userPreferences.knowledgeLevel === 'beginner' ? 1 : 0,
+    input.userPreferences.knowledgeLevel === 'intermediate' ? 1 : 0,
+    input.userPreferences.knowledgeLevel === 'advanced' ? 1 : 0,
+  ]);
+
+  // Make predictions using the model
+  const predictions = model.predict(inputData);
+
+  // Get the recommended plan
+  const recommendedPlan = await predictions.array();
+  const planIndex = recommendedPlan.indexOf(Math.max(...recommendedPlan));
+  const plans = ['Foundational Plan', 'Intermediate Plan', 'Advanced Plan'];
+  return plans[planIndex];
+};
+
 export default function DashboardPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const [user, setUser] = useState(cache.user);
-  const [studyPlans, setStudyPlans] = useState(cache.studyPlanOptions || [
-    { name: 'Foundational Plan', description: 'Build a strong foundation in the basics', link: '/foundational-plan' },
-    { name: 'Intermediate Plan', description: 'Improve your skills with intermediate-level content', link: '/intermediate-plan' },
-    { name: 'Advanced Plan', description: 'Master advanced topics and techniques', link: '/advanced-plan' },
-  ]);
-  const [selectedStudyPlan, setSelectedStudyPlan] = useState(null);
-  const [learningPlanRecommendations, setLearningPlanRecommendations] = useState(cache.learningPlanRecommendations || []);
-  const [recommendedPlanEngine, setRecommendedPlanEngine] = useState<PlanEngine>({
-    learningStyle: '',
-    knowledgeLevel: '',
-    goals: '',
-    recommendedPlan: '',
-  });
-  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
-    learningStyle: '',
-    knowledgeLevel: '',
-    goals: '',
-    topics: [],
-  });
-  const [isCustomizingPlan, setIsCustomizingPlan] = useState(false);
-  const [planRecommendationEngine, setPlanRecommendationEngine] = useState<PlanRecommendationEngine>({
-    algorithm: 'collaborative filtering',
-    parameters: {
-      numRecommendations: 3,
-      similarityThreshold: 0.5,
-    },
-  });
-  const [recommendedPlan, setRecommendedPlan] = useState(null);
-  const [recommendationReason, setRecommendationReason] = useState(null);
+  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const [userFeedback, setUserFeedback] = useState<UserFeedback | null>(null);
+  const [recommendedPlan, setRecommendedPlan] = useState<string | null>(null);
+  const [machineLearningModelInstance, setMachineLearningModelInstance] = useState<any | null>(null);
 
   useEffect(() => {
-    const fetchRecommendedPlan = async () => {
-      if (user) {
-        const userBehavior = {
-          completedLessons: user.completedLessons,
-          totalLessons: user.totalLessons,
-          progressPercentage: user.progressPercentage,
-        };
-        const userPreferences = {
-          learningStyle: user.learningStyle,
-          knowledgeLevel: user.knowledgeLevel,
-          goals: user.goals,
-        };
-        const input: RecommendationEngineInput = {
-          userBehavior,
-          userPreferences,
-        };
-        const output: RecommendationEngineOutput = await recommendationEngine(input);
-        setRecommendedPlan(output.recommendedPlan);
-        setRecommendationReason(output.recommendationReason);
-      }
+    const fetchUserProgress = async () => {
+      const response = await client.get('/user/progress');
+      const data = await response.json();
+      setUserProgress(data);
     };
-    fetchRecommendedPlan();
-  }, [user]);
+
+    const fetchUserFeedback = async () => {
+      const response = await client.get('/user/feedback');
+      const data = await response.json();
+      setUserFeedback(data);
+    };
+
+    const loadMachineLearningModel = async () => {
+      const model = await machineLearningModel();
+      setMachineLearningModelInstance(model);
+    };
+
+    fetchUserProgress();
+    fetchUserFeedback();
+    loadMachineLearningModel();
+  }, []);
+
+  useEffect(() => {
+    if (userProgress && userFeedback && machineLearningModelInstance) {
+      const input: RecommendationEngineInput = {
+        userBehavior: userProgress,
+        userPreferences: {
+          learningStyle: userFeedback.ratings[0].learningStyle,
+          knowledgeLevel: userFeedback.ratings[0].knowledgeLevel,
+          goals: userFeedback.ratings[0].goals,
+        },
+      };
+
+      const predictPlan = async () => {
+        const predictedPlan = await predict(machineLearningModelInstance, input);
+        setRecommendedPlan(predictedPlan);
+      };
+
+      predictPlan();
+    }
+  }, [userProgress, userFeedback, machineLearningModelInstance]);
 
   return (
     <DashboardLayout>
-      <h1>Personalized Learning Companion</h1>
-      <p>Welcome, {user.name}!</p>
-      <h2>Recommended Study Plan:</h2>
-      {recommendedPlan && (
-        <p>
-          We recommend the <strong>{recommendedPlan}</strong> plan for you. {recommendationReason}
-        </p>
-      )}
-      <h2>Study Plans:</h2>
-      <ul>
-        {studyPlans.map((plan) => (
-          <li key={plan.name}>
-            <Link href={plan.link}>
-              <a>{plan.name}</a>
-            </Link>
-            <p>{plan.description}</p>
-          </li>
-        ))}
-      </ul>
-      <h2>Progress:</h2>
-      <ProgressCard user={user} />
-      <h2>Community:</h2>
-      <CommunityCard />
-      <h2>Resources:</h2>
-      <ResourceCard />
+      <StudyPlanCard
+        title="Recommended Study Plan"
+        description="Based on your progress and feedback, we recommend the following study plan:"
+        link={recommendedPlan ? `/study-plan/${recommendedPlan}` : '/study-plan'}
+      />
+      <ProgressCard
+        title="Your Progress"
+        description="You have completed X out of Y lessons, with a progress percentage of Z%"
+        progressPercentage={userProgress ? userProgress.progressPercentage : 0}
+      />
+      <CommunityCard
+        title="Join the Community"
+        description="Connect with other learners and get support from our community"
+        link="/community"
+      />
+      <ResourceCard
+        title="Additional Resources"
+        description="Access additional resources to help you learn, including videos, articles, and practice exercises"
+        link="/resources"
+      />
     </DashboardLayout>
   );
 }
