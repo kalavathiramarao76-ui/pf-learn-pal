@@ -76,20 +76,20 @@ export default function DashboardPage() {
           },
           body: JSON.stringify({
             userId: user.id,
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
+            userProgress: userProgress,
+            userFeedback: userFeedback,
           }),
         });
         const data = await response.json();
         setRecommendedPlan(data.recommendedPlan);
+        setLearningPlanRecommendations(data.learningPlanRecommendations);
       };
       getRecommendedPlan();
     }
-  }, [user]);
+  }, [user, userProgress, userFeedback]);
 
   useEffect(() => {
-    if (user) {
+    if (recommendedPlan) {
       const trainAiModel = async () => {
         const model = tf.sequential();
         model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [10] }));
@@ -100,72 +100,75 @@ export default function DashboardPage() {
           { input: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
           { input: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30], output: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
         ];
-        const inputs = trainingData.map(data => data.input);
-        const outputs = trainingData.map(data => data.output);
-        model.fit(tf.tensor2d(inputs, [inputs.length, 10]), tf.tensor2d(outputs, [outputs.length, 10]), {
+        const inputs = trainingData.map((data) => data.input);
+        const outputs = trainingData.map((data) => data.output);
+        await model.fit(tf.tensor2d(inputs, [inputs.length, 10]), tf.tensor2d(outputs, [outputs.length, 10]), {
           epochs: 100,
-          batchSize: 10,
         });
         setAiModel(model);
       };
       trainAiModel();
     }
-  }, [user]);
+  }, [recommendedPlan]);
 
   useEffect(() => {
     if (aiModel) {
-      const predictRecommendedPlan = async () => {
-        const userInput = tf.tensor2d([user.learningStyle, user.knowledgeLevel, user.goals], [1, 3]);
-        const prediction = aiModel.predict(userInput);
-        const recommendedPlan = prediction.dataSync()[0];
-        setRecommendedPlan(recommendedPlan);
+      const makePrediction = async () => {
+        const input = tf.tensor2d([userProgress.completedLessons, userProgress.totalLessons, userFeedback.ratings.length], [1, 3]);
+        const output = aiModel.predict(input);
+        const prediction = await output.data();
+        setPersonalizedPlan(prediction);
       };
-      predictRecommendedPlan();
+      makePrediction();
     }
-  }, [aiModel, user]);
+  }, [aiModel, userProgress, userFeedback]);
 
   return (
     <DashboardLayout>
       <div className="container">
-        <h1>Personalized Learning Companion</h1>
         <div className="row">
           <div className="col-md-4">
             <StudyPlanCard
               title="Recommended Plan"
-              description="Based on your learning style, knowledge level, and goals"
-              plan={recommendedPlan}
+              description={recommendedPlan ? recommendedPlan.description : 'No plan recommended'}
+              link={recommendedPlan ? recommendedPlan.link : '#'}
             />
           </div>
           <div className="col-md-4">
             <ProgressCard
-              title="Your Progress"
-              description="Track your progress and stay motivated"
-              progress={userProgress}
+              title="User Progress"
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
             />
           </div>
           <div className="col-md-4">
-            <CommunityCard
-              title="Join the Community"
-              description="Connect with other learners and get support"
-            />
+            <CommunityCard title="Community" />
           </div>
         </div>
         <div className="row">
           <div className="col-md-4">
-            <ResourceCard
-              title="Additional Resources"
-              description="Access to additional learning materials and resources"
-            />
+            <ResourceCard title="Resources" />
           </div>
           <div className="col-md-4">
-            <Link href="/customize-plan">
-              <a>Customize Your Plan</a>
-            </Link>
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Personalized Plan</h5>
+                <p className="card-text">{personalizedPlan ? personalizedPlan.toString() : 'No plan generated'}</p>
+              </div>
+            </div>
           </div>
           <div className="col-md-4">
-            <Link href="/view-progress">
-              <a>View Your Progress</a>
-            </Link>
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Learning Plan Recommendations</h5>
+                <ul>
+                  {learningPlanRecommendations.map((recommendation, index) => (
+                    <li key={index}>{recommendation.name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>

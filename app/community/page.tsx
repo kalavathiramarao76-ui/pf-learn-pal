@@ -72,31 +72,30 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
-      return 0;
     });
 
-    const paginated = sorted.slice(0, pageNumber * postsPerPage);
-    setFilteredPosts(paginated);
-  }, [posts, searchQuery, sortOrder, pageNumber, postsPerPage]);
+    setFilteredPosts(sorted);
+  }, [posts, searchQuery, sortOrder]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const documentHeight = document.body.offsetHeight;
-      if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
+      const scrollHeight = document.body.scrollHeight;
+      const scrollTop = document.body.scrollTop;
+      const clientHeight = document.body.clientHeight;
+      if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
         setLoadingMorePosts(true);
-        axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+        axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
           .then(response => {
             const newPosts = response.data;
             setPosts([...posts, ...newPosts]);
-            setPageNumber(pageNumber + 1);
             setHasMorePosts(newPosts.length === postsPerPage);
+            setLoadingMorePosts(false);
           })
           .catch(error => {
             console.error(error);
-          })
-          .finally(() => {
             setLoadingMorePosts(false);
           });
       }
@@ -105,9 +104,9 @@ export default function CommunityPage() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage, posts]);
+  }, [posts, hasMorePosts, loadingMorePosts, postsPerPage]);
 
   return (
-    // ... rest of the code remains the same ...
+    // your JSX code here
   );
 }
