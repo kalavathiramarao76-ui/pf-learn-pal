@@ -74,6 +74,8 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
     });
 
@@ -81,7 +83,9 @@ export default function CommunityPage() {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.author.id === user?.id;
+        return post.authorId === user?.id;
+      } else {
+        return false;
       }
     });
 
@@ -92,38 +96,27 @@ export default function CommunityPage() {
     const scrollHeight = document.body.scrollHeight;
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
-    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-      loadMorePosts();
-    }
-  };
 
-  const loadMorePosts = async () => {
-    setLoadingMorePosts(true);
-    try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          page: pageNumber + 1,
-          limit: postsPerPage,
-        },
-      });
-      const newPosts = response.data;
-      if (newPosts.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
-      setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+      setLoadingMorePosts(true);
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+        .then(response => {
+          const newPosts = response.data;
+          setPosts([...posts, ...newPosts]);
+          setPageNumber(pageNumber + 1);
+          setHasMorePosts(newPosts.length === postsPerPage);
+          setLoadingMorePosts(false);
+        })
+        .catch(error => {
+          console.error(error);
+          setLoadingMorePosts(false);
+        });
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
 
   return (
@@ -148,186 +141,77 @@ export default function CommunityPage() {
           />
         </Grid>
         <Grid item xs={12}>
-          <Button variant="contained" onClick={() => setModalIsOpen(true)}>
-            Create Post
-          </Button>
+          <Button variant="contained" onClick={() => setModalIsOpen(true)}>Create Post</Button>
         </Grid>
         <Grid item xs={12}>
           {filteredPosts.map((post) => (
             <Box key={post.id} mb={2}>
               <Typography variant="h6">{post.title}</Typography>
               <Typography variant="body1">{post.content}</Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<FaEdit />}
-                onClick={() => {
-                  setEditingPost(post);
-                  setModalIsOpen(true);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<FiFlag />}
-                onClick={() => {
-                  setReportingPost(post);
-                  setModalIsOpen(true);
-                }}
-              >
-                Report
-              </Button>
+              <Button variant="outlined" startIcon={<FaEdit />} onClick={() => {
+                setEditingPost(post);
+                setModalIsOpen(true);
+              }}>Edit</Button>
+              <Button variant="outlined" startIcon={<FiFlag />} onClick={() => {
+                setReportingPost(post);
+                setModalIsOpen(true);
+              }}>Report</Button>
             </Box>
           ))}
-          {loadingMorePosts && (
-            <CircularProgress />
-          )}
+          {loadingMorePosts && <CircularProgress />}
         </Grid>
       </Grid>
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
-        style={{
-          overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          content: {
-            width: '80%',
-            height: '80%',
-            margin: '40px auto',
-          },
-        }}
+        contentLabel="Create Post"
       >
-        {isEditing ? (
-          <Box>
-            <Typography variant="h4">Edit Post</Typography>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => setEditorValue(value)}
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline'],
-                  ['code-block'],
-                ],
-              }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                setIsEditingLoading(true);
-                try {
-                  const response = await axios.put(`/api/posts/${editingPost.id}`, {
-                    title: editingPost.title,
-                    content: editorValue,
-                  });
-                  setPosts(
-                    posts.map((post) =>
-                      post.id === editingPost.id ? response.data : post
-                    )
-                  );
-                  setSuccess('Post updated successfully');
-                } catch (error) {
-                  setError('Failed to update post');
-                } finally {
-                  setIsEditingLoading(false);
-                  setModalIsOpen(false);
-                }
-              }}
-            >
-              {isEditingLoading ? <CircularProgress /> : 'Save'}
-            </Button>
-          </Box>
-        ) : isReporting ? (
-          <Box>
-            <Typography variant="h4">Report Post</Typography>
-            <TextField
-              label="Reason"
-              value={reportReason}
-              onChange={(event) => setReportReason(event.target.value)}
-              variant="outlined"
-              fullWidth
-            />
-            <TextField
-              label="Description"
-              value={reportDescription}
-              onChange={(event) => setReportDescription(event.target.value)}
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                setIsReportingLoading(true);
-                try {
-                  const response = await axios.post('/api/reports', {
-                    postId: reportingPost.id,
-                    reason: reportReason,
-                    description: reportDescription,
-                  });
-                  setSuccess('Report submitted successfully');
-                } catch (error) {
-                  setError('Failed to submit report');
-                } finally {
-                  setIsReportingLoading(false);
-                  setModalIsOpen(false);
-                }
-              }}
-            >
-              {isReportingLoading ? <CircularProgress /> : 'Submit'}
-            </Button>
-          </Box>
-        ) : (
-          <Box>
-            <Typography variant="h4">Create Post</Typography>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => setEditorValue(value)}
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline'],
-                  ['code-block'],
-                ],
-              }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                try {
-                  const response = await axios.post('/api/posts', {
-                    title: 'New Post',
-                    content: editorValue,
-                  });
-                  setPosts([...posts, response.data]);
-                  setSuccess('Post created successfully');
-                } catch (error) {
-                  setError('Failed to create post');
-                } finally {
-                  setModalIsOpen(false);
-                }
-              }}
-            >
-              Create
-            </Button>
-          </Box>
-        )}
+        <Box>
+          <Typography variant="h6">Create Post</Typography>
+          <ReactQuill
+            value={editorValue}
+            onChange={(value) => setEditorValue(value)}
+            modules={{
+              toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ header: 1 }, { header: 2 }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ script: 'sub' }, { script: 'super' }],
+                [{ indent: '-1' }, { indent: '+1' }],
+                [{ direction: 'rtl' }],
+                [{ font: [] }],
+                [{ align: [] }],
+                ['clean'],
+              ],
+            }}
+          />
+          <Button variant="contained" onClick={() => {
+            setIsEditingLoading(true);
+            axios.post('/api/posts', {
+              title: editorValue,
+              content: editorValue,
+            })
+              .then(response => {
+                setPosts([...posts, response.data]);
+                setEditorValue('');
+                setIsEditingLoading(false);
+              })
+              .catch(error => {
+                console.error(error);
+                setIsEditingLoading(false);
+              });
+          }}>Create</Button>
+        </Box>
       </Modal>
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
         onClose={() => setOpenSnackbar(false)}
       >
-        <Alert severity={error ? 'error' : 'success'}>
-          <AlertTitle>
-            {error ? 'Error' : 'Success'}
-          </AlertTitle>
-          {error ? error : success}
+        <Alert severity="success">
+          <AlertTitle>Success</AlertTitle>
+          Post created successfully!
         </Alert>
       </Snackbar>
     </Box>
