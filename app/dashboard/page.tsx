@@ -135,101 +135,91 @@ const Page = () => {
   const [machineLearningModelOutput, setMachineLearningModelOutput] = useState(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUser = async () => {
       const response = await client.get('/api/user');
-      const userData = response.data;
+      const userData = await response.json();
       setUser(userData);
-      cache.user = userData;
     };
 
     const fetchRecommendedPlan = async () => {
       const response = await client.get('/api/recommended-plan');
-      const recommendedPlanData = response.data;
+      const recommendedPlanData = await response.json();
       setRecommendedPlan(recommendedPlanData);
-      cache.recommendedPlan = recommendedPlanData;
     };
 
     const fetchPersonalizedPlan = async () => {
       const response = await client.get('/api/personalized-plan');
-      const personalizedPlanData = response.data;
+      const personalizedPlanData = await response.json();
       setPersonalizedPlan(personalizedPlanData);
-      cache.personalizedPlan = personalizedPlanData;
     };
 
     const fetchCustomizedPlan = async () => {
       const response = await client.get('/api/customized-plan');
-      const customizedPlanData = response.data;
+      const customizedPlanData = await response.json();
       setCustomizedPlan(customizedPlanData);
-      cache.customizedPlan = customizedPlanData;
     };
 
     const fetchStudyPlanOptions = async () => {
       const response = await client.get('/api/study-plan-options');
-      const studyPlanOptionsData = response.data;
+      const studyPlanOptionsData = await response.json();
       setStudyPlanOptions(studyPlanOptionsData);
-      cache.studyPlanOptions = studyPlanOptionsData;
     };
 
     const fetchLearningPlanRecommendations = async () => {
       const response = await client.get('/api/learning-plan-recommendations');
-      const learningPlanRecommendationsData = response.data;
+      const learningPlanRecommendationsData = await response.json();
       setLearningPlanRecommendations(learningPlanRecommendationsData);
-      cache.learningPlanRecommendations = learningPlanRecommendationsData;
     };
 
     const fetchUserProgress = async () => {
       const response = await client.get('/api/user-progress');
-      const userProgressData = response.data;
+      const userProgressData = await response.json();
       setUserProgress(userProgressData);
-      cache.userProgress = userProgressData;
     };
 
     const fetchUserFeedback = async () => {
       const response = await client.get('/api/user-feedback');
-      const userFeedbackData = response.data;
+      const userFeedbackData = await response.json();
       setUserFeedback(userFeedbackData);
-      cache.userFeedback = userFeedbackData;
     };
 
     const fetchUpcomingLessons = async () => {
       const response = await client.get('/api/upcoming-lessons');
-      const upcomingLessonsData = response.data;
+      const upcomingLessonsData = await response.json();
       setUpcomingLessons(upcomingLessonsData);
-      cache.upcomingLessons = upcomingLessonsData;
     };
 
     const fetchReminders = async () => {
       const response = await client.get('/api/reminders');
-      const remindersData = response.data;
+      const remindersData = await response.json();
       setReminders(remindersData);
-      cache.reminders = remindersData;
     };
 
     const loadMachineLearningModel = async () => {
       const model = await machineLearningModel();
       setMlModel(model);
-      cache.mlModel = model;
     };
 
     const runMachineLearningModel = async () => {
-      const input = {
-        userBehavior: {
-          completedLessons: userProgress.completedLessons,
-          totalLessons: userProgress.totalLessons,
-          progressPercentage: userProgress.progressPercentage,
-        },
-        userPreferences: {
-          learningStyle: user.learningStyle,
-          knowledgeLevel: user.knowledgeLevel,
-          goals: user.goals,
-        },
-      };
-
-      const output = await recommendationEngine(input);
-      setMachineLearningModelOutput(output);
+      if (mlModel) {
+        const input = {
+          userBehavior: {
+            completedLessons: userProgress.completedLessons,
+            totalLessons: userProgress.totalLessons,
+            progressPercentage: userProgress.progressPercentage,
+          },
+          userPreferences: {
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
+          },
+        };
+        const output = await recommendationEngine(input);
+        setMachineLearningModelOutput(output);
+      }
     };
 
-    fetchUserData();
+    fetchUser();
     fetchRecommendedPlan();
     fetchPersonalizedPlan();
     fetchCustomizedPlan();
@@ -241,14 +231,33 @@ const Page = () => {
     fetchReminders();
     loadMachineLearningModel();
     runMachineLearningModel();
-  }, [user, userProgress]);
+  }, [user, userProgress, mlModel]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard plan={recommendedPlan} />
-      <ProgressCard progress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+      <StudyPlanCard
+        title="Recommended Plan"
+        description={recommendedPlan.description}
+        link={recommendedPlan.link}
+      />
+      <StudyPlanCard
+        title="Personalized Plan"
+        description={personalizedPlan.description}
+        link={personalizedPlan.link}
+      />
+      <StudyPlanCard
+        title="Customized Plan"
+        description={customizedPlan.description}
+        link={customizedPlan.link}
+      />
+      <ProgressCard
+        title="User Progress"
+        completedLessons={userProgress.completedLessons}
+        totalLessons={userProgress.totalLessons}
+        progressPercentage={userProgress.progressPercentage}
+      />
+      <CommunityCard title="Community" />
+      <ResourceCard title="Resources" />
       {machineLearningModelOutput && (
         <div>
           <h2>Machine Learning Model Output</h2>

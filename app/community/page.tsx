@@ -81,7 +81,7 @@ export default function CommunityPage() {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.author.id === user?.id;
+        return post.userId === user?.id;
       }
     });
 
@@ -93,39 +93,27 @@ export default function CommunityPage() {
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
 
-    if (scrollTop + clientHeight >= scrollHeight * 0.9 && !loadingMorePosts && hasMorePosts) {
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      setPageNumber(pageNumber + 1);
-      loadMorePosts();
-    }
-  };
-
-  const loadMorePosts = async () => {
-    try {
-      const response = await axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`);
-      const newPosts = response.data;
-
-      if (newPosts.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
-
-      setPosts([...posts, ...newPosts]);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+        .then(response => {
+          const newPosts = response.data;
+          setPosts([...posts, ...newPosts]);
+          setPageNumber(pageNumber + 1);
+          setHasMorePosts(newPosts.length === postsPerPage);
+          setLoadingMorePosts(false);
+        })
+        .catch(error => {
+          console.error(error);
+          setLoadingMorePosts(false);
+        });
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [loadingMorePosts, hasMorePosts, pageNumber, postsPerPage]);
-
-  return (
-    // ... rest of the code remains the same ...
-  );
+  // Rest of your code...
 }
