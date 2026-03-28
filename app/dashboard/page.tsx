@@ -158,20 +158,38 @@ const Page = () => {
           goals: user.goals,
         },
       };
-      const recommendation = async () => {
-        const output: RecommendationEngineOutput = await recommendationEngine(input);
-        setRecommendedPlan(output.recommendedPlan);
+      const getRecommendation = async () => {
+        const recommendation = await recommendationEngine(input);
+        setRecommendedPlan(recommendation.recommendedPlan);
+        setPersonalizedPlan(recommendation.recommendationReason);
       };
-      recommendation();
+      getRecommendation();
     }
   }, [machineLearningModelLoaded, userProgress, user]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard plan={recommendedPlan} />
-      <ProgressCard progress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+      <StudyPlanCard
+        title="Recommended Plan"
+        description={recommendedPlan}
+        link="/study-plan"
+      />
+      <ProgressCard
+        title="Your Progress"
+        completedLessons={userProgress.completedLessons}
+        totalLessons={userProgress.totalLessons}
+        progressPercentage={userProgress.progressPercentage}
+      />
+      <CommunityCard
+        title="Join the Community"
+        description="Connect with other learners and get support"
+        link="/community"
+      />
+      <ResourceCard
+        title="Additional Resources"
+        description="Access to extra learning materials and tools"
+        link="/resources"
+      />
     </DashboardLayout>
   );
 };
