@@ -74,8 +74,6 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
-      } else {
-        return 0;
       }
     });
 
@@ -84,8 +82,6 @@ export default function CommunityPage() {
         return true;
       } else if (filterBy === 'mine') {
         return post.author.id === user?.id;
-      } else {
-        return false;
       }
     });
 
@@ -97,43 +93,28 @@ export default function CommunityPage() {
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
 
-    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+    if (scrollTop + clientHeight >= scrollHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      loadMorePosts();
-    }
-  };
-
-  const loadMorePosts = async () => {
-    try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          page: pageNumber + 1,
-          limit: postsPerPage,
-        },
-      });
-
-      if (response.data.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
-
-      setPosts((prevPosts) => [...prevPosts, ...response.data]);
-      setPageNumber((prevPageNumber) => prevPageNumber + 1);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
+        .then(response => {
+          const newPosts = response.data;
+          setPosts([...posts, ...newPosts]);
+          setHasMorePosts(newPosts.length === postsPerPage);
+          setLoadingMorePosts(false);
+        })
+        .catch(error => {
+          console.error(error);
+          setLoadingMorePosts(false);
+        });
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
+  }, [hasMorePosts, loadingMorePosts, posts]);
 
-  return (
-    // ... rest of the JSX code remains the same ...
-  );
+  // Rest of the code remains the same
 }

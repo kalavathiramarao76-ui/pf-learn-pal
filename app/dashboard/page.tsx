@@ -165,7 +165,7 @@ const Page = () => {
       };
       getRecommendation();
     }
-  }, [machineLearningModelLoaded, userProgress, user]);
+  }, [machineLearningModelLoaded, user, userProgress]);
 
   return (
     <DashboardLayout>
