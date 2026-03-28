@@ -74,28 +74,25 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
-      } else {
-        return 0;
       }
     });
 
-    const filteredSorted = sorted.filter((post) => {
+    const filteredBy = sorted.filter((post) => {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.authorId === user?.id;
-      } else {
-        return false;
+        return post.author.id === user?.id;
       }
     });
 
-    setFilteredPosts(filteredSorted);
+    setFilteredPosts(filteredBy);
   }, [posts, searchQuery, sortOrder, filterBy, user]);
 
   const handleScroll = () => {
     const scrollHeight = document.body.scrollHeight;
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
+
     if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       loadMorePosts();
     }
@@ -108,16 +105,12 @@ export default function CommunityPage() {
         params: {
           pageNumber: pageNumber + 1,
           postsPerPage,
-          lastPostId,
         },
       });
       const newPosts = response.data;
-      if (newPosts.length < postsPerPage) {
-        setHasMorePosts(false);
-      }
-      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
-      setPageNumber((prevPageNumber) => prevPageNumber + 1);
-      setLastPostId(newPosts[newPosts.length - 1].id);
+      setPosts([...posts, ...newPosts]);
+      setPageNumber(pageNumber + 1);
+      setHasMorePosts(newPosts.length === postsPerPage);
     } catch (error) {
       console.error(error);
     } finally {
@@ -127,14 +120,12 @@ export default function CommunityPage() {
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [hasMorePosts, loadingMorePosts]);
 
   return (
-    <Box>
-      {/* existing JSX code remains the same */}
-    </Box>
+    <div>
+      {/* existing JSX content */}
+    </div>
   );
 }
