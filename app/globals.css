@@ -126,3 +126,22 @@ small {
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
 }
+
+/* Add keyboard navigation */
+button, a, input, select, textarea {
+  outline: none;
+}
+
+button:focus, a:focus, input:focus, select:focus, textarea:focus {
+  box-shadow: var(--focus-box-shadow);
+}
+
+/* Add high contrast mode */
+.high-contrast-mode {
+  filter: invert(100%);
+}
+
+/* Add keyboard navigation for high contrast mode */
+.high-contrast-mode button:focus, .high-contrast-mode a:focus, .high-contrast-mode input:focus, .high-contrast-mode select:focus, .high-contrast-mode textarea:focus {
+  box-shadow: var(--high-contrast-focus-box-shadow);
+}

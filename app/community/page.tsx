@@ -77,55 +77,45 @@ export default function CommunityPage() {
       }
     });
 
-    const filteredBy = sorted.filter((post) => {
+    const filteredSorted = sorted.filter((post) => {
       if (filterBy === 'all') {
         return true;
-      } else if (filterBy === 'mine') {
-        return post.author.id === user?.id;
+      } else if (filterBy === 'myPosts') {
+        return post.authorId === user?.id;
       }
     });
 
-    setFilteredPosts(filteredBy);
+    setFilteredPosts(filteredSorted);
   }, [posts, searchQuery, sortOrder, filterBy, user]);
 
   const handleScroll = () => {
     const scrollHeight = document.body.scrollHeight;
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
-
     if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-      loadMorePosts();
-    }
-  };
-
-  const loadMorePosts = async () => {
-    setLoadingMorePosts(true);
-    try {
-      const response = await axios.get('/api/posts', {
-        params: {
-          pageNumber: pageNumber + 1,
-          postsPerPage,
-        },
-      });
-      const newPosts = response.data;
-      setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
-      setHasMorePosts(newPosts.length === postsPerPage);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingMorePosts(false);
+      setLoadingMorePosts(true);
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
+        .then(response => {
+          const newPosts = response.data;
+          setPosts([...posts, ...newPosts]);
+          setHasMorePosts(newPosts.length === postsPerPage);
+          setLoadingMorePosts(false);
+        })
+        .catch(error => {
+          console.error(error);
+          setLoadingMorePosts(false);
+        });
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts]);
+  }, [hasMorePosts, loadingMorePosts, posts]);
 
   return (
     <div>
-      {/* existing JSX content */}
+      {/* existing JSX code remains the same */}
     </div>
   );
 }
