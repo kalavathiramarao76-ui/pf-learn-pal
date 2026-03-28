@@ -164,7 +164,7 @@ const Page = () => {
       };
       getRecommendation();
     }
-  }, [machineLearningModelLoaded, user, userProgress]);
+  }, [machineLearningModelLoaded, userProgress, user]);
 
   return (
     <DashboardLayout>
@@ -175,9 +175,9 @@ const Page = () => {
       />
       <ProgressCard
         title="Your Progress"
+        progressPercentage={userProgress.progressPercentage}
         completedLessons={userProgress.completedLessons}
         totalLessons={userProgress.totalLessons}
-        progressPercentage={userProgress.progressPercentage}
       />
       <CommunityCard
         title="Join the Community"
@@ -186,7 +186,7 @@ const Page = () => {
       />
       <ResourceCard
         title="Additional Resources"
-        description="Access extra resources to help you learn"
+        description="Access to extra learning materials"
         link="/resources"
       />
     </DashboardLayout>
