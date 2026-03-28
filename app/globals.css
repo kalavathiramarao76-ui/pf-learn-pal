@@ -126,3 +126,24 @@ small {
     --font-weight-bold: var(--high-contrast-font-weight-bold);
   }
 }
+
+/* Add keyboard navigation */
+button, a {
+  cursor: pointer;
+}
+
+button:focus, a:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
+}
+
+/* Add high contrast mode */
+.high-contrast-mode {
+  filter: invert(100%);
+}
+
+/* Add keyboard navigation for high contrast mode */
+.high-contrast-mode button:focus, .high-contrast-mode a:focus {
+  outline: none;
+  box-shadow: var(--high-contrast-focus-box-shadow);
+}
