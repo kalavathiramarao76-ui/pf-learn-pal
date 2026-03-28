@@ -97,6 +97,20 @@ small {
   font-size: var(--font-size-large);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: var(--dark-text-color);
+    --background-color: var(--dark-background-color);
+    --link-color: var(--dark-link-color);
+    --link-hover-color: var(--dark-link-hover-color);
+    --button-color: var(--dark-button-color);
+    --button-hover-color: var(--dark-button-hover-color);
+    --focus-color: var(--dark-focus-color);
+    --focus-background-color: var(--dark-focus-background-color);
+    --focus-box-shadow: var(--dark-focus-box-shadow);
+  }
+}
+
 @media (prefers-contrast: high) {
   :root {
     --text-color: var(--high-contrast-text-color);
@@ -110,19 +124,5 @@ small {
     --focus-box-shadow: var(--high-contrast-focus-box-shadow);
     --font-weight-normal: var(--high-contrast-font-weight-normal);
     --font-weight-bold: var(--high-contrast-font-weight-bold);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-color: var(--dark-text-color);
-    --background-color: var(--dark-background-color);
-    --link-color: var(--dark-link-color);
-    --link-hover-color: var(--dark-link-hover-color);
-    --button-color: var(--dark-button-color);
-    --button-hover-color: var(--dark-button-hover-color);
-    --focus-color: var(--dark-focus-color);
-    --focus-background-color: var(--dark-focus-background-color);
-    --focus-box-shadow: var(--dark-focus-box-shadow);
   }
 }

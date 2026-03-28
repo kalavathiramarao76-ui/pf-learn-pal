@@ -74,253 +74,51 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
-      return 0;
     });
 
-    setFilteredPosts(sorted);
-  }, [posts, searchQuery, sortOrder]);
-
-  const handlePostSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (isEditing) {
-        setIsEditingLoading(true);
-        const response = await axios.put(`/api/posts/${editingPost.id}`, {
-          title: editorValue.split('\n')[0],
-          content: editorValue,
-        });
-        setSuccess('Post updated successfully');
-        setPosts((prevPosts) =>
-          prevPosts.map((post) => (post.id === editingPost.id ? response.data : post))
-        );
+    const filteredSorted = sorted.filter((post) => {
+      if (filterBy === 'all') {
+        return true;
+      } else if (filterBy === 'mine') {
+        return post.userId === user?.id;
       } else {
-        const response = await axios.post('/api/posts', {
-          title: editorValue.split('\n')[0],
-          content: editorValue,
-        });
-        setSuccess('Post created successfully');
-        setPosts((prevPosts) => [response.data, ...prevPosts]);
+        return false;
       }
-      setEditorValue('');
-      setCharacterCount(0);
-      setIsEditing(false);
-      setIsEditingLoading(false);
-    } catch (error) {
-      setError(error.message);
+    });
+
+    setFilteredPosts(filteredSorted);
+  }, [posts, searchQuery, sortOrder, filterBy, user]);
+
+  const handleScroll = () => {
+    const scrollHeight = document.body.scrollHeight;
+    const scrollTop = document.body.scrollTop;
+    const clientHeight = document.body.clientHeight;
+
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
+      setLoadingMorePosts(true);
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
+        .then(response => {
+          const newPosts = response.data;
+          setPosts([...posts, ...newPosts]);
+          setHasMorePosts(newPosts.length === postsPerPage);
+          setLoadingMorePosts(false);
+        })
+        .catch(error => {
+          console.error(error);
+          setLoadingMorePosts(false);
+        });
     }
   };
 
-  const handleReportSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setIsReportingLoading(true);
-      const response = await axios.post('/api/reports', {
-        postId: reportingPost.id,
-        reason: reportReason,
-        description: reportDescription,
-      });
-      setSuccess('Report submitted successfully');
-      setReportingPost(null);
-      setReportReason('');
-      setReportDescription('');
-      setIsReporting(false);
-      setIsReportingLoading(false);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMorePosts, loadingMorePosts, posts]);
 
-  const handleEditPost = (post) => {
-    setEditingPost(post);
-    setEditorValue(post.content);
-    setCharacterCount(post.content.length);
-    setIsEditing(true);
-  };
-
-  const handleReportPost = (post) => {
-    setReportingPost(post);
-    setIsReporting(true);
-  };
-
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
-  return (
-    <Box sx={{ padding: 2 }}>
-      <Typography variant="h4" component="h1" sx={{ marginBottom: 2 }}>
-        Community
-      </Typography>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={8}>
-          <Box sx={{ marginBottom: 2 }}>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => {
-                setEditorValue(value);
-                setCharacterCount(value.length);
-              }}
-              placeholder="Write a post..."
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline', 'strike'],
-                  ['blockquote', 'code-block'],
-                  [{ header: 1 }, { header: 2 }],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  [{ script: 'sub' }, { script: 'super' }],
-                  [{ indent: '-1' }, { indent: '+1' }],
-                  [{ direction: 'rtl' }],
-                  [{ font: [] }],
-                  [{ align: [] }],
-                  ['clean'],
-                ],
-              }}
-            />
-            <Box sx={{ marginTop: 1 }}>
-              <Typography variant="body2" component="p">
-                {characterCount} / {characterLimit}
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handlePostSubmit}
-              disabled={isEditingLoading || characterCount > characterLimit}
-              startIcon={<AiOutlineMessage />}
-            >
-              {isEditing ? 'Update Post' : 'Create Post'}
-            </Button>
-          </Box>
-          {filteredPosts.map((post) => (
-            <Box key={post.id} sx={{ marginBottom: 2 }}>
-              <Typography variant="h6" component="h2">
-                {post.title}
-              </Typography>
-              <Typography variant="body1" component="p">
-                {post.content}
-              </Typography>
-              <Box sx={{ marginTop: 1 }}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => handleEditPost(post)}
-                  startIcon={<FaEdit />}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => handleReportPost(post)}
-                  startIcon={<FiFlag />}
-                >
-                  Report
-                </Button>
-              </Box>
-            </Box>
-          ))}
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Box sx={{ marginBottom: 2 }}>
-            <Autocomplete
-              options={autocompleteOptions}
-              value={searchQuery}
-              onChange={(event, value) => setSearchQuery(value)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Search"
-                  variant="outlined"
-                  fullWidth
-                />
-              )}
-            />
-          </Box>
-          <Box sx={{ marginBottom: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => setSortOrder('newest')}
-            >
-              Newest
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => setSortOrder('oldest')}
-            >
-              Oldest
-            </Button>
-          </Box>
-        </Grid>
-      </Grid>
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
-        contentLabel="Report Post"
-      >
-        <Box sx={{ padding: 2 }}>
-          <Typography variant="h6" component="h2">
-            Report Post
-          </Typography>
-          <form onSubmit={handleReportSubmit}>
-            <Box sx={{ marginBottom: 2 }}>
-              <TextField
-                label="Reason"
-                variant="outlined"
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                fullWidth
-              />
-            </Box>
-            <Box sx={{ marginBottom: 2 }}>
-              <TextField
-                label="Description"
-                variant="outlined"
-                value={reportDescription}
-                onChange={(e) => setReportDescription(e.target.value)}
-                fullWidth
-                multiline
-                rows={4}
-              />
-            </Box>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              disabled={isReportingLoading}
-              startIcon={<FiFlag />}
-            >
-              {isReportingLoading ? (
-                <CircularProgress size={20} />
-              ) : (
-                'Submit Report'
-              )}
-            </Button>
-          </form>
-        </Box>
-      </Modal>
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-      >
-        <Alert severity="success" variant="filled">
-          <AlertTitle>Success</AlertTitle>
-          {success}
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={!!error}
-        autoHideDuration={3000}
-        onClose={() => setError('')}
-      >
-        <Alert severity="error" variant="filled">
-          <AlertTitle>Error</AlertTitle>
-          {error}
-        </Alert>
-      </Snackbar>
-    </Box>
-  );
+  // ... rest of your code
 }

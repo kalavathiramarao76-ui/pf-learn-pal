@@ -117,30 +117,7 @@ const machineLearningModel = async () => {
   return model;
 };
 
-const advancedRecommendationEngine = async (input: RecommendationEngineInput): Promise<RecommendationEngineOutput> => {
-  const model = await machineLearningModel();
-  const userInput = tf.tensor2d([
-    input.userBehavior.completedLessons,
-    input.userBehavior.totalLessons,
-    input.userBehavior.progressPercentage,
-    input.userPreferences.learningStyle === 'visual' ? 1 : 0,
-    input.userPreferences.learningStyle === 'auditory' ? 1 : 0,
-    input.userPreferences.learningStyle === 'kinesthetic' ? 1 : 0,
-    input.userPreferences.knowledgeLevel === 'beginner' ? 1 : 0,
-    input.userPreferences.knowledgeLevel === 'intermediate' ? 1 : 0,
-    input.userPreferences.knowledgeLevel === 'advanced' ? 1 : 0,
-  ], [1, 10]);
-  const output = model.predict(userInput);
-  const recommendedPlan = await output.data();
-  const planName = recommendedPlan[0] > 0.5 ? 'Foundational Plan' : recommendedPlan[1] > 0.5 ? 'Intermediate Plan' : 'Advanced Plan';
-  const recommendationReason = planName === 'Foundational Plan' ? 'You are struggling with the current plan, let\'s start with the basics.' : planName === 'Intermediate Plan' ? 'You are making good progress, let\'s move on to intermediate-level content.' : 'You are doing great, let\'s challenge you with advanced topics and techniques.';
-  return {
-    recommendedPlan: planName,
-    recommendationReason: recommendationReason,
-  };
-};
-
-const DashboardPage = () => {
+const Page = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState(cache.user);
@@ -153,19 +130,21 @@ const DashboardPage = () => {
   const [userFeedback, setUserFeedback] = useState(cache.userFeedback);
   const [upcomingLessons, setUpcomingLessons] = useState(cache.upcomingLessons);
   const [reminders, setReminders] = useState(cache.reminders);
+  const [aiModel, setAiModel] = useState(cache.aiModel);
+  const [mlModel, setMlModel] = useState(cache.mlModel);
+  const [machineLearningModelLoaded, setMachineLearningModelLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const response = await client.get('/api/user');
-      const userData = await response.json();
-      setUser(userData);
-      cache.user = userData;
+    const loadMachineLearningModel = async () => {
+      const model = await machineLearningModel();
+      setMlModel(model);
+      setMachineLearningModelLoaded(true);
     };
-    fetchUser();
+    loadMachineLearningModel();
   }, []);
 
   useEffect(() => {
-    const fetchRecommendedPlan = async () => {
+    if (machineLearningModelLoaded) {
       const input: RecommendationEngineInput = {
         userBehavior: {
           completedLessons: userProgress.completedLessons,
@@ -178,21 +157,40 @@ const DashboardPage = () => {
           goals: user.goals,
         },
       };
-      const output = await advancedRecommendationEngine(input);
-      setRecommendedPlan(output.recommendedPlan);
-      cache.recommendedPlan = output.recommendedPlan;
-    };
-    fetchRecommendedPlan();
-  }, [user, userProgress]);
+      const getRecommendation = async () => {
+        const recommendation = await recommendationEngine(input);
+        setRecommendedPlan(recommendation.recommendedPlan);
+        setPersonalizedPlan(recommendation.recommendationReason);
+      };
+      getRecommendation();
+    }
+  }, [machineLearningModelLoaded, user, userProgress]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard planName={recommendedPlan} planDescription="This is a study plan" planLink="/study-plan" />
-      <ProgressCard progressPercentage={userProgress.progressPercentage} />
-      <CommunityCard />
-      <ResourceCard />
+      <StudyPlanCard
+        title="Recommended Plan"
+        description={recommendedPlan}
+        link="/study-plan"
+      />
+      <ProgressCard
+        title="Your Progress"
+        completedLessons={userProgress.completedLessons}
+        totalLessons={userProgress.totalLessons}
+        progressPercentage={userProgress.progressPercentage}
+      />
+      <CommunityCard
+        title="Join the Community"
+        description="Connect with other learners and get support"
+        link="/community"
+      />
+      <ResourceCard
+        title="Additional Resources"
+        description="Access extra resources to help you learn"
+        link="/resources"
+      />
     </DashboardLayout>
   );
 };
 
-export default DashboardPage;
+export default Page;
