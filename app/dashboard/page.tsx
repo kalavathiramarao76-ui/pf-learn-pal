@@ -118,6 +118,8 @@ const machineLearningModel = async () => {
 };
 
 const Page = () => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState(cache.user);
   const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
   const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
@@ -131,9 +133,6 @@ const Page = () => {
   const [aiModel, setAiModel] = useState(cache.aiModel);
   const [mlModel, setMlModel] = useState(cache.mlModel);
   const [machineLearningModelLoaded, setMachineLearningModelLoaded] = useState(false);
-
-  const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const loadMachineLearningModel = async () => {
@@ -165,23 +164,53 @@ const Page = () => {
       };
       getRecommendation();
     }
-  }, [machineLearningModelLoaded, user, userProgress]);
+  }, [machineLearningModelLoaded, userProgress, user]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        title="Recommended Plan"
-        description={recommendedPlan}
-        link="/study-plan"
-      />
-      <ProgressCard
-        title="Your Progress"
-        completedLessons={userProgress.completedLessons}
-        totalLessons={userProgress.totalLessons}
-        progressPercentage={userProgress.progressPercentage}
-      />
-      <CommunityCard title="Join the Community" link="/community" />
-      <ResourceCard title="Additional Resources" link="/resources" />
+      <div className="container">
+        <div className="row">
+          <div className="col-md-4">
+            <StudyPlanCard
+              title="Recommended Plan"
+              description={recommendedPlan}
+              link="/study-plan"
+            />
+          </div>
+          <div className="col-md-4">
+            <ProgressCard
+              title="Your Progress"
+              completedLessons={userProgress.completedLessons}
+              totalLessons={userProgress.totalLessons}
+              progressPercentage={userProgress.progressPercentage}
+            />
+          </div>
+          <div className="col-md-4">
+            <CommunityCard title="Join Our Community" link="/community" />
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-4">
+            <ResourceCard title="Additional Resources" link="/resources" />
+          </div>
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Personalized Plan</h5>
+                <p className="card-text">{personalizedPlan}</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="card-title">Customized Plan</h5>
+                <p className="card-text">{customizedPlan}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 };

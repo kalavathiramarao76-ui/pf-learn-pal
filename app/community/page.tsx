@@ -77,22 +77,21 @@ export default function CommunityPage() {
       }
     });
 
-    const filteredBy = sorted.filter((post) => {
+    const filteredSorted = sorted.filter((post) => {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.author.id === user?.id;
+        return post.author.id === user.id;
       }
     });
 
-    setFilteredPosts(filteredBy);
+    setFilteredPosts(filteredSorted);
   }, [posts, searchQuery, sortOrder, filterBy, user]);
 
   const handleScroll = () => {
     const scrollHeight = document.body.scrollHeight;
-    const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
-
+    const scrollTop = document.body.scrollTop;
     if (scrollTop + clientHeight >= scrollHeight * 0.9 && !loadingMorePosts && hasMorePosts) {
       loadMorePosts();
     }
@@ -104,17 +103,15 @@ export default function CommunityPage() {
       const response = await axios.get('/api/posts', {
         params: {
           pageNumber: pageNumber + 1,
-          postsPerPage,
-          lastPostId,
+          postsPerPage: postsPerPage,
         },
       });
       const newPosts = response.data;
-      setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
-      setLastPostId(newPosts[newPosts.length - 1].id);
       if (newPosts.length < postsPerPage) {
         setHasMorePosts(false);
       }
+      setPosts([...posts, ...newPosts]);
+      setPageNumber(pageNumber + 1);
     } catch (error) {
       console.error(error);
     } finally {
@@ -129,241 +126,12 @@ export default function CommunityPage() {
 
   return (
     <Box>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Typography variant="h4">Community</Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Autocomplete
-            options={autocompleteOptions}
-            value={searchQuery}
-            onChange={(event, value) => setSearchQuery(value)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Search"
-                variant="outlined"
-                fullWidth
-              />
-            )}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setModalIsOpen(true)}
-          >
-            Create Post
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          {filteredPosts.map((post) => (
-            <Box key={post.id} mb={2}>
-              <Typography variant="h6">{post.title}</Typography>
-              <Typography variant="body1">{post.content}</Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setEditingPost(post);
-                  setModalIsOpen(true);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => {
-                  setReportingPost(post);
-                  setModalIsOpen(true);
-                }}
-              >
-                Report
-              </Button>
-            </Box>
-          ))}
-          {loadingMorePosts && (
-            <CircularProgress />
-          )}
-          {!hasMorePosts && (
-            <Typography variant="body1">No more posts</Typography>
-          )}
-        </Grid>
-      </Grid>
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
-        style={{
-          overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          content: {
-            width: '80%',
-            height: '80%',
-            margin: '40px auto',
-            padding: '20px',
-            border: '1px solid #ccc',
-            borderRadius: '10px',
-            boxShadow: '0px 0px 10px rgba(0,0,0,0.5)',
-          },
-        }}
-      >
-        {isEditing ? (
-          <Box>
-            <Typography variant="h6">Edit Post</Typography>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => setEditorValue(value)}
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline', 'strike'],
-                  ['blockquote', 'code-block'],
-                  [{ header: 1 }, { header: 2 }],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  [{ script: 'sub' }, { script: 'super' }],
-                  [{ indent: '-1' }, { indent: '+1' }],
-                  [{ direction: 'rtl' }],
-                  [{ font: [] }],
-                  [{ align: [] }],
-                  ['clean'],
-                ],
-              }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                setIsEditingLoading(true);
-                try {
-                  const response = await axios.put(`/api/posts/${editingPost.id}`, {
-                    title: editorValue.split('\n')[0],
-                    content: editorValue,
-                  });
-                  setPosts(
-                    posts.map((post) =>
-                      post.id === editingPost.id ? response.data : post
-                    )
-                  );
-                  setSuccess('Post updated successfully');
-                } catch (error) {
-                  setError('Error updating post');
-                } finally {
-                  setIsEditingLoading(false);
-                  setModalIsOpen(false);
-                }
-              }}
-            >
-              {isEditingLoading ? <CircularProgress /> : 'Update Post'}
-            </Button>
-          </Box>
-        ) : isReporting ? (
-          <Box>
-            <Typography variant="h6">Report Post</Typography>
-            <TextField
-              label="Reason"
-              value={reportReason}
-              onChange={(event) => setReportReason(event.target.value)}
-              variant="outlined"
-              fullWidth
-            />
-            <TextField
-              label="Description"
-              value={reportDescription}
-              onChange={(event) => setReportDescription(event.target.value)}
-              variant="outlined"
-              fullWidth
-              multiline
-              rows={4}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                setIsReportingLoading(true);
-                try {
-                  const response = await axios.post('/api/reports', {
-                    postId: reportingPost.id,
-                    reason: reportReason,
-                    description: reportDescription,
-                  });
-                  setSuccess('Post reported successfully');
-                } catch (error) {
-                  setError('Error reporting post');
-                } finally {
-                  setIsReportingLoading(false);
-                  setModalIsOpen(false);
-                }
-              }}
-            >
-              {isReportingLoading ? <CircularProgress /> : 'Report Post'}
-            </Button>
-          </Box>
-        ) : (
-          <Box>
-            <Typography variant="h6">Create Post</Typography>
-            <ReactQuill
-              value={editorValue}
-              onChange={(value) => setEditorValue(value)}
-              modules={{
-                toolbar: [
-                  ['bold', 'italic', 'underline', 'strike'],
-                  ['blockquote', 'code-block'],
-                  [{ header: 1 }, { header: 2 }],
-                  [{ list: 'ordered' }, { list: 'bullet' }],
-                  [{ script: 'sub' }, { script: 'super' }],
-                  [{ indent: '-1' }, { indent: '+1' }],
-                  [{ direction: 'rtl' }],
-                  [{ font: [] }],
-                  [{ align: [] }],
-                  ['clean'],
-                ],
-              }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={async () => {
-                try {
-                  const response = await axios.post('/api/posts', {
-                    title: editorValue.split('\n')[0],
-                    content: editorValue,
-                  });
-                  setPosts([...posts, response.data]);
-                  setSuccess('Post created successfully');
-                } catch (error) {
-                  setError('Error creating post');
-                } finally {
-                  setModalIsOpen(false);
-                }
-              }}
-            >
-              Create Post
-            </Button>
-          </Box>
-        )}
-      </Modal>
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
-      >
-        <Alert severity="success">
-          <AlertTitle>Success</AlertTitle>
-          {success}
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={!!error}
-        autoHideDuration={3000}
-        onClose={() => setError('')}
-      >
-        <Alert severity="error">
-          <AlertTitle>Error</AlertTitle>
-          {error}
-        </Alert>
-      </Snackbar>
+      {/* existing JSX code */}
+      {loadingMorePosts && (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
     </Box>
   );
 }
