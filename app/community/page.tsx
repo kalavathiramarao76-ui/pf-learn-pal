@@ -81,7 +81,7 @@ export default function CommunityPage() {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.author.id === user?.id;
+        return post.authorId === user?.id;
       }
     });
 
@@ -93,7 +93,7 @@ export default function CommunityPage() {
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
 
-    if (scrollTop + clientHeight >= scrollHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
       axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
         .then(response => {
@@ -111,10 +111,8 @@ export default function CommunityPage() {
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [hasMorePosts, loadingMorePosts, posts]);
 
-  // Rest of the code remains the same
+  // Rest of your code...
 }

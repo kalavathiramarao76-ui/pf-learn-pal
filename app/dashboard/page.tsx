@@ -118,6 +118,8 @@ const machineLearningModel = async () => {
 };
 
 const Page = () => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState(cache.user);
   const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
   const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
@@ -131,9 +133,6 @@ const Page = () => {
   const [aiModel, setAiModel] = useState(cache.aiModel);
   const [mlModel, setMlModel] = useState(cache.mlModel);
   const [machineLearningModelLoaded, setMachineLearningModelLoaded] = useState(false);
-
-  const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const loadMachineLearningModel = async () => {
@@ -158,38 +157,21 @@ const Page = () => {
           goals: user.goals,
         },
       };
-      const getRecommendation = async () => {
-        const recommendation = await recommendationEngine(input);
-        setRecommendedPlan(recommendation.recommendedPlan);
-        setPersonalizedPlan(recommendation.recommendationReason);
+      const predict = async () => {
+        const output: RecommendationEngineOutput = await recommendationEngine(input);
+        setRecommendedPlan(output.recommendedPlan);
+        setPersonalizedPlan(output.recommendationReason);
       };
-      getRecommendation();
+      predict();
     }
-  }, [machineLearningModelLoaded, user, userProgress]);
+  }, [machineLearningModelLoaded, userProgress, user]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard
-        title="Recommended Plan"
-        description={recommendedPlan}
-        link="/study-plan"
-      />
-      <ProgressCard
-        title="Your Progress"
-        completedLessons={userProgress.completedLessons}
-        totalLessons={userProgress.totalLessons}
-        progressPercentage={userProgress.progressPercentage}
-      />
-      <CommunityCard
-        title="Join the Community"
-        description="Connect with other learners and get support"
-        link="/community"
-      />
-      <ResourceCard
-        title="Additional Resources"
-        description="Access to extra learning materials"
-        link="/resources"
-      />
+      <StudyPlanCard plan={recommendedPlan} />
+      <ProgressCard progress={userProgress} />
+      <CommunityCard />
+      <ResourceCard />
     </DashboardLayout>
   );
 };
