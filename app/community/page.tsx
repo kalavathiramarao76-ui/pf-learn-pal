@@ -74,48 +74,66 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
     });
 
-    const filteredSorted = sorted.filter((post) => {
+    const filteredBy = sorted.filter((post) => {
       if (filterBy === 'all') {
         return true;
-      } else if (filterBy === 'myPosts') {
-        return post.authorId === user?.id;
+      } else if (filterBy === 'mine') {
+        return post.author.id === user?.id;
+      } else {
+        return false;
       }
     });
 
-    setFilteredPosts(filteredSorted);
+    setFilteredPosts(filteredBy);
   }, [posts, searchQuery, sortOrder, filterBy, user]);
 
   const handleScroll = () => {
     const scrollHeight = document.body.scrollHeight;
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
+
     if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
-        .then(response => {
-          const newPosts = response.data;
-          setPosts([...posts, ...newPosts]);
-          setHasMorePosts(newPosts.length === postsPerPage);
-          setLoadingMorePosts(false);
-        })
-        .catch(error => {
-          console.error(error);
-          setLoadingMorePosts(false);
-        });
+      loadMorePosts();
+    }
+  };
+
+  const loadMorePosts = async () => {
+    try {
+      const response = await axios.get('/api/posts', {
+        params: {
+          page: pageNumber + 1,
+          limit: postsPerPage,
+        },
+      });
+
+      if (response.data.length < postsPerPage) {
+        setHasMorePosts(false);
+      }
+
+      setPosts((prevPosts) => [...prevPosts, ...response.data]);
+      setPageNumber((prevPageNumber) => prevPageNumber + 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingMorePosts(false);
     }
   };
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, posts]);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
 
   return (
-    <div>
-      {/* existing JSX code remains the same */}
-    </div>
+    // ... rest of the JSX code remains the same ...
   );
 }

@@ -146,32 +146,50 @@ const Page = () => {
 
   useEffect(() => {
     if (machineLearningModelLoaded) {
-      const makeRecommendation = async () => {
-        const input: RecommendationEngineInput = {
-          userBehavior: {
-            completedLessons: userProgress.completedLessons,
-            totalLessons: userProgress.totalLessons,
-            progressPercentage: userProgress.progressPercentage,
-          },
-          userPreferences: {
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
-          },
-        };
-        const output = await recommendationEngine(input);
-        setRecommendedPlan(output.recommendedPlan);
+      const input: RecommendationEngineInput = {
+        userBehavior: {
+          completedLessons: userProgress.completedLessons,
+          totalLessons: userProgress.totalLessons,
+          progressPercentage: userProgress.progressPercentage,
+        },
+        userPreferences: {
+          learningStyle: user.learningStyle,
+          knowledgeLevel: user.knowledgeLevel,
+          goals: user.goals,
+        },
       };
-      makeRecommendation();
+      const getRecommendation = async () => {
+        const recommendation = await recommendationEngine(input);
+        setRecommendedPlan(recommendation.recommendedPlan);
+        setPersonalizedPlan(recommendation.recommendationReason);
+      };
+      getRecommendation();
     }
   }, [machineLearningModelLoaded, userProgress, user]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard plan={recommendedPlan} />
-      <ProgressCard progress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+      <StudyPlanCard
+        title="Recommended Plan"
+        description={recommendedPlan}
+        link="/study-plan"
+      />
+      <ProgressCard
+        title="Your Progress"
+        completedLessons={userProgress.completedLessons}
+        totalLessons={userProgress.totalLessons}
+        progressPercentage={userProgress.progressPercentage}
+      />
+      <CommunityCard
+        title="Join the Community"
+        description="Connect with other learners and get support"
+        link="/community"
+      />
+      <ResourceCard
+        title="Additional Resources"
+        description="Access to extra learning materials"
+        link="/resources"
+      />
     </DashboardLayout>
   );
 };
