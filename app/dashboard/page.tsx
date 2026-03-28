@@ -157,60 +157,21 @@ const Page = () => {
           goals: user.goals,
         },
       };
-      const getRecommendation = async () => {
-        const recommendation = await recommendationEngine(input);
-        setRecommendedPlan(recommendation.recommendedPlan);
-        setPersonalizedPlan(recommendation.recommendationReason);
+      const recommendPlan = async () => {
+        const output: RecommendationEngineOutput = await recommendationEngine(input);
+        setRecommendedPlan(output.recommendedPlan);
+        setPersonalizedPlan(output.recommendationReason);
       };
-      getRecommendation();
+      recommendPlan();
     }
-  }, [machineLearningModelLoaded, userProgress, user]);
+  }, [machineLearningModelLoaded, user, userProgress]);
 
   return (
     <DashboardLayout>
-      <div className="container">
-        <div className="row">
-          <div className="col-md-4">
-            <StudyPlanCard
-              title="Recommended Plan"
-              description={recommendedPlan}
-              link="/study-plan"
-            />
-          </div>
-          <div className="col-md-4">
-            <ProgressCard
-              title="Your Progress"
-              completedLessons={userProgress.completedLessons}
-              totalLessons={userProgress.totalLessons}
-              progressPercentage={userProgress.progressPercentage}
-            />
-          </div>
-          <div className="col-md-4">
-            <CommunityCard title="Join Our Community" link="/community" />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <ResourceCard title="Additional Resources" link="/resources" />
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Personalized Plan</h5>
-                <p className="card-text">{personalizedPlan}</p>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Customized Plan</h5>
-                <p className="card-text">{customizedPlan}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <StudyPlanCard plan={recommendedPlan} />
+      <ProgressCard progress={userProgress} />
+      <CommunityCard />
+      <ResourceCard />
     </DashboardLayout>
   );
 };

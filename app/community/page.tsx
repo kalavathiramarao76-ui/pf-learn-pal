@@ -74,6 +74,8 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
     });
 
@@ -81,7 +83,9 @@ export default function CommunityPage() {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.author.id === user.id;
+        return post.authorId === user?.id;
+      } else {
+        return false;
       }
     });
 
@@ -90,9 +94,9 @@ export default function CommunityPage() {
 
   const handleScroll = () => {
     const scrollHeight = document.body.scrollHeight;
-    const clientHeight = document.body.clientHeight;
     const scrollTop = document.body.scrollTop;
-    if (scrollTop + clientHeight >= scrollHeight * 0.9 && !loadingMorePosts && hasMorePosts) {
+    const clientHeight = document.body.clientHeight;
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       loadMorePosts();
     }
   };
@@ -103,15 +107,17 @@ export default function CommunityPage() {
       const response = await axios.get('/api/posts', {
         params: {
           pageNumber: pageNumber + 1,
-          postsPerPage: postsPerPage,
+          postsPerPage,
+          lastPostId,
         },
       });
       const newPosts = response.data;
       if (newPosts.length < postsPerPage) {
         setHasMorePosts(false);
       }
-      setPosts([...posts, ...newPosts]);
-      setPageNumber(pageNumber + 1);
+      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
+      setPageNumber((prevPageNumber) => prevPageNumber + 1);
+      setLastPostId(newPosts[newPosts.length - 1].id);
     } catch (error) {
       console.error(error);
     } finally {
@@ -121,17 +127,14 @@ export default function CommunityPage() {
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadingMorePosts, hasMorePosts]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMorePosts, loadingMorePosts]);
 
   return (
     <Box>
-      {/* existing JSX code */}
-      {loadingMorePosts && (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <CircularProgress />
-        </Box>
-      )}
+      {/* existing JSX code remains the same */}
     </Box>
   );
 }
