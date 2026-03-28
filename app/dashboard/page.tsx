@@ -118,8 +118,6 @@ const machineLearningModel = async () => {
 };
 
 const Page = () => {
-  const router = useRouter();
-  const pathname = usePathname();
   const [user, setUser] = useState(cache.user);
   const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
   const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
@@ -134,6 +132,9 @@ const Page = () => {
   const [mlModel, setMlModel] = useState(cache.mlModel);
   const [machineLearningModelLoaded, setMachineLearningModelLoaded] = useState(false);
 
+  const router = useRouter();
+  const pathname = usePathname();
+
   useEffect(() => {
     const loadMachineLearningModel = async () => {
       const model = await machineLearningModel();
@@ -144,27 +145,57 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
-    if (machineLearningModelLoaded) {
-      const input: RecommendationEngineInput = {
-        userBehavior: {
-          completedLessons: userProgress.completedLessons,
-          totalLessons: userProgress.totalLessons,
-          progressPercentage: userProgress.progressPercentage,
-        },
-        userPreferences: {
-          learningStyle: user.learningStyle,
-          knowledgeLevel: user.knowledgeLevel,
-          goals: user.goals,
-        },
-      };
-      const predict = async () => {
-        const output: RecommendationEngineOutput = await recommendationEngine(input);
+    const fetchUser = async () => {
+      const response = await client.get('/api/user');
+      const userData = await response.json();
+      setUser(userData);
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchRecommendedPlan = async () => {
+      if (user) {
+        const input: RecommendationEngineInput = {
+          userBehavior: {
+            completedLessons: userProgress.completedLessons,
+            totalLessons: userProgress.totalLessons,
+            progressPercentage: userProgress.progressPercentage,
+          },
+          userPreferences: {
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
+          },
+        };
+        const output = await recommendationEngine(input);
         setRecommendedPlan(output.recommendedPlan);
-        setPersonalizedPlan(output.recommendationReason);
-      };
-      predict();
-    }
-  }, [machineLearningModelLoaded, userProgress, user]);
+      }
+    };
+    fetchRecommendedPlan();
+  }, [user, userProgress]);
+
+  useEffect(() => {
+    const fetchPersonalizedPlan = async () => {
+      if (user && mlModel) {
+        const input: RecommendationEngineInput = {
+          userBehavior: {
+            completedLessons: userProgress.completedLessons,
+            totalLessons: userProgress.totalLessons,
+            progressPercentage: userProgress.progressPercentage,
+          },
+          userPreferences: {
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
+          },
+        };
+        const output = await mlModel.predict(input);
+        setPersonalizedPlan(output);
+      }
+    };
+    fetchPersonalizedPlan();
+  }, [user, mlModel, userProgress]);
 
   return (
     <DashboardLayout>
@@ -172,6 +203,12 @@ const Page = () => {
       <ProgressCard progress={userProgress} />
       <CommunityCard />
       <ResourceCard />
+      {machineLearningModelLoaded && (
+        <div>
+          <h2>Personalized Learning Plan</h2>
+          <p>{personalizedPlan}</p>
+        </div>
+      )}
     </DashboardLayout>
   );
 };

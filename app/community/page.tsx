@@ -74,6 +74,8 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
     });
 
@@ -81,7 +83,9 @@ export default function CommunityPage() {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.authorId === user?.id;
+        return post.userId === user?.id;
+      } else {
+        return false;
       }
     });
 
@@ -95,10 +99,11 @@ export default function CommunityPage() {
 
     if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
         .then(response => {
           const newPosts = response.data;
           setPosts([...posts, ...newPosts]);
+          setPageNumber(pageNumber + 1);
           setHasMorePosts(newPosts.length === postsPerPage);
           setLoadingMorePosts(false);
         })
@@ -111,8 +116,10 @@ export default function CommunityPage() {
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, posts]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
 
-  // Rest of your code...
+  // ... rest of the code remains the same ...
 }
