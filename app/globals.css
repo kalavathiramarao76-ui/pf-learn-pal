@@ -50,21 +50,27 @@ body {
   line-height: var(--line-height);
   color: var(--text-color);
   background-color: var(--background-color);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-size: calc(var(--font-size-base) * var(--font-size-ratio));
   margin-bottom: 0.5em;
+  font-weight: var(--font-weight-bold);
 }
 
 p {
   font-size: var(--font-size-base);
   margin-bottom: 1em;
+  font-weight: var(--font-weight-normal);
 }
 
 a {
   color: var(--link-color);
   text-decoration: none;
+  transition: color 0.2s ease-in-out;
 }
 
 a:hover {
@@ -78,6 +84,7 @@ button {
   padding: 0.5em 1em;
   font-size: var(--font-size-base);
   cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
 }
 
 button:hover {
@@ -121,4 +128,12 @@ small {
   --focus-box-shadow: var(--high-contrast-focus-box-shadow);
   --font-weight-normal: var(--high-contrast-font-weight-normal);
   --font-weight-bold: var(--high-contrast-font-weight-bold);
+}
+
+.high-contrast-mode h1, .high-contrast-mode h2, .high-contrast-mode h3, .high-contrast-mode h4, .high-contrast-mode h5, .high-contrast-mode h6 {
+  font-weight: var(--high-contrast-font-weight-bold);
+}
+
+.high-contrast-mode p {
+  font-weight: var(--high-contrast-font-weight-normal);
 }

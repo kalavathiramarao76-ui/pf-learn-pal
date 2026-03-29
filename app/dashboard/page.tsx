@@ -116,16 +116,20 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
     input.userBehavior.progressPercentage,
     input.userPreferences.learningStyle === 'visual' ? 1 : 0,
     input.userPreferences.learningStyle === 'auditory' ? 1 : 0,
-    // input.userPreferences.learningStyle
+    input.userPreferences.learningStyle === 'kinesthetic' ? 1 : 0,
+    input.userPreferences.knowledgeLevel === 'beginner' ? 1 : 0,
+    input.userPreferences.knowledgeLevel === 'intermediate' ? 1 : 0,
+    input.userPreferences.knowledgeLevel === 'advanced' ? 1 : 0,
+    input.userPreferences.goals === 'short-term' ? 1 : 0,
+    input.userPreferences.goals === 'long-term' ? 1 : 0,
   ]]);
   const output = mlModel.predict(userInput);
   const plan = await getPlanFromOutput(output);
-  return { recommendedPlan: plan, recommendationReason: 'Based on user behavior and preferences' };
+  const reason = `Based on your learning style, knowledge level, and goals, we recommend ${plan} for you.`;
+  return { recommendedPlan: plan, recommendationReason: reason };
 };
 
 const Page = () => {
-  const router = useRouter();
-  const pathname = usePathname();
   const [user, setUser] = useState(cache.user);
   const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
   const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
@@ -136,18 +140,46 @@ const Page = () => {
   const [userFeedback, setUserFeedback] = useState(cache.userFeedback);
   const [upcomingLessons, setUpcomingLessons] = useState(cache.upcomingLessons);
   const [reminders, setReminders] = useState(cache.reminders);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const loadModel = async () => {
-      await loadMachineLearningModel();
+    const fetchUser = async () => {
+      const response = await client.get('/api/user');
+      const userData = await response.json();
+      setUser(userData);
+      cache.user = userData;
     };
-    loadModel();
+    fetchUser();
   }, []);
+
+  useEffect(() => {
+    const fetchRecommendedPlan = async () => {
+      if (user) {
+        const input: RecommendationEngineInput = {
+          userBehavior: {
+            completedLessons: userProgress?.completedLessons || 0,
+            totalLessons: userProgress?.totalLessons || 0,
+            progressPercentage: userProgress?.progressPercentage || 0,
+          },
+          userPreferences: {
+            learningStyle: user.learningStyle,
+            knowledgeLevel: user.knowledgeLevel,
+            goals: user.goals,
+          },
+        };
+        const output = await recommendationEngine(input);
+        setRecommendedPlan(output.recommendedPlan);
+        cache.recommendedPlan = output.recommendedPlan;
+      }
+    };
+    fetchRecommendedPlan();
+  }, [user, userProgress]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard />
-      <ProgressCard />
+      <StudyPlanCard plan={recommendedPlan} />
+      <ProgressCard progress={userProgress} />
       <CommunityCard />
       <ResourceCard />
     </DashboardLayout>
