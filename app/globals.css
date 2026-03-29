@@ -130,10 +130,16 @@ small {
   --font-weight-bold: var(--high-contrast-font-weight-bold);
 }
 
-.high-contrast-mode h1, .high-contrast-mode h2, .high-contrast-mode h3, .high-contrast-mode h4, .high-contrast-mode h5, .high-contrast-mode h6 {
-  font-weight: var(--high-contrast-font-weight-bold);
+button:focus, a:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
 }
 
-.high-contrast-mode p {
-  font-weight: var(--high-contrast-font-weight-normal);
+[tabindex]:focus {
+  outline: none;
+  box-shadow: var(--focus-box-shadow);
+}
+
+[tabindex] {
+  outline: none;
 }

@@ -98,6 +98,11 @@ const loadMachineLearningModel = async () => {
       }
     });
     cache.mlModel = model;
+    // Optimize model loading by caching it in local storage
+    localStorage.setItem('mlModel', JSON.stringify(model));
+  } else if (localStorage.getItem('mlModel')) {
+    // Load model from local storage if it exists
+    cache.mlModel = JSON.parse(localStorage.getItem('mlModel'));
   }
   return cache.mlModel;
 };
@@ -125,11 +130,16 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
   ]]);
   const output = mlModel.predict(userInput);
   const plan = await getPlanFromOutput(output);
-  const reason = `Based on your learning style, knowledge level, and goals, we recommend ${plan} for you.`;
-  return { recommendedPlan: plan, recommendationReason: reason };
+  return {
+    recommendedPlan: plan,
+    recommendationReason: `Based on your learning style, knowledge level, and goals, we recommend ${plan}.`,
+  };
 };
 
 const Page = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [user, setUser] = useState(cache.user);
   const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
   const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
@@ -140,8 +150,6 @@ const Page = () => {
   const [userFeedback, setUserFeedback] = useState(cache.userFeedback);
   const [upcomingLessons, setUpcomingLessons] = useState(cache.upcomingLessons);
   const [reminders, setReminders] = useState(cache.reminders);
-  const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -155,31 +163,98 @@ const Page = () => {
 
   useEffect(() => {
     const fetchRecommendedPlan = async () => {
-      if (user) {
-        const input: RecommendationEngineInput = {
-          userBehavior: {
-            completedLessons: userProgress?.completedLessons || 0,
-            totalLessons: userProgress?.totalLessons || 0,
-            progressPercentage: userProgress?.progressPercentage || 0,
-          },
-          userPreferences: {
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
-          },
-        };
-        const output = await recommendationEngine(input);
-        setRecommendedPlan(output.recommendedPlan);
-        cache.recommendedPlan = output.recommendedPlan;
-      }
+      const response = await client.get('/api/recommended-plan');
+      const recommendedPlanData = await response.json();
+      setRecommendedPlan(recommendedPlanData);
+      cache.recommendedPlan = recommendedPlanData;
     };
     fetchRecommendedPlan();
-  }, [user, userProgress]);
+  }, []);
+
+  useEffect(() => {
+    const fetchPersonalizedPlan = async () => {
+      const response = await client.get('/api/personalized-plan');
+      const personalizedPlanData = await response.json();
+      setPersonalizedPlan(personalizedPlanData);
+      cache.personalizedPlan = personalizedPlanData;
+    };
+    fetchPersonalizedPlan();
+  }, []);
+
+  useEffect(() => {
+    const fetchCustomizedPlan = async () => {
+      const response = await client.get('/api/customized-plan');
+      const customizedPlanData = await response.json();
+      setCustomizedPlan(customizedPlanData);
+      cache.customizedPlan = customizedPlanData;
+    };
+    fetchCustomizedPlan();
+  }, []);
+
+  useEffect(() => {
+    const fetchStudyPlanOptions = async () => {
+      const response = await client.get('/api/study-plan-options');
+      const studyPlanOptionsData = await response.json();
+      setStudyPlanOptions(studyPlanOptionsData);
+      cache.studyPlanOptions = studyPlanOptionsData;
+    };
+    fetchStudyPlanOptions();
+  }, []);
+
+  useEffect(() => {
+    const fetchLearningPlanRecommendations = async () => {
+      const response = await client.get('/api/learning-plan-recommendations');
+      const learningPlanRecommendationsData = await response.json();
+      setLearningPlanRecommendations(learningPlanRecommendationsData);
+      cache.learningPlanRecommendations = learningPlanRecommendationsData;
+    };
+    fetchLearningPlanRecommendations();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserProgress = async () => {
+      const response = await client.get('/api/user-progress');
+      const userProgressData = await response.json();
+      setUserProgress(userProgressData);
+      cache.userProgress = userProgressData;
+    };
+    fetchUserProgress();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserFeedback = async () => {
+      const response = await client.get('/api/user-feedback');
+      const userFeedbackData = await response.json();
+      setUserFeedback(userFeedbackData);
+      cache.userFeedback = userFeedbackData;
+    };
+    fetchUserFeedback();
+  }, []);
+
+  useEffect(() => {
+    const fetchUpcomingLessons = async () => {
+      const response = await client.get('/api/upcoming-lessons');
+      const upcomingLessonsData = await response.json();
+      setUpcomingLessons(upcomingLessonsData);
+      cache.upcomingLessons = upcomingLessonsData;
+    };
+    fetchUpcomingLessons();
+  }, []);
+
+  useEffect(() => {
+    const fetchReminders = async () => {
+      const response = await client.get('/api/reminders');
+      const remindersData = await response.json();
+      setReminders(remindersData);
+      cache.reminders = remindersData;
+    };
+    fetchReminders();
+  }, []);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard plan={recommendedPlan} />
-      <ProgressCard progress={userProgress} />
+      <StudyPlanCard studyPlan={recommendedPlan} />
+      <ProgressCard userProgress={userProgress} />
       <CommunityCard />
       <ResourceCard />
     </DashboardLayout>
