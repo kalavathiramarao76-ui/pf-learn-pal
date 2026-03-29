@@ -92,9 +92,11 @@ interface RecommendationEngineOutput {
 
 const loadMachineLearningModel = async () => {
   if (!cache.mlModel) {
-    const model = await tf.loadLayersModel('https://example.com/model.json', { onProgress: (fraction) => {
-      console.log(`Loading model: ${fraction * 100}%`);
-    }});
+    const model = await tf.loadLayersModel('https://example.com/model.json', { 
+      onProgress: (fraction) => {
+        console.log(`Loading model: ${fraction * 100}%`);
+      }
+    });
     cache.mlModel = model;
   }
   return cache.mlModel;
@@ -114,7 +116,7 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
     input.userBehavior.progressPercentage,
     input.userPreferences.learningStyle === 'visual' ? 1 : 0,
     input.userPreferences.learningStyle === 'auditory' ? 1 : 0,
-    input.userPreferences.learningStyle === 'kinesthetic' ? 1 : 0,
+    // input.userPreferences.learningStyle
   ]]);
   const output = mlModel.predict(userInput);
   const plan = await getPlanFromOutput(output);
@@ -137,9 +139,7 @@ const Page = () => {
 
   useEffect(() => {
     const loadModel = async () => {
-      if (!cache.mlModel) {
-        await loadMachineLearningModel();
-      }
+      await loadMachineLearningModel();
     };
     loadModel();
   }, []);

@@ -79,24 +79,24 @@ export default function CommunityPage() {
       }
     });
 
-    const filteredSorted = sorted.filter((post) => {
+    const filteredBy = sorted.filter((post) => {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
         return post.author.id === user?.id;
       } else {
-        return false;
+        return post.category === filterBy;
       }
     });
 
-    setFilteredPosts(filteredSorted);
+    setFilteredPosts(filteredBy);
   }, [posts, searchQuery, sortOrder, filterBy, user]);
 
   const handleScroll = () => {
-    const scrollPosition = window.scrollY + window.innerHeight;
-    const documentHeight = document.body.offsetHeight;
-
-    if (scrollPosition >= documentHeight * 0.8 && hasMorePosts && !loadingMorePosts) {
+    const scrollHeight = document.body.scrollHeight;
+    const scrollTop = document.body.scrollTop;
+    const clientHeight = document.body.clientHeight;
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
       axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
         .then((response) => {
