@@ -74,22 +74,18 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
-      } else {
-        return 0;
       }
     });
 
-    const filteredBy = sorted.filter((post) => {
+    const filteredSorted = sorted.filter((post) => {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
         return post.author.id === user?.id;
-      } else {
-        return false;
       }
     });
 
-    setFilteredPosts(filteredBy);
+    setFilteredPosts(filteredSorted);
   }, [posts, searchQuery, sortOrder, filterBy, user]);
 
   const handleScroll = () => {
@@ -99,16 +95,17 @@ export default function CommunityPage() {
 
     if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
         .then(response => {
-          const newPosts = response.data;
-          setPosts([...posts, ...newPosts]);
-          setPageNumber(pageNumber + 1);
-          setHasMorePosts(newPosts.length === postsPerPage);
-          setLoadingMorePosts(false);
+          if (response.data.length < postsPerPage) {
+            setHasMorePosts(false);
+          }
+          setPosts([...posts, ...response.data]);
         })
         .catch(error => {
           console.error(error);
+        })
+        .finally(() => {
           setLoadingMorePosts(false);
         });
     }
@@ -116,12 +113,14 @@ export default function CommunityPage() {
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMorePosts, loadingMorePosts, posts]);
 
   return (
-    <div>
-      {/* existing JSX code */}
-    </div>
+    <Box>
+      {/* existing JSX content */}
+    </Box>
   );
 }

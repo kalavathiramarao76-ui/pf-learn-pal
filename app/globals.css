@@ -116,7 +116,7 @@ small {
   --focus-box-shadow: var(--dark-focus-box-shadow);
 }
 
-.high-contrast {
+.high-contrast-mode {
   --text-color: var(--high-contrast-text-color);
   --background-color: var(--high-contrast-background-color);
   --link-color: var(--high-contrast-link-color);
@@ -128,36 +128,4 @@ small {
   --focus-box-shadow: var(--high-contrast-focus-box-shadow);
   --font-weight-normal: var(--high-contrast-font-weight-normal);
   --font-weight-bold: var(--high-contrast-font-weight-bold);
-}
-
-body.dark-mode {
-  color: var(--dark-text-color);
-  background-color: var(--dark-background-color);
-}
-
-body.high-contrast {
-  color: var(--high-contrast-text-color);
-  background-color: var(--high-contrast-background-color);
-}
-
-.dark-mode-toggle {
-  position: absolute;
-  top: 1em;
-  right: 1em;
-  background-color: var(--button-color);
-  color: var(--text-color);
-  border: none;
-  padding: 0.5em 1em;
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.dark-mode-toggle:hover {
-  background-color: var(--button-hover-color);
-}
-
-.dark-mode-toggle:focus {
-  outline: none;
-  box-shadow: var(--focus-box-shadow);
 }
