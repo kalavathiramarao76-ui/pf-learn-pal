@@ -90,6 +90,20 @@ interface RecommendationEngineOutput {
   recommendationReason: string;
 }
 
+const loadMachineLearningModel = async () => {
+  if (!cache.mlModel) {
+    const model = await tf.loadLayersModel('https://example.com/model.json');
+    cache.mlModel = model;
+  }
+  return cache.mlModel;
+};
+
+const getPlanFromOutput = async (output: tf.Tensor) => {
+  const planIndex = tf.argMax(output, 1).dataSync()[0];
+  const plans = ['Plan A', 'Plan B', 'Plan C'];
+  return plans[planIndex];
+};
+
 const recommendationEngine = async (input: RecommendationEngineInput): Promise<RecommendationEngineOutput> => {
   const mlModel = await loadMachineLearningModel();
   const userInput = tf.tensor2d([[
@@ -111,27 +125,6 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
   };
 };
 
-const loadMachineLearningModel = async () => {
-  if (cache.machineLearningModel) {
-    return cache.machineLearningModel;
-  }
-  const model = await tf.loadLayersModel('https://example.com/model.json');
-  cache.machineLearningModel = model;
-  return model;
-};
-
-const getPlanFromOutput = async (output: tf.Tensor2D) => {
-  const planNames = ['Foundational Plan', 'Intermediate Plan', 'Advanced Plan'];
-  const planIndex = tf.argMax(output, 1).dataSync()[0];
-  return planNames[planIndex];
-};
-
-const machineLearningModel = async () => {
-  // Load the machine learning model
-  const model = await loadMachineLearningModel();
-  return model;
-};
-
 const Page = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -147,23 +140,23 @@ const Page = () => {
   const [reminders, setReminders] = useState(cache.reminders);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const response = await client.get('/api/user');
-      const userData = await response.json();
+    const fetchUserData = async () => {
+      const response = await client.get('/user');
+      const userData = response.data;
       setUser(userData);
       cache.user = userData;
     };
-    fetchUser();
+    fetchUserData();
   }, []);
 
   useEffect(() => {
-    const fetchRecommendedPlan = async () => {
-      if (user) {
+    if (user) {
+      const fetchRecommendedPlan = async () => {
         const input: RecommendationEngineInput = {
           userBehavior: {
-            completedLessons: user.completedLessons,
-            totalLessons: user.totalLessons,
-            progressPercentage: user.progressPercentage,
+            completedLessons: userProgress?.completedLessons || 0,
+            totalLessons: userProgress?.totalLessons || 0,
+            progressPercentage: userProgress?.progressPercentage || 0,
           },
           userPreferences: {
             learningStyle: user.learningStyle,
@@ -174,17 +167,34 @@ const Page = () => {
         const output = await recommendationEngine(input);
         setRecommendedPlan(output.recommendedPlan);
         cache.recommendedPlan = output.recommendedPlan;
-      }
-    };
-    fetchRecommendedPlan();
-  }, [user]);
+      };
+      fetchRecommendedPlan();
+    }
+  }, [user, userProgress]);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard plan={recommendedPlan} />
-      <ProgressCard progress={userProgress} />
-      <CommunityCard />
-      <ResourceCard />
+      <StudyPlanCard
+        title="Recommended Plan"
+        description={recommendedPlan}
+        link="/study-plan"
+      />
+      <ProgressCard
+        title="User Progress"
+        completedLessons={userProgress?.completedLessons || 0}
+        totalLessons={userProgress?.totalLessons || 0}
+        progressPercentage={userProgress?.progressPercentage || 0}
+      />
+      <CommunityCard
+        title="Community"
+        description="Join our community to connect with other learners"
+        link="/community"
+      />
+      <ResourceCard
+        title="Resources"
+        description="Access additional resources to support your learning"
+        link="/resources"
+      />
     </DashboardLayout>
   );
 };
