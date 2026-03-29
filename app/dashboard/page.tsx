@@ -98,11 +98,33 @@ const loadMachineLearningModel = async () => {
       }
     });
     cache.mlModel = model;
-    // Optimize model loading by caching it in local storage
-    localStorage.setItem('mlModel', JSON.stringify(model));
+    // Optimize model loading by caching it in local storage with a version number
+    const modelVersion = '1.0';
+    const cachedModel = {
+      version: modelVersion,
+      model: model.toJSON(),
+    };
+    localStorage.setItem('mlModel', JSON.stringify(cachedModel));
   } else if (localStorage.getItem('mlModel')) {
-    // Load model from local storage if it exists
-    cache.mlModel = JSON.parse(localStorage.getItem('mlModel'));
+    // Load model from local storage if it exists and is up-to-date
+    const cachedModel = JSON.parse(localStorage.getItem('mlModel'));
+    const modelVersion = '1.0';
+    if (cachedModel.version === modelVersion) {
+      cache.mlModel = tf.loadLayersModel(cachedModel.model);
+    } else {
+      // If the model is outdated, reload it and update the cache
+      const model = await tf.loadLayersModel('https://example.com/model.json', { 
+        onProgress: (fraction) => {
+          console.log(`Loading model: ${fraction * 100}%`);
+        }
+      });
+      cache.mlModel = model;
+      const cachedModel = {
+        version: modelVersion,
+        model: model.toJSON(),
+      };
+      localStorage.setItem('mlModel', JSON.stringify(cachedModel));
+    }
   }
   return cache.mlModel;
 };
@@ -125,9 +147,7 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
     input.userPreferences.knowledgeLevel === 'beginner' ? 1 : 0,
     input.userPreferences.knowledgeLevel === 'intermediate' ? 1 : 0,
     input.userPreferences.knowledgeLevel === 'advanced' ? 1 : 0,
-    input.userPreferences.goals === 'short-term' ? 1 : 0,
-    input.userPreferences.goals === 'long-term' ? 1 : 0,
-  ]]);
+  ]], [1, 9]);
   const output = mlModel.predict(userInput);
   const plan = await getPlanFromOutput(output);
   return {
@@ -136,10 +156,9 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
   };
 };
 
-const Page = () => {
+export default function Page() {
   const router = useRouter();
   const pathname = usePathname();
-
   const [user, setUser] = useState(cache.user);
   const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
   const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
@@ -253,12 +272,10 @@ const Page = () => {
 
   return (
     <DashboardLayout>
-      <StudyPlanCard studyPlan={recommendedPlan} />
-      <ProgressCard userProgress={userProgress} />
+      <StudyPlanCard plan={recommendedPlan} />
+      <ProgressCard progress={userProgress} />
       <CommunityCard />
       <ResourceCard />
     </DashboardLayout>
   );
-};
-
-export default Page;
+}

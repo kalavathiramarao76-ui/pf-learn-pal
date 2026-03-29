@@ -116,7 +116,7 @@ small {
   --focus-box-shadow: var(--dark-focus-box-shadow);
 }
 
-.high-contrast-mode {
+.high-contrast {
   --text-color: var(--high-contrast-text-color);
   --background-color: var(--high-contrast-background-color);
   --link-color: var(--high-contrast-link-color);
@@ -130,16 +130,34 @@ small {
   --font-weight-bold: var(--high-contrast-font-weight-bold);
 }
 
-button:focus, a:focus {
-  outline: none;
-  box-shadow: var(--focus-box-shadow);
+body.dark-mode {
+  color: var(--dark-text-color);
+  background-color: var(--dark-background-color);
 }
 
-[tabindex]:focus {
-  outline: none;
-  box-shadow: var(--focus-box-shadow);
+body.high-contrast {
+  color: var(--high-contrast-text-color);
+  background-color: var(--high-contrast-background-color);
 }
 
-[tabindex] {
+.dark-mode-toggle {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  background-color: var(--button-color);
+  color: var(--text-color);
+  border: none;
+  padding: 0.5em 1em;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.dark-mode-toggle:hover {
+  background-color: var(--button-hover-color);
+}
+
+.dark-mode-toggle:focus {
   outline: none;
+  box-shadow: var(--focus-box-shadow);
 }

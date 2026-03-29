@@ -74,6 +74,8 @@ export default function CommunityPage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       } else if (sortOrder === 'oldest') {
         return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return 0;
       }
     });
 
@@ -81,7 +83,9 @@ export default function CommunityPage() {
       if (filterBy === 'all') {
         return true;
       } else if (filterBy === 'mine') {
-        return post.authorId === user?.id;
+        return post.author.id === user?.id;
+      } else {
+        return false;
       }
     });
 
@@ -92,20 +96,18 @@ export default function CommunityPage() {
     const scrollHeight = document.body.scrollHeight;
     const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
-    if (scrollTop + clientHeight >= scrollHeight * 0.9 && !loadingMorePosts && hasMorePosts) {
+
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
       setLoadingMorePosts(true);
-      axios.get(`/api/posts?lastPostId=${lastPostId}&pageNumber=${pageNumber + 1}&postsPerPage=${postsPerPage}`)
-        .then((response) => {
+      axios.get(`/api/posts?limit=${postsPerPage}&offset=${pageNumber * postsPerPage}`)
+        .then(response => {
           const newPosts = response.data;
           setPosts([...posts, ...newPosts]);
-          setLastPostId(newPosts[newPosts.length - 1].id);
           setPageNumber(pageNumber + 1);
+          setHasMorePosts(newPosts.length === postsPerPage);
           setLoadingMorePosts(false);
-          if (newPosts.length < postsPerPage) {
-            setHasMorePosts(false);
-          }
         })
-        .catch((error) => {
+        .catch(error => {
           console.error(error);
           setLoadingMorePosts(false);
         });
@@ -115,9 +117,11 @@ export default function CommunityPage() {
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastPostId, pageNumber, postsPerPage, loadingMorePosts, hasMorePosts]);
+  }, [hasMorePosts, loadingMorePosts, pageNumber, postsPerPage]);
 
   return (
-    // rest of the code remains the same
+    <div>
+      {/* existing JSX code */}
+    </div>
   );
 }
