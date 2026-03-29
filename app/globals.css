@@ -109,6 +109,20 @@ small {
   --focus-box-shadow: var(--dark-focus-box-shadow);
 }
 
+.high-contrast-mode {
+  --text-color: var(--high-contrast-text-color);
+  --background-color: var(--high-contrast-background-color);
+  --link-color: var(--high-contrast-link-color);
+  --link-hover-color: var(--high-contrast-link-hover-color);
+  --button-color: var(--high-contrast-button-color);
+  --button-hover-color: var(--high-contrast-button-hover-color);
+  --focus-color: var(--high-contrast-focus-color);
+  --focus-background-color: var(--high-contrast-focus-background-color);
+  --focus-box-shadow: var(--high-contrast-focus-box-shadow);
+  --font-weight-normal: var(--high-contrast-font-weight-normal);
+  --font-weight-bold: var(--high-contrast-font-weight-bold);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --text-color: var(--dark-text-color);

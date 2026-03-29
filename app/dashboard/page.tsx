@@ -115,8 +115,6 @@ const recommendationEngine = async (input: RecommendationEngineInput): Promise<R
     input.userPreferences.learningStyle === 'visual' ? 1 : 0,
     input.userPreferences.learningStyle === 'auditory' ? 1 : 0,
     input.userPreferences.learningStyle === 'kinesthetic' ? 1 : 0,
-    input.userPreferences.knowledgeLevel === 'beginner' ? 1 : 0,
-    // Add other features as needed
   ]]);
   const output = mlModel.predict(userInput);
   const plan = await getPlanFromOutput(output);
@@ -138,42 +136,18 @@ const Page = () => {
   const [reminders, setReminders] = useState(cache.reminders);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const response = await client.get('/api/user');
-      const userData = response.data;
-      setUser(userData);
-      cache.user = userData;
-    };
-    loadUser();
-  }, []);
-
-  useEffect(() => {
-    const loadRecommendedPlan = async () => {
-      if (user) {
-        const input: RecommendationEngineInput = {
-          userBehavior: {
-            completedLessons: user.completedLessons,
-            totalLessons: user.totalLessons,
-            progressPercentage: user.progressPercentage,
-          },
-          userPreferences: {
-            learningStyle: user.learningStyle,
-            knowledgeLevel: user.knowledgeLevel,
-            goals: user.goals,
-          },
-        };
-        const output = await recommendationEngine(input);
-        setRecommendedPlan(output.recommendedPlan);
-        cache.recommendedPlan = output.recommendedPlan;
+    const loadModel = async () => {
+      if (!cache.mlModel) {
+        await loadMachineLearningModel();
       }
     };
-    loadRecommendedPlan();
-  }, [user]);
+    loadModel();
+  }, []);
 
   return (
     <DashboardLayout>
-      <StudyPlanCard plan={recommendedPlan} />
-      <ProgressCard progress={userProgress} />
+      <StudyPlanCard />
+      <ProgressCard />
       <CommunityCard />
       <ResourceCard />
     </DashboardLayout>
