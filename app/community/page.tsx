@@ -90,22 +90,34 @@ export default function CommunityPage() {
 
   const handleScroll = () => {
     const scrollHeight = document.body.scrollHeight;
-    const scrollTop = document.body.scrollTop;
     const clientHeight = document.body.clientHeight;
+    const scrollTop = document.body.scrollTop;
+    if (scrollTop + clientHeight >= scrollHeight * 0.9 && !loadingMorePosts && hasMorePosts) {
+      loadMorePosts();
+    }
+  };
 
-    if (scrollTop + clientHeight >= scrollHeight * 0.9 && hasMorePosts && !loadingMorePosts) {
-      setLoadingMorePosts(true);
-      axios.get(`/api/posts?limit=${postsPerPage}&offset=${posts.length}`)
-        .then(response => {
-          const newPosts = response.data;
-          setPosts([...posts, ...newPosts]);
-          setHasMorePosts(newPosts.length === postsPerPage);
-          setLoadingMorePosts(false);
-        })
-        .catch(error => {
-          console.error(error);
-          setLoadingMorePosts(false);
-        });
+  const loadMorePosts = async () => {
+    setLoadingMorePosts(true);
+    try {
+      const response = await axios.get('/api/posts', {
+        params: {
+          pageNumber: pageNumber + 1,
+          postsPerPage,
+          lastPostId,
+        },
+      });
+      const newPosts = response.data;
+      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
+      setPageNumber((prevPageNumber) => prevPageNumber + 1);
+      setLastPostId(newPosts[newPosts.length - 1].id);
+      if (newPosts.length < postsPerPage) {
+        setHasMorePosts(false);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingMorePosts(false);
     }
   };
 
@@ -114,7 +126,11 @@ export default function CommunityPage() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [hasMorePosts, loadingMorePosts, posts]);
+  }, [loadingMorePosts, hasMorePosts]);
 
-  // Rest of your code...
+  return (
+    <div>
+      {/* existing JSX code */}
+    </div>
+  );
 }

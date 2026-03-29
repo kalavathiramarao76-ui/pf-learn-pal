@@ -117,7 +117,7 @@ const machineLearningModel = async () => {
   return model;
 };
 
-const App = () => {
+const Page = () => {
   const [user, setUser] = useState(cache.user);
   const [recommendedPlan, setRecommendedPlan] = useState(cache.recommendedPlan);
   const [personalizedPlan, setPersonalizedPlan] = useState(cache.personalizedPlan);
@@ -130,153 +130,68 @@ const App = () => {
   const [reminders, setReminders] = useState(cache.reminders);
   const [aiModel, setAiModel] = useState(cache.aiModel);
   const [mlModel, setMlModel] = useState(cache.mlModel);
-  const [machineLearningModelInstance, setMachineLearningModelInstance] = useState(cache.machineLearningModel);
+  const [machineLearningModelLoaded, setMachineLearningModelLoaded] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const response = await client.get('/api/user');
-      const userData = await response.json();
-      setUser(userData);
-    };
-
-    const fetchRecommendedPlan = async () => {
-      const response = await client.get('/api/recommended-plan');
-      const recommendedPlanData = await response.json();
-      setRecommendedPlan(recommendedPlanData);
-    };
-
-    const fetchPersonalizedPlan = async () => {
-      const response = await client.get('/api/personalized-plan');
-      const personalizedPlanData = await response.json();
-      setPersonalizedPlan(personalizedPlanData);
-    };
-
-    const fetchCustomizedPlan = async () => {
-      const response = await client.get('/api/customized-plan');
-      const customizedPlanData = await response.json();
-      setCustomizedPlan(customizedPlanData);
-    };
-
-    const fetchStudyPlanOptions = async () => {
-      const response = await client.get('/api/study-plan-options');
-      const studyPlanOptionsData = await response.json();
-      setStudyPlanOptions(studyPlanOptionsData);
-    };
-
-    const fetchLearningPlanRecommendations = async () => {
-      const response = await client.get('/api/learning-plan-recommendations');
-      const learningPlanRecommendationsData = await response.json();
-      setLearningPlanRecommendations(learningPlanRecommendationsData);
-    };
-
-    const fetchUserProgress = async () => {
-      const response = await client.get('/api/user-progress');
-      const userProgressData = await response.json();
-      setUserProgress(userProgressData);
-    };
-
-    const fetchUserFeedback = async () => {
-      const response = await client.get('/api/user-feedback');
-      const userFeedbackData = await response.json();
-      setUserFeedback(userFeedbackData);
-    };
-
-    const fetchUpcomingLessons = async () => {
-      const response = await client.get('/api/upcoming-lessons');
-      const upcomingLessonsData = await response.json();
-      setUpcomingLessons(upcomingLessonsData);
-    };
-
-    const fetchReminders = async () => {
-      const response = await client.get('/api/reminders');
-      const remindersData = await response.json();
-      setReminders(remindersData);
-    };
-
     const loadMachineLearningModel = async () => {
       const model = await machineLearningModel();
-      setMachineLearningModelInstance(model);
+      setMlModel(model);
+      setMachineLearningModelLoaded(true);
     };
-
-    fetchUser();
-    fetchRecommendedPlan();
-    fetchPersonalizedPlan();
-    fetchCustomizedPlan();
-    fetchStudyPlanOptions();
-    fetchLearningPlanRecommendations();
-    fetchUserProgress();
-    fetchUserFeedback();
-    fetchUpcomingLessons();
-    fetchReminders();
     loadMachineLearningModel();
   }, []);
 
-  const getPersonalizedLearningPlanRecommendation = async () => {
-    const userBehavior = {
-      completedLessons: userProgress.completedLessons,
-      totalLessons: userProgress.totalLessons,
-      progressPercentage: userProgress.progressPercentage,
-    };
-
-    const userPreferences = {
-      learningStyle: user.learningStyle,
-      knowledgeLevel: user.knowledgeLevel,
-      goals: user.goals,
-    };
-
-    const input: RecommendationEngineInput = {
-      userBehavior,
-      userPreferences,
-    };
-
-    const recommendation = await recommendationEngine(input);
-    return recommendation;
-  };
-
-  const getMachineLearningModelRecommendation = async () => {
-    const userInput = tf.tensor2d([
-      userProgress.completedLessons,
-      userProgress.totalLessons,
-      userProgress.progressPercentage,
-      user.learningStyle === 'visual' ? 1 : 0,
-      user.learningStyle === 'auditory' ? 1 : 0,
-      user.learningStyle === 'kinesthetic' ? 1 : 0,
-      user.knowledgeLevel === 'beginner' ? 1 : 0,
-      user.knowledgeLevel === 'intermediate' ? 1 : 0,
-      user.knowledgeLevel === 'advanced' ? 1 : 0,
-    ]);
-
-    const output = machineLearningModelInstance.predict(userInput);
-    const recommendation = await output.data();
-    return recommendation;
-  };
+  useEffect(() => {
+    if (machineLearningModelLoaded) {
+      const input: RecommendationEngineInput = {
+        userBehavior: {
+          completedLessons: userProgress.completedLessons,
+          totalLessons: userProgress.totalLessons,
+          progressPercentage: userProgress.progressPercentage,
+        },
+        userPreferences: {
+          learningStyle: user.learningStyle,
+          knowledgeLevel: user.knowledgeLevel,
+          goals: user.goals,
+        },
+      };
+      const getRecommendation = async () => {
+        const recommendation = await recommendationEngine(input);
+        setRecommendedPlan(recommendation.recommendedPlan);
+        setPersonalizedPlan(recommendation.recommendationReason);
+      };
+      getRecommendation();
+    }
+  }, [machineLearningModelLoaded, userProgress, user]);
 
   return (
     <DashboardLayout>
       <StudyPlanCard
         title="Recommended Plan"
-        description={recommendedPlan.description}
-        link={recommendedPlan.link}
+        description={recommendedPlan}
+        link="/study-plan"
       />
       <ProgressCard
-        title="User Progress"
+        title="Your Progress"
         completedLessons={userProgress.completedLessons}
         totalLessons={userProgress.totalLessons}
         progressPercentage={userProgress.progressPercentage}
       />
-      <CommunityCard title="Community" />
-      <ResourceCard title="Resources" />
-      <button onClick={getPersonalizedLearningPlanRecommendation}>
-        Get Personalized Learning Plan Recommendation
-      </button>
-      <button onClick={getMachineLearningModelRecommendation}>
-        Get Machine Learning Model Recommendation
-      </button>
+      <CommunityCard
+        title="Join the Community"
+        description="Connect with other learners and get support"
+        link="/community"
+      />
+      <ResourceCard
+        title="Additional Resources"
+        description="Find more resources to help you learn"
+        link="/resources"
+      />
     </DashboardLayout>
   );
 };
 
-export default App;
+export default Page;
